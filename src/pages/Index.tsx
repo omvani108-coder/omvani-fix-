@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { MessageCircle, Music, Camera, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const fadeUp = {
@@ -128,16 +129,20 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Button variant="hero" size="lg" className="text-base px-8 py-6">
-              Start 7-Day Free Trial
-            </Button>
-            <Button
-              variant="hero-outline"
-              size="lg"
-              className="text-base px-8 py-6"
-            >
-              Learn More
-            </Button>
+            <Link to="/signup">
+              <Button variant="hero" size="lg" className="text-base px-8 py-6">
+                Start 7-Day Free Trial
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button
+                variant="hero-outline"
+                size="lg"
+                className="text-base px-8 py-6"
+              >
+                Sign In
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
