@@ -8,6 +8,7 @@ import {
   Sun,
   ScrollText,
   Swords,
+  CalendarCheck,
 } from "lucide-react";
 
 // ─── Features ────────────────────────────────────────────────────────────────
@@ -19,6 +20,15 @@ export const features = [
     description:
       "Ask any question about dharma, karma, or life — get accurate answers from the Gita, Vedas & Puranas with source shlokas.",
     tag: "Voice + Text · Hindi & English",
+    href: "/chat",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Puja Tracker",
+    description:
+      "Build a sacred daily routine. Track your morning puja step by step — light the deepak, chant mantras, offer flowers — and watch your streak grow.",
+    tag: "Daily Sadhana · Streak · Monthly View",
+    href: "/puja-tracker",
   },
   {
     icon: Music,
@@ -26,6 +36,7 @@ export const features = [
     description:
       "Curated library of sacred bhajans and mantras with lyrics, meanings, and soulful audio playback.",
     tag: "Audio · Lyrics · Meaning",
+    href: "/bhajans",
   },
   {
     icon: Camera,
@@ -33,6 +44,7 @@ export const features = [
     description:
       "Upload a photo of any deity, temple, or ritual — instantly identify it and learn the complete story behind it.",
     tag: "AI Vision · Instant ID",
+    href: "/identify",
   },
   {
     icon: MapPin,
@@ -40,6 +52,7 @@ export const features = [
     description:
       "Find temples near you with directions, timings, and details. Never miss darshan wherever you are.",
     tag: "GPS · Directions · Timings",
+    href: "/mandirs",
   },
 ] as const;
 
