@@ -209,24 +209,14 @@ const Index = () => (
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex justify-center"
         >
           <Link to="/chat">
             <Button
               size="lg"
-              className="text-base px-8 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300"
+              className="text-base px-10 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300"
             >
-              ॐ Talk to AI Guru
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button variant="hero" size="lg" className="text-base px-8 py-6">
-              Start 7-Day Free Trial
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="hero-outline" size="lg" className="text-base px-8 py-6">
-              Sign In
+              ॐ Talk to Guru
             </Button>
           </Link>
         </motion.div>
