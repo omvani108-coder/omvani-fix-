@@ -15,6 +15,7 @@ import Chat from "@/pages/chat/Chat";
 import Bhajans from "./pages/Bhajans";
 import Mandirs from "./pages/Mandirs";
 import Identify from "./pages/Identify";
+import PujaTracker from "./pages/PujaTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,10 +49,11 @@ const App = () => (
             <Route path="/scriptures" element={<Scriptures />} />
             <Route path="/mandirs" element={<Mandirs />} />
             <Route path="/identify" element={<Identify />} />
+            <Route path="/puja-tracker" element={<PujaTracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
-         <BottomNav />
+        <BottomNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
