@@ -79,7 +79,7 @@ Answer their question specifically in the context of this shloka. Be concise, wa
       }
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
-        toast.error("{t.chat.thinking}");
+        toast.error("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -540,7 +540,7 @@ export default function Scriptures() {
                 <p className="text-sm font-sans text-muted-foreground">
                   {searchQuery
                     ? isSearching
-                      ? {t.scriptures.searching}
+                      ? t.scriptures.searching
                       : `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${searchQuery}"`
                     : `${displayedShlokas.length} bookmarked shloka${displayedShlokas.length !== 1 ? "s" : ""}`
                   }
@@ -570,9 +570,9 @@ export default function Scriptures() {
                     </div>
                     <p className="text-muted-foreground font-sans text-sm">
                       {showBookmarks
-                        ? {t.scriptures.noBookmarks}
+                        ? t.scriptures.noBookmarks
                         : searchQuery
-                        ? {t.scriptures.noResults}
+                        ? t.scriptures.noResults
                         : "No shlokas available for this chapter yet."
                       }
                     </p>
