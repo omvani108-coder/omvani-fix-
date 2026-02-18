@@ -68,8 +68,9 @@ export function useChat(): UseChatReturn {
         method: "POST",
         signal: abortRef.current.signal,
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
+           "Content-Type": "application/json",
+  "Authorization": `Bearer ${supabaseKey}`,
+  "apikey": supabaseKey,
         },
         body: JSON.stringify({
           messages: [
