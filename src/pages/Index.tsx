@@ -93,7 +93,7 @@ function ShlokaCarousel() {
             <button
               onClick={handleToggle}
               disabled={isLoading}
-              aria-label={isPlaying ? {t.shloka.stop} : {t.shloka.listen}}
+              aria-label={isPlaying ? t.shloka.stop : t.shloka.listen}
               className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 focus-visible:ring-2 focus-visible:ring-accent-foreground flex items-center justify-center text-accent-foreground transition-colors disabled:opacity-50 ml-1"
             >
               {isLoading ? (
@@ -155,7 +155,9 @@ function ShlokaCarousel() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-const Index = () => (
+const Index = () => {
+  const { t } = useTranslations();
+  return (
   <div className="min-h-screen bg-background">
     <SeoHead />
     <Navbar />
@@ -459,7 +461,7 @@ const Index = () => (
               </ul>
               <Link to="/signup">
                 <Button variant={plan.popular ? "hero" : "outline"} size="lg" className="w-full">
-                  {plan.popular ? {t.home.startFreeTrial} : {t.home.getStarted}}
+                  {plan.popular ? t.home.startFreeTrial : t.home.getStarted}
                 </Button>
               </Link>
             </motion.div>
@@ -512,6 +514,7 @@ const Index = () => (
     </footer>
 
   </div>
-);
+  );
+};
 
 export default Index;
