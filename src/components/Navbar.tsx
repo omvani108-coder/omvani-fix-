@@ -4,29 +4,32 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslations } from "@/hooks/useTranslations";
 
-type NavLink = { label: string; href: string; isPage?: boolean };
-
-const navLinks: NavLink[] = [
-  { label: "Features",   href: "#features" },
-  { label: "Scriptures", href: "/scriptures", isPage: true },
-  { label: "Bhajans",    href: "/bhajans",    isPage: true },
-  { label: "Mandirs",    href: "/mandirs",    isPage: true },
-  { label: "Identify",   href: "/identify",   isPage: true },
-  { label: "Pricing",    href: "#pricing" },
-];
+type NavLink = { label: string; href: string; isPage?: boolean }
 
 const Navbar = () => {
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
-  const { user }                  = useAuth();
-  const navigate                  = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { user }                = useAuth();
+  const navigate                = useNavigate();
+  const { t }                   = useTranslations();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const navLinks: NavLink[] = [
+    { label: t.nav.features,   href: "#features" },
+    { label: t.nav.scriptures, href: "/scriptures", isPage: true },
+    { label: t.nav.bhajans,    href: "/bhajans",    isPage: true },
+    { label: t.nav.mandirs,    href: "/mandirs",    isPage: true },
+    { label: t.nav.identify,   href: "/identify",   isPage: true },
+    { label: t.nav.pricing,    href: "#pricing" },
+  ];
 
   const handleAnchor = (link: NavLink) => {
     setMenuOpen(false);
@@ -54,7 +57,7 @@ const Navbar = () => {
           <span className="text-gold-light text-base hidden sm:inline" aria-hidden="true">🪔</span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
           {navLinks.map((link) => (
             <button
@@ -69,50 +72,57 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-3">
-          {user ? (
-            <Button variant="hero" size="sm" onClick={() => navigate("/chat")}>
-              Open Chat
-            </Button>
-          ) : (
-            <>
-              <Link to="/login">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`font-sans ${
-                    scrolled
-                      ? "text-foreground hover:text-saffron"
-                      : "text-gold-light hover:text-gold-light/80"
-                  }`}
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button variant="hero" size="sm">
-                  Start Free Trial
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
+        {/* Right side — toggle always visible, auth buttons desktop only */}
+        <div className="flex items-center gap-3">
 
-        {/* Mobile hamburger — only shown on landing page (md:hidden) */}
-        <button
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          className={`md:hidden transition-colors ${
-            scrolled ? "text-foreground" : "text-gold-light"
-          }`}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen
-            ? <X className="w-6 h-6" aria-hidden="true" />
-            : <Menu className="w-6 h-6" aria-hidden="true" />
-          }
-        </button>
+          {/* Language toggle — shows on BOTH mobile and desktop */}
+          <LanguageToggle variant={scrolled ? "dark" : "light"} />
+
+          {/* Desktop auth buttons only */}
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <Button variant="hero" size="sm" onClick={() => navigate("/chat")}>
+                {t.nav.openChat}
+              </Button>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`font-sans ${
+                      scrolled
+                        ? "text-foreground hover:text-saffron"
+                        : "text-gold-light hover:text-gold-light/80"
+                    }`}
+                  >
+                    {t.nav.signIn}
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="hero" size="sm">
+                    {t.nav.startTrial}
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className={`md:hidden transition-colors ${
+              scrolled ? "text-foreground" : "text-gold-light"
+            }`}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen
+              ? <X className="w-6 h-6" aria-hidden="true" />
+              : <Menu className="w-6 h-6" aria-hidden="true" />
+            }
+          </button>
+        </div>
       </div>
 
       {/* Mobile dropdown menu */}
@@ -142,18 +152,18 @@ const Navbar = () => {
                     className="w-full"
                     onClick={() => { navigate("/chat"); setMenuOpen(false); }}
                   >
-                    Open Chat
+                    {t.nav.openChat}
                   </Button>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setMenuOpen(false)}>
                       <Button variant="outline" size="sm" className="w-full font-sans">
-                        Sign In
+                        {t.nav.signIn}
                       </Button>
                     </Link>
                     <Link to="/signup" onClick={() => setMenuOpen(false)}>
                       <Button variant="hero" size="sm" className="w-full">
-                        Start Free Trial
+                        {t.nav.startTrial}
                       </Button>
                     </Link>
                   </>
