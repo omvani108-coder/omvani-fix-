@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Flame, ChevronLeft, ChevronRight, RotateCcw, Info } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { SeoHead } from "@/components/SeoHead";
+import { useTranslations } from "@/hooks/useTranslations";
 import { fadeUp, defaultViewport } from "@/lib/animations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -25,64 +26,16 @@ interface MonthRecord {
 
 // ── Puja items list ───────────────────────────────────────────────────────────
 
-const PUJA_ITEMS: PujaItem[] = [
-  {
-    id: "snan",
-    emoji: "🪔",
-    name: "Morning Bath",
-    sanskrit: "प्रातः स्नान",
-    description: "Ritual purification before puja",
-  },
-  {
-    id: "deepak",
-    emoji: "🕯️",
-    name: "Light Deepak",
-    sanskrit: "दीप प्रज्वलन",
-    description: "Invoke the divine light",
-  },
-  {
-    id: "incense",
-    emoji: "🌿",
-    name: "Offer Incense",
-    sanskrit: "धूप अर्पण",
-    description: "Purify the space with fragrance",
-  },
-  {
-    id: "flowers",
-    emoji: "🌸",
-    name: "Offer Flowers",
-    sanskrit: "पुष्प अर्पण",
-    description: "Devotion through nature's beauty",
-  },
-  {
-    id: "mantra",
-    emoji: "📿",
-    name: "Chant Mantra",
-    sanskrit: "मंत्र जाप",
-    description: "108 repetitions of your chosen mantra",
-  },
-  {
-    id: "aarti",
-    emoji: "🔔",
-    name: "Perform Aarti",
-    sanskrit: "आरती",
-    description: "Wave the lamp before the deity",
-  },
-  {
-    id: "prasad",
-    emoji: "🍬",
-    name: "Offer Prasad",
-    sanskrit: "प्रसाद",
-    description: "Sacred food offered to the divine",
-  },
-  {
-    id: "meditation",
-    emoji: "🧘",
-    name: "Meditation",
-    sanskrit: "ध्यान",
-    description: "Sit in silence for 10+ minutes",
-  },
-];
+const PUJA_ITEM_BASE = [
+  { id: "snan",      emoji: "🪔",  sanskrit: "प्रातः स्नान" },
+  { id: "deepak",    emoji: "🕯️", sanskrit: "दीप प्रज्वलन" },
+  { id: "incense",   emoji: "🌿",  sanskrit: "धूप अर्पण" },
+  { id: "flowers",   emoji: "🌸",  sanskrit: "पुष्प अर्पण" },
+  { id: "mantra",    emoji: "📿",  sanskrit: "मंत्र जाप" },
+  { id: "aarti",     emoji: "🔔",  sanskrit: "आरती" },
+  { id: "prasad",    emoji: "🍬",  sanskrit: "प्रसाद" },
+  { id: "meditation",emoji: "🧘",  sanskrit: "ध्यान" },
+] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -306,6 +259,12 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PujaTracker() {
+  const { t } = useTranslations();
+  const PUJA_ITEMS: PujaItem[] = PUJA_ITEM_BASE.map(item => ({
+    ...item,
+    name: t.pujaItems[item.id as keyof typeof t.pujaItems].name,
+    description: t.pujaItems[item.id as keyof typeof t.pujaItems].description,
+  }));
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -420,7 +379,7 @@ export default function PujaTracker() {
             animate={{ opacity: 1, y: 0 }}
             className="text-saffron font-sans text-xs tracking-[0.28em] uppercase mb-3"
           >
-            🪔 Daily Sadhana
+            {t.puja.eyebrow}
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -436,7 +395,7 @@ export default function PujaTracker() {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground font-sans text-sm max-w-sm mx-auto"
           >
-            Build a sacred daily routine. Track each step of your puja for every day of the month.
+            {t.puja.subtitle}
           </motion.p>
         </div>
       </section>
@@ -461,15 +420,15 @@ export default function PujaTracker() {
           <div className="relative flex items-center justify-between">
             <div>
               <p className="text-white/70 font-sans text-xs tracking-widest uppercase mb-1">
-                Current Streak
+                {t.puja.streakLabel}
               </p>
               <div className="flex items-end gap-2">
                 <span className="text-5xl font-serif font-bold text-white leading-none">{streak}</span>
                 <span className="text-white/80 font-sans text-sm mb-1">
-                  {streak === 1 ? "day" : "days"}
+                  {streak === 1 ? t.puja.day : t.puja.days}
                 </span>
               </div>
-              <p className="text-white/70 font-sans text-xs mt-2">{streakMessage(streak)}</p>
+              <p className="text-white/70 font-sans text-xs mt-2">{t.puja.streakLabel}</p>
             </div>
 
             {/* Month summary pills */}
@@ -572,9 +531,9 @@ export default function PujaTracker() {
             {/* Legend */}
             <div className="flex items-center justify-center gap-5 mt-4 pt-3 border-t border-border">
               {[
-                { color: "bg-card border border-border", label: "Not started" },
-                { color: "bg-saffron/20", label: "Partial" },
-                { color: "bg-gold/20 border border-gold/40", label: "Complete" },
+                { color: "bg-card border border-border", label: {t.puja.notStarted} },
+                { color: "bg-saffron/20", label: {t.puja.partial} },
+                { color: "bg-gold/20 border border-gold/40", label: {t.puja.complete} },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div className={`w-3 h-3 rounded-sm ${color}`} />
@@ -604,7 +563,7 @@ export default function PujaTracker() {
                 )}
               </h3>
               <p className="text-muted-foreground font-sans text-xs mt-0.5">
-                {selectedChecked} of {PUJA_ITEMS.length} rituals completed
+                {selectedChecked} of {PUJA_ITEMS.length} {t.puja.ritualsCompleted}
               </p>
             </div>
 
@@ -612,7 +571,7 @@ export default function PujaTracker() {
               {/* Info toggle */}
               <button
                 onClick={() => setShowInfo(!showInfo)}
-                aria-label="Show ritual descriptions"
+                aria-label={t.puja.infoLabel}
                 className="w-8 h-8 rounded-full bg-secondary hover:bg-saffron/10 flex items-center justify-center text-muted-foreground hover:text-saffron transition-colors"
               >
                 <Info className="w-4 h-4" />
@@ -622,7 +581,7 @@ export default function PujaTracker() {
               {selectedChecked > 0 && !isSelectedFuture && (
                 <button
                   onClick={resetDay}
-                  aria-label="Reset today's puja"
+                  aria-label={t.puja.resetLabel}
                   className="w-8 h-8 rounded-full bg-secondary hover:bg-red-50 flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -647,7 +606,7 @@ export default function PujaTracker() {
           {isSelectedFuture && (
             <div className="text-center py-6 text-muted-foreground font-sans text-sm">
               <p className="text-2xl mb-2">🌙</p>
-              This day is yet to come. Come back then to track your puja.
+              {t.puja.futureDay}
             </div>
           )}
 
@@ -691,9 +650,9 @@ export default function PujaTracker() {
                 >
                   🙏
                 </motion.p>
-                <p className="font-serif font-bold text-foreground text-lg">Puja Complete!</p>
+                <p className="font-serif font-bold text-foreground text-lg">{t.puja.completeTitle}</p>
                 <p className="text-muted-foreground font-sans text-sm mt-1">
-                  Your devotion today is seen by the divine. Om Shanti.
+                  {t.puja.completeSubtitle}
                 </p>
               </motion.div>
             )}
