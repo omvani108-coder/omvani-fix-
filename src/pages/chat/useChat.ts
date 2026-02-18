@@ -56,7 +56,7 @@ export function useChat(): UseChatReturn {
 
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+     const supabaseKey = import.meta.env.VITE_ANON_KEY as string;
 
       // Build conversation history for context
       const history = messages.map((m) => ({
