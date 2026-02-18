@@ -1,36 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslations } from "@/hooks/useTranslations";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, BookOpen, Music, MapPin, Flame } from "lucide-react";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
-const navItems = [
-  {
-    label: "Chat",
-    icon: MessageCircle,
-    href: "/chat",
-  },
-  {
-    label: "Gita",
-    icon: BookOpen,
-    href: "/scriptures",
-  },
-  {
-    label: "Puja",
-    icon: Flame,
-    href: "/puja-tracker",
-  },
-  {
-    label: "Bhajans",
-    icon: Music,
-    href: "/bhajans",
-  },
-  {
-    label: "Mandirs",
-    icon: MapPin,
-    href: "/mandirs",
-  },
-] as const;
+// navItems built dynamically inside component using translations
 
 // ─── Pages where the bottom nav should NOT show ───────────────────────────────
 
@@ -41,6 +16,15 @@ const HIDDEN_ON = ["/login", "/signup", "/forgot-password", "/reset-password"];
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslations();
+
+  const navItems = [
+    { label: t.bottomNav.chat,    icon: MessageCircle, href: "/chat" },
+    { label: t.bottomNav.gita,    icon: BookOpen,      href: "/scriptures" },
+    { label: t.bottomNav.puja,    icon: Flame,         href: "/puja-tracker" },
+    { label: t.bottomNav.bhajans, icon: Music,         href: "/bhajans" },
+    { label: t.bottomNav.mandirs, icon: MapPin,        href: "/mandirs" },
+  ] as const;
 
   if (HIDDEN_ON.includes(location.pathname)) return null;
 
