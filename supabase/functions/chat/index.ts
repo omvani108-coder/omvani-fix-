@@ -1,6 +1,3 @@
-// supabase/functions/chat/index.ts
-// Deploy with: supabase functions deploy chat
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CORS = {
@@ -9,7 +6,6 @@ const CORS = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
@@ -32,7 +28,6 @@ serve(async (req) => {
       );
     }
 
-    // Call Anthropic with streaming
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -41,11 +36,11 @@ serve(async (req) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001", // Fast + cost-effective for chat
+        model: "claude-haiku-4-5",
         max_tokens: 1024,
-        system: system ?? "",
+        ...(system ? { system } : {}),
         stream: true,
-        messages: messages.slice(-10), // Keep last 10 messages for context window efficiency
+        messages: messages.slice(-10),
       }),
     });
 
@@ -57,7 +52,6 @@ serve(async (req) => {
       );
     }
 
-    // Stream Anthropic's SSE response, extract just the text chunks
     const stream = new ReadableStream({
       async start(controller) {
         const reader = response.body!.getReader();
@@ -78,7 +72,6 @@ serve(async (req) => {
 
               try {
                 const parsed = JSON.parse(data);
-                // Extract text from content_block_delta events
                 if (
                   parsed.type === "content_block_delta" &&
                   parsed.delta?.type === "text_delta" &&
