@@ -5,10 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navLinks = [
+type NavLink = { label: string; href: string; isPage?: boolean };
+
+const navLinks: NavLink[] = [
   { label: "Features", href: "#features" },
   { label: "Scriptures", href: "#scriptures" },
-  { label: "Testimonials", href: "#testimonials" },
+  { label: "Bhajans", href: "/bhajans", isPage: true },
+  { label: "Mandirs", href: "/mandirs", isPage: true },
   { label: "Pricing", href: "#pricing" },
 ];
 
@@ -24,10 +27,12 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleAnchor = (href: string) => {
+  const handleAnchor = (link: NavLink) => {
     setMenuOpen(false);
-    if (href.startsWith("#")) {
-      const el = document.querySelector(href);
+    if (link.isPage) {
+      navigate(link.href);
+    } else {
+      const el = document.querySelector(link.href);
       el?.scrollIntoView({ behavior: "smooth" });
     }
   };
@@ -52,7 +57,7 @@ const Navbar = () => {
           {navLinks.map((link) => (
             <button
               key={link.label}
-              onClick={() => handleAnchor(link.href)}
+              onClick={() => handleAnchor(link)}
               className={`text-sm font-sans font-medium transition-colors hover:text-saffron ${
                 scrolled ? "text-foreground" : "text-gold-light"
               }`}
@@ -110,7 +115,7 @@ const Navbar = () => {
               {navLinks.map((link) => (
                 <button
                   key={link.label}
-                  onClick={() => handleAnchor(link.href)}
+                  onClick={() => handleAnchor(link)}
                   className="text-left text-sm font-sans font-medium text-foreground hover:text-saffron transition-colors"
                 >
                   {link.label}
