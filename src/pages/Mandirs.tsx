@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, MapPin, Clock, Star, ExternalLink, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { Search, MapPin, Clock, Star, ExternalLink, ChevronDown, ChevronUp, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -72,10 +72,30 @@ const Mandirs = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-muted-foreground font-sans max-w-xl mx-auto mb-8"
+            className="text-muted-foreground font-sans max-w-xl mx-auto mb-6"
           >
             Explore {mandirs.length} sacred temples across India — timings, history, and directions.
           </motion.p>
+
+          {/* Mandirs Nearby Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-6"
+          >
+            <a
+              href={`https://www.google.com/maps/search/Hindu+Temple/@20.5937,78.9629,5z`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="hero" className="gap-2 text-sm px-6">
+                <Navigation className="w-4 h-4" />
+                Find Mandirs Near Me
+              </Button>
+            </a>
+            <p className="text-xs text-muted-foreground font-sans mt-2">Opens Google Maps with temples near your location</p>
+          </motion.div>
 
           {/* Stats */}
           <motion.div

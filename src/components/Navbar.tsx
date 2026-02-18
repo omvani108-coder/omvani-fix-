@@ -12,6 +12,7 @@ const navLinks: NavLink[] = [
   { label: "Scriptures", href: "#scriptures" },
   { label: "Bhajans", href: "/bhajans", isPage: true },
   { label: "Mandirs", href: "/mandirs", isPage: true },
+  { label: "Identify", href: "/identify", isPage: true },
   { label: "Pricing", href: "#pricing" },
 ];
 

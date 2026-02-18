@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Chat from "./pages/Chat";
 import Bhajans from "./pages/Bhajans";
 import Mandirs from "./pages/Mandirs";
+import Identify from "./pages/Identify";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/bhajans" element={<Bhajans />} />
             <Route path="/mandirs" element={<Mandirs />} />
+            <Route path="/identify" element={<Identify />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
