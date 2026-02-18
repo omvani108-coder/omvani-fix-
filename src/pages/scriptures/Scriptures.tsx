@@ -26,6 +26,7 @@ function AskPanel({
   shloka: Shloka;
   onClose: () => void;
 }) {
+  const { t } = useTranslations();
   const [input, setInput]       = useState("");
   const [answer, setAnswer]     = useState("");
   const [loading, setLoading]   = useState(false);
@@ -207,6 +208,7 @@ function ShlokaCard({
   shloka: Shloka;
   onAsk: (s: Shloka) => void;
 }) {
+  const { t } = useTranslations();
   const [bookmarked, setBookmarked] = useState(() => isBookmarked(shloka.id));
   const [showWords, setShowWords]   = useState(false);
 
