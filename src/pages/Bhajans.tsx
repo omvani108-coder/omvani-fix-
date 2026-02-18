@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { useTranslations } from "@/hooks/useTranslations";
 import { bhajans, type Bhajan } from "@/data/bhajans";
 
 const CATEGORIES = ["All", "Bhajan", "Mantra", "Aarti", "Chalisa", "Stotra"] as const;
@@ -20,6 +21,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const Bhajans = () => {
+  const { t } = useTranslations();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [language, setLanguage] = useState<string>("All");
@@ -54,7 +56,7 @@ const Bhajans = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-saffron font-sans text-sm tracking-[0.25em] uppercase mb-3"
           >
-            🎵 Sacred Sounds
+            {t.bhajans.eyebrow}
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -82,7 +84,7 @@ const Bhajans = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by title, deity, or keyword..."
+              placeholder={t.bhajans.searchPlaceholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 font-sans"
@@ -148,7 +150,7 @@ const Bhajans = () => {
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">🔍</p>
-            <p className="text-muted-foreground font-sans">No results found. Try a different search.</p>
+            <p className="text-muted-foreground font-sans">{t.bhajans.noResults}</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
