@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Trash2, Loader2, BookOpen, RotateCcw } from "lucide-react";
+import { Send, Trash2, Loader2, BookOpen, RotateCcw, UserCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SeoHead } from "@/components/SeoHead";
 import { useChat } from "./useChat";
 import { SUGGESTED_QUESTIONS, Message, ScriptureRef } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ─── Scripture Reference Badge ────────────────────────────────────────────────
 
@@ -128,7 +129,19 @@ function MessageBubble({ message }: { message: Message }) {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
+const SUGGESTED_QUESTIONS_HI = [
+  "चिंता से निपटने के बारे में गीता क्या कहती है?",
+  "मैं जीवन में अपना धर्म कैसे खोजूं?",
+  "कर्म का अर्थ क्या है?",
+  "शास्त्रों के अनुसार दुख से कैसे निपटें?",
+  "आंतरिक शांति का मार्ग क्या है?",
+  "ठंडे हुए बिना वैराग्य का अभ्यास कैसे करें?",
+] as const;
+
 function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
+  const { isHindi } = useLanguage();
+  const questions = isHindi ? SUGGESTED_QUESTIONS_HI : SUGGESTED_QUESTIONS;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -147,15 +160,17 @@ function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
       </motion.div>
 
       <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
-        Ask the Guru
+        {isHindi ? "गुरु से पूछें" : "Ask the Guru"}
       </h2>
       <p className="text-muted-foreground font-sans text-sm max-w-sm mb-10 leading-relaxed">
-        Seek wisdom from the Bhagavad Gita, Vedas & Puranas. Every answer is rooted in authentic scripture.
+        {isHindi
+          ? "भगवद गीता, वेदों और पुराणों से ज्ञान प्राप्त करें। हर उत्तर प्रामाणिक शास्त्र पर आधारित है।"
+          : "Seek wisdom from the Bhagavad Gita, Vedas & Puranas. Every answer is rooted in authentic scripture."}
       </p>
 
       {/* Suggested questions */}
       <div className="w-full max-w-lg grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {SUGGESTED_QUESTIONS.map((q, i) => (
+        {questions.map((q, i) => (
           <motion.button
             key={q}
             initial={{ opacity: 0, y: 10 }}
@@ -180,6 +195,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { language, setLanguage, isHindi } = useLanguage();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -226,20 +242,59 @@ export default function Chat() {
           <span className="font-serif font-bold text-lg text-gradient-sacred">OmVani</span>
         </Link>
 
-        <div className="flex items-center gap-1 text-center">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-          <span className="text-xs font-sans text-muted-foreground ml-1.5">Guru is present</span>
-        </div>
+        <div className="flex items-center gap-3">
+          {/* Language Toggle */}
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+            <button
+              onClick={() => setLanguage("en")}
+              className={`px-2.5 py-1 rounded-md text-xs font-sans font-semibold transition-all duration-200 ${
+                language === "en"
+                  ? "bg-background text-saffron shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-label="Switch to English"
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage("hi")}
+              className={`px-2.5 py-1 rounded-md text-xs font-sans font-semibold transition-all duration-200 ${
+                language === "hi"
+                  ? "bg-background text-saffron shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-label="हिंदी में बदलें"
+            >
+              हि
+            </button>
+          </div>
 
-        <button
-          onClick={clearChat}
-          disabled={messages.length === 0}
-          aria-label="Clear conversation"
-          className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
-        >
-          <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-          Clear
-        </button>
+          <div className="flex items-center gap-1 text-center">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
+            <span className="text-xs font-sans text-muted-foreground ml-1.5 hidden sm:inline">
+              {isHindi ? "गुरु उपस्थित हैं" : "Guru is present"}
+            </span>
+          </div>
+
+          {/* Profile link */}
+          <Link
+            to="/profile"
+            aria-label="Profile"
+            className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-saffron transition-colors"
+          >
+            <UserCircle className="w-5 h-5" />
+          </Link>
+
+          <button
+            onClick={clearChat}
+            disabled={messages.length === 0}
+            aria-label="Clear conversation"
+            className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
+          >
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">{isHindi ? "साफ़ करें" : "Clear"}</span>
+          </button>
+        </div>
       </header>
 
       {/* ── Messages area ──────────────────────────────────────────────────── */}
