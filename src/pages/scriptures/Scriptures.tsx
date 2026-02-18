@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { useTranslations } from "@/hooks/useTranslations";
 import { SeoHead } from "@/components/SeoHead";
 import { fadeUp, defaultViewport } from "@/lib/animations";
 import {
@@ -78,7 +79,7 @@ Answer their question specifically in the context of this shloka. Be concise, wa
       }
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
-        toast.error("Could not reach the guru. Please try again.");
+        toast.error("{t.chat.thinking}");
       }
     } finally {
       setLoading(false);
@@ -176,7 +177,7 @@ Answer their question specifically in the context of this shloka. Be concise, wa
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Ask about this shloka…"
+            placeholder={t.scriptures.askPlaceholder}
             aria-label="Your question about this shloka"
             className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           />
@@ -212,7 +213,7 @@ function ShlokaCard({
   const handleBookmark = () => {
     const added = toggleBookmark(shloka.id);
     setBookmarked(added);
-    toast.success(added ? "Shloka bookmarked 🔖" : "Bookmark removed");
+    toast.success(added ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved);
   };
 
   const handleShare = async () => {
@@ -221,7 +222,7 @@ function ShlokaCard({
       await navigator.share({ title: `Bhagavad Gita ${shloka.id}`, text });
     } else {
       await navigator.clipboard.writeText(text);
-      toast.success("Shloka copied to clipboard!");
+      toast.success(t.scriptures.copied);
     }
   };
 
@@ -292,7 +293,7 @@ function ShlokaCard({
             onClick={() => setShowWords(v => !v)}
             className="text-xs font-sans text-muted-foreground hover:text-saffron transition-colors mx-auto flex items-center gap-1"
           >
-            {showWords ? "Hide" : "Show"} word meanings
+            {showWords ? t.scriptures.hide : t.scriptures.show} word meanings
           </button>
           <AnimatePresence>
             {showWords && (
@@ -356,6 +357,7 @@ function ChapterList({
 // ─── Main Scriptures Page ─────────────────────────────────────────────────────
 
 export default function Scriptures() {
+  const { t } = useTranslations();
   const [currentChapter, setCurrentChapter] = useState(1);
   const [searchQuery, setSearchQuery]       = useState("");
   const [searchResults, setSearchResults]   = useState<Shloka[]>([]);
@@ -462,7 +464,7 @@ export default function Scriptures() {
                   type="search"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search shlokas by keyword or verse…"
+                  placeholder={t.scriptures.searchPlaceholder}
                   aria-label="Search shlokas"
                   className="w-full bg-muted border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-saffron/30 transition-all"
                 />
@@ -538,7 +540,7 @@ export default function Scriptures() {
                 <p className="text-sm font-sans text-muted-foreground">
                   {searchQuery
                     ? isSearching
-                      ? "Searching…"
+                      ? {t.scriptures.searching}
                       : `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${searchQuery}"`
                     : `${displayedShlokas.length} bookmarked shloka${displayedShlokas.length !== 1 ? "s" : ""}`
                   }
@@ -568,9 +570,9 @@ export default function Scriptures() {
                     </div>
                     <p className="text-muted-foreground font-sans text-sm">
                       {showBookmarks
-                        ? "No bookmarks yet. Bookmark shlokas while reading."
+                        ? {t.scriptures.noBookmarks}
                         : searchQuery
-                        ? "No shlokas found. Try different keywords."
+                        ? {t.scriptures.noResults}
                         : "No shlokas available for this chapter yet."
                       }
                     </p>
