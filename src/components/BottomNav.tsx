@@ -1,15 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, BookOpen, Music, MapPin, Home } from "lucide-react";
+import { MessageCircle, BookOpen, Music, MapPin, Flame } from "lucide-react";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
 const navItems = [
-  {
-    label: "Home",
-    icon: Home,
-    href: "/",
-  },
   {
     label: "Chat",
     icon: MessageCircle,
@@ -19,6 +14,11 @@ const navItems = [
     label: "Gita",
     icon: BookOpen,
     href: "/scriptures",
+  },
+  {
+    label: "Puja",
+    icon: Flame,
+    href: "/puja-tracker",
   },
   {
     label: "Bhajans",
@@ -33,7 +33,6 @@ const navItems = [
 ] as const;
 
 // ─── Pages where the bottom nav should NOT show ───────────────────────────────
-// e.g. login, signup, onboarding
 
 const HIDDEN_ON = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
@@ -43,7 +42,6 @@ export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide on auth pages
   if (HIDDEN_ON.includes(location.pathname)) return null;
 
   return (
