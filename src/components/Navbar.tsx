@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, UserCircle } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,16 +72,9 @@ const Navbar = () => {
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
-            <>
-              <Button variant="hero" size="sm" onClick={() => navigate("/chat")}>
-                Open Chat
-              </Button>
-              <Link to="/profile" aria-label="Profile">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:text-saffron ${scrolled ? "text-foreground" : "text-gold-light"}`}>
-                  <UserCircle className="w-6 h-6" />
-                </div>
-              </Link>
-            </>
+            <Button variant="hero" size="sm" onClick={() => navigate("/chat")}>
+              Open Chat
+            </Button>
           ) : (
             <>
               <Link to="/login">
@@ -143,21 +136,14 @@ const Navbar = () => {
               ))}
               <div className="pt-2 border-t border-border flex flex-col gap-2">
                 {user ? (
-                  <>
-                    <Button
-                      variant="hero"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => { navigate("/chat"); setMenuOpen(false); }}
-                    >
-                      Open Chat
-                    </Button>
-                    <Link to="/profile" onClick={() => setMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full font-sans gap-2">
-                        <UserCircle className="w-4 h-4" /> My Profile
-                      </Button>
-                    </Link>
-                  </>
+                  <Button
+                    variant="hero"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => { navigate("/chat"); setMenuOpen(false); }}
+                  >
+                    Open Chat
+                  </Button>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setMenuOpen(false)}>
