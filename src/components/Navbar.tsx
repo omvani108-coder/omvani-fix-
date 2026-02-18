@@ -8,19 +8,19 @@ import { useAuth } from "@/contexts/AuthContext";
 type NavLink = { label: string; href: string; isPage?: boolean };
 
 const navLinks: NavLink[] = [
-  { label: "Features", href: "#features" },
-  { label: "Scriptures", href: "#scriptures" },
-  { label: "Bhajans", href: "/bhajans", isPage: true },
-  { label: "Mandirs", href: "/mandirs", isPage: true },
-  { label: "Identify", href: "/identify", isPage: true },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Features",   href: "#features" },
+  { label: "Scriptures", href: "/scriptures", isPage: true },
+  { label: "Bhajans",    href: "/bhajans",    isPage: true },
+  { label: "Mandirs",    href: "/mandirs",    isPage: true },
+  { label: "Identify",   href: "/identify",   isPage: true },
+  { label: "Pricing",    href: "#pricing" },
 ];
 
 const Navbar = () => {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [scrolled, setScrolled]   = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const { user }                  = useAuth();
+  const navigate                  = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -47,14 +47,15 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-serif font-bold text-gradient-sacred">OmVani</span>
-          <span className="text-gold-light text-base hidden sm:inline">🪔</span>
+          <span className="text-gold-light text-base hidden sm:inline" aria-hidden="true">🪔</span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
           {navLinks.map((link) => (
             <button
               key={link.label}
@@ -68,7 +69,7 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* CTA */}
+        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <Button variant="hero" size="sm" onClick={() => navigate("/chat")}>
@@ -80,7 +81,11 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`font-sans ${scrolled ? "text-foreground hover:text-saffron" : "text-gold-light hover:text-gold-light/80"}`}
+                  className={`font-sans ${
+                    scrolled
+                      ? "text-foreground hover:text-saffron"
+                      : "text-gold-light hover:text-gold-light/80"
+                  }`}
                 >
                   Sign In
                 </Button>
@@ -94,16 +99,23 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile hamburger — only shown on landing page (md:hidden) */}
         <button
-          className={`md:hidden transition-colors ${scrolled ? "text-foreground" : "text-gold-light"}`}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          className={`md:hidden transition-colors ${
+            scrolled ? "text-foreground" : "text-gold-light"
+          }`}
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {menuOpen
+            ? <X className="w-6 h-6" aria-hidden="true" />
+            : <Menu className="w-6 h-6" aria-hidden="true" />
+          }
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile dropdown menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -124,16 +136,25 @@ const Navbar = () => {
               ))}
               <div className="pt-2 border-t border-border flex flex-col gap-2">
                 {user ? (
-                  <Button variant="hero" size="sm" className="w-full" onClick={() => { navigate("/chat"); setMenuOpen(false); }}>
+                  <Button
+                    variant="hero"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => { navigate("/chat"); setMenuOpen(false); }}
+                  >
                     Open Chat
                   </Button>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full font-sans">Sign In</Button>
+                      <Button variant="outline" size="sm" className="w-full font-sans">
+                        Sign In
+                      </Button>
                     </Link>
                     <Link to="/signup" onClick={() => setMenuOpen(false)}>
-                      <Button variant="hero" size="sm" className="w-full">Start Free Trial</Button>
+                      <Button variant="hero" size="sm" className="w-full">
+                        Start Free Trial
+                      </Button>
                     </Link>
                   </>
                 )}
