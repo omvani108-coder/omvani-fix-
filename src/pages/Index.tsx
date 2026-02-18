@@ -1,9 +1,11 @@
-import { motion } from "framer-motion";
-import { MessageCircle, Music, Camera, MapPin, Star, BookOpen, Flame, Sun } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { MessageCircle, Music, Camera, MapPin, Star, BookOpen, Flame, Sun, Volume2, VolumeX, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 import Navbar from "@/components/Navbar";
+import { toast } from "sonner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -45,12 +47,70 @@ const features = [
   },
 ];
 
-const dailyShloka = {
-  sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।",
-  transliteration: "Karmanye vadhikaras te ma phaleshu kadachana",
-  meaning:
-    "You have the right to perform your duties, but never to the fruits of your actions. — Bhagavad Gita 2.47",
-};
+const shlokas = [
+  {
+    id: 1,
+    ref: "Bhagavad Gita 2.47",
+    sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+    transliteration: "Karmanye vadhikaras te ma phaleshu kadachana,\nMa karma-phala-hetur bhur ma te sango 'stv akarmani.",
+    meaning: "You have the right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself the cause of the results of your activities, and never be attached to not doing your duty.",
+    theme: "Nishkama Karma — Desireless Action",
+  },
+  {
+    id: 2,
+    ref: "Bhagavad Gita 2.20",
+    sanskrit: "न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः।\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे॥",
+    transliteration: "Na jayate mriyate va kadacin\nnayam bhutva bhavita va na bhuyah,\nAjo nityah sasvato 'yam purano\nna hanyate hanyamane sarire.",
+    meaning: "The soul is never born nor dies at any time. It has not come into being, does not come into being, and will not come into being. It is unborn, eternal, ever-existing, and primeval. It is not slain when the body is slain.",
+    theme: "Atman — The Eternal Soul",
+  },
+  {
+    id: 3,
+    ref: "Bhagavad Gita 9.22",
+    sanskrit: "अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते।\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम्॥",
+    transliteration: "Ananyash chintayanto mam ye janah paryupasate,\nTesham nityabhiyuktanam yoga-kshemam vahamyaham.",
+    meaning: "For those who worship Me with devotion, meditating on My transcendental form, I carry what they lack and preserve what they have.",
+    theme: "Bhakti — Divine Protection",
+  },
+  {
+    id: 4,
+    ref: "Bhagavad Gita 6.5",
+    sanskrit: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्।\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः॥",
+    transliteration: "Uddhared atmanatmanam natmanam avasadayet,\nAtmaiva hy atmano bandhur atmaiva ripur atmanah.",
+    meaning: "One must elevate, not degrade, oneself by one's own mind. The mind is the friend of the conditioned soul, and his enemy as well.",
+    theme: "Atma-Uddhara — Self-Elevation",
+  },
+  {
+    id: 5,
+    ref: "Bhagavad Gita 18.66",
+    sanskrit: "सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज।\nअहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः॥",
+    transliteration: "Sarva-dharman parityajya mam ekam saranam vraja,\nAham tvam sarva-papebhyo moksayisyami ma sucah.",
+    meaning: "Abandon all varieties of dharma and simply surrender unto Me. I shall deliver you from all sinful reactions. Do not fear.",
+    theme: "Sharanagati — Complete Surrender",
+  },
+  {
+    id: 6,
+    ref: "Bhagavad Gita 4.7",
+    sanskrit: "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥",
+    transliteration: "Yada yada hi dharmasya glanir bhavati bharata,\nAbhyutthanam adharmasya tadatmanam srjamy aham.",
+    meaning: "Whenever and wherever there is a decline in dharma and a predominant rise of irreligion — at that time I manifest Myself.",
+    theme: "Divine Incarnation — Dharma Restoration",
+  },
+  {
+    id: 7,
+    ref: "Bhagavad Gita 2.14",
+    sanskrit: "मात्रास्पर्शास्तु कौन्तेय शीतोष्णसुखदुःखदाः।\nआगमापायिनोऽनित्यास्तांस्तितिक्षस्व भारत॥",
+    transliteration: "Matra-sparsas tu kaunteya sitosna-sukha-duhkha-dah,\nAgamapayino 'nityas tams titiksasva bharata.",
+    meaning: "O son of Kunti, the transient heat and cold, pleasure and pain arise from sense perception. They are non-permanent and come and go. Learn to tolerate them.",
+    theme: "Titiksha — Equanimity & Endurance",
+  },
+];
+
+// Deterministic daily shloka — changes each day
+function getDailyShloka() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  return shlokas[dayOfYear % shlokas.length];
+}
 
 const scriptures = [
   {
@@ -128,6 +188,66 @@ const plans = [
 ];
 
 const Index = () => {
+  const todayShloka = getDailyShloka();
+  const [shlokaIndex, setShlokaIndex] = useState(() => shlokas.findIndex(s => s.id === todayShloka.id));
+  const currentShloka = shlokas[shlokaIndex];
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioBlobUrl = useRef<string | null>(null);
+
+  // Cleanup blob url on unmount
+  useEffect(() => {
+    return () => {
+      if (audioBlobUrl.current) URL.revokeObjectURL(audioBlobUrl.current);
+      audioRef.current?.pause();
+    };
+  }, []);
+
+  const stopAudio = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    if (audioBlobUrl.current) { URL.revokeObjectURL(audioBlobUrl.current); audioBlobUrl.current = null; }
+    setIsPlaying(false);
+  };
+
+  const handleAudio = async () => {
+    if (isPlaying) { stopAudio(); return; }
+    setAudioLoading(true);
+    try {
+      const textToSpeak = `${currentShloka.sanskrit}. ${currentShloka.transliteration}. Meaning: ${currentShloka.meaning}`;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text: textToSpeak, voiceId: "JBFqnCBsd6RMkjVDRZzb" }), // George — deep, warm male voice
+      });
+      if (!res.ok) throw new Error("Audio failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioBlobUrl.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { setIsPlaying(false); };
+      audio.onerror = () => { setIsPlaying(false); toast.error("Audio playback failed."); };
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      toast.error("Could not play audio. Please try again.");
+    } finally {
+      setAudioLoading(false);
+    }
+  };
+
+  const navigate = (dir: number) => {
+    stopAudio();
+    setShlokaIndex(i => (i + dir + shlokas.length) % shlokas.length);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -213,29 +333,86 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Daily Shloka Banner */}
-      <section className="py-10 px-4 bg-sacred-gradient">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={0}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <p className="text-accent-foreground/70 font-sans text-xs tracking-[0.25em] uppercase mb-3">
-            🪔 Shloka of the Day
-          </p>
-          <p className="text-accent-foreground font-serif text-xl md:text-2xl font-semibold mb-2 leading-relaxed">
-            {dailyShloka.sanskrit}
-          </p>
-          <p className="text-accent-foreground/80 font-sans text-sm italic mb-3">
-            {dailyShloka.transliteration}
-          </p>
-          <p className="text-accent-foreground/90 font-sans text-sm max-w-xl mx-auto">
-            {dailyShloka.meaning}
-          </p>
-        </motion.div>
+      {/* Shloka of the Day — Interactive */}
+      <section className="py-12 px-4 bg-sacred-gradient overflow-hidden">
+        <div className="max-w-3xl mx-auto">
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-accent-foreground/70 font-sans text-xs tracking-[0.25em] uppercase">
+                🪔 Shloka of the Day
+              </p>
+              <p className="text-accent-foreground/50 font-sans text-xs mt-0.5">
+                {currentShloka.ref} · {currentShloka.theme}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Prev / Next */}
+              <button
+                onClick={() => navigate(-1)}
+                className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 flex items-center justify-center text-accent-foreground transition-colors"
+                aria-label="Previous shloka"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-accent-foreground/50 font-sans text-xs">{shlokaIndex + 1}/{shlokas.length}</span>
+              <button
+                onClick={() => navigate(1)}
+                className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 flex items-center justify-center text-accent-foreground transition-colors"
+                aria-label="Next shloka"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {/* Audio */}
+              <button
+                onClick={handleAudio}
+                disabled={audioLoading}
+                className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 flex items-center justify-center text-accent-foreground transition-colors disabled:opacity-50 ml-1"
+                aria-label={isPlaying ? "Stop audio" : "Listen to shloka"}
+              >
+                {audioLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Shloka content with animated transitions */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentShloka.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35 }}
+              className="text-center"
+            >
+              {/* Sanskrit */}
+              <p className="text-accent-foreground font-serif text-xl md:text-2xl font-semibold mb-3 leading-relaxed whitespace-pre-line">
+                {currentShloka.sanskrit}
+              </p>
+              {/* Divider */}
+              <div className="w-12 h-px bg-accent-foreground/30 mx-auto mb-3" />
+              {/* Transliteration */}
+              <p className="text-accent-foreground/80 font-sans text-sm italic mb-4 whitespace-pre-line">
+                {currentShloka.transliteration}
+              </p>
+              {/* Meaning */}
+              <p className="text-accent-foreground/90 font-sans text-sm max-w-2xl mx-auto leading-relaxed">
+                {currentShloka.meaning}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Dot indicators */}
+          <div className="flex justify-center gap-1.5 mt-6">
+            {shlokas.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => { stopAudio(); setShlokaIndex(i); }}
+                className={`rounded-full transition-all duration-300 ${i === shlokaIndex ? "w-4 h-2 bg-accent-foreground" : "w-2 h-2 bg-accent-foreground/30 hover:bg-accent-foreground/50"}`}
+              />
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Features */}
