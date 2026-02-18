@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { Message, SYSTEM_PROMPT, ScriptureRef } from "./types";
 
@@ -29,6 +30,7 @@ export function useChat(): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const { language } = useLanguage();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -77,7 +79,7 @@ export function useChat(): UseChatReturn {
             ...history,
             { role: "user", content: content.trim() },
           ],
-          system: SYSTEM_PROMPT,
+          system: SYSTEM_PROMPT + (language === "hi" ? "\n\nIMPORTANT: The user has selected Hindi as their language. You MUST respond entirely in Hindi (Devanagari script). All explanations, scripture meanings, and guidance must be in Hindi." : "\n\nIMPORTANT: Respond in English."),
         }),
       });
 
