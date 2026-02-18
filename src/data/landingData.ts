@@ -6,6 +6,8 @@ import {
   BookOpen,
   Flame,
   Sun,
+  ScrollText,
+  Swords,
 } from "lucide-react";
 
 // ─── Features ────────────────────────────────────────────────────────────────
@@ -153,12 +155,28 @@ export const scriptures = [
     color: "from-saffron/20 to-gold/10",
   },
   {
+    icon: ScrollText,
+    name: "Ramayana",
+    description:
+      "The timeless epic of Shri Ram — a guide to righteousness, devotion, and ideal conduct.",
+    chapters: "7 Kandas · 24,000 Shlokas",
+    color: "from-lotus-pink/20 to-saffron/10",
+  },
+  {
+    icon: Swords,
+    name: "Mahabharata",
+    description:
+      "The world's longest epic — dharma, duty, and the battle between good and evil at Kurukshetra.",
+    chapters: "18 Parvas · 100,000 Shlokas",
+    color: "from-gold/20 to-saffron/10",
+  },
+  {
     icon: Flame,
     name: "Vedas & Upanishads",
     description:
       "Ancient scriptures revealing the nature of Brahman, Atman, and cosmic truth.",
     chapters: "4 Vedas · 108 Upanishads",
-    color: "from-lotus-pink/20 to-saffron/10",
+    color: "from-saffron/10 to-lotus-pink/10",
   },
   {
     icon: Sun,
@@ -166,7 +184,7 @@ export const scriptures = [
     description:
       "Stories of deities, creation, cosmology, and the cycles of time.",
     chapters: "18 Maha Puranas",
-    color: "from-gold/20 to-saffron/10",
+    color: "from-gold/10 to-saffron/20",
   },
 ] as const;
 
