@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Message, SYSTEM_PROMPT, ScriptureRef } from "./types";
+import { Message, getSystemPrompt, ScriptureRef } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Parses [REF: ...] tags from the end of AI responses
 function parseRefs(content: string): { clean: string; refs: ScriptureRef[] } {
@@ -29,6 +30,7 @@ export function useChat(): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const { language } = useLanguage();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -77,7 +79,7 @@ export function useChat(): UseChatReturn {
             ...history,
             { role: "user", content: content.trim() },
           ],
-          system: SYSTEM_PROMPT,
+          system: getSystemPrompt(language),
         }),
       });
 
