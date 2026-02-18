@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
+import { useTranslations } from "@/hooks/useTranslations";
 import { SeoHead } from "@/components/SeoHead";
 import heroBg from "@/assets/hero-bg.jpg";
 import { fadeUp, defaultViewport } from "@/lib/animations";
@@ -28,6 +29,7 @@ import {
 // ─── Shloka Carousel ──────────────────────────────────────────────────────────
 
 function ShlokaCarousel() {
+  const { t } = useTranslations();
   const todayIndex = useMemo(
     () => shlokas.findIndex((s) => s.id === getDailyShloka().id),
     []
@@ -66,7 +68,7 @@ function ShlokaCarousel() {
           <div className="flex items-center gap-2" role="group" aria-label="Shloka navigation">
             <button
               onClick={() => goTo(-1)}
-              aria-label="Previous shloka"
+              aria-label={t.shloka.prev}
               className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 focus-visible:ring-2 focus-visible:ring-accent-foreground flex items-center justify-center text-accent-foreground transition-colors"
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -82,7 +84,7 @@ function ShlokaCarousel() {
 
             <button
               onClick={() => goTo(1)}
-              aria-label="Next shloka"
+              aria-label={t.shloka.next}
               className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 focus-visible:ring-2 focus-visible:ring-accent-foreground flex items-center justify-center text-accent-foreground transition-colors"
             >
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -91,7 +93,7 @@ function ShlokaCarousel() {
             <button
               onClick={handleToggle}
               disabled={isLoading}
-              aria-label={isPlaying ? "Stop audio" : "Listen to shloka"}
+              aria-label={isPlaying ? {t.shloka.stop} : {t.shloka.listen}}
               className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 focus-visible:ring-2 focus-visible:ring-accent-foreground flex items-center justify-center text-accent-foreground transition-colors disabled:opacity-50 ml-1"
             >
               {isLoading ? (
@@ -193,7 +195,7 @@ const Index = () => (
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-lg md:text-xl text-gold-light/90 max-w-2xl mx-auto mb-4 font-sans"
         >
-          Talk to a spiritual guru anytime, in your language — no waiting, no travel.
+          {t.home.subtitle}
         </motion.p>
 
         <motion.p
@@ -202,7 +204,7 @@ const Index = () => (
           transition={{ duration: 0.8, delay: 0.55 }}
           className="text-sm text-gold-light/60 mb-10 font-sans"
         >
-          100% scripture-based answers from the Gita, Vedas & Puranas
+          {t.home.scriptureNote}
         </motion.p>
 
         <motion.div
@@ -306,7 +308,7 @@ const Index = () => (
             Rooted in Sacred Scriptures
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-muted-foreground font-sans max-w-xl mx-auto">
-            Every answer OmVani provides is grounded in authentic, time-tested Hindu scriptures — never invented, always referenced.
+            {t.home.scripturesSubtitle}
           </motion.p>
         </motion.div>
 
@@ -415,7 +417,7 @@ const Index = () => (
             Begin Your Spiritual Journey
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-muted-foreground font-sans">
-            Start with a 7-day free trial — full Pro access, no card required.
+            {t.home.pricingSubtitle}
           </motion.p>
         </motion.div>
 
@@ -457,7 +459,7 @@ const Index = () => (
               </ul>
               <Link to="/signup">
                 <Button variant={plan.popular ? "hero" : "outline"} size="lg" className="w-full">
-                  {plan.popular ? "Start Free Trial" : "Get Started"}
+                  {plan.popular ? {t.home.startFreeTrial} : {t.home.getStarted}}
                 </Button>
               </Link>
             </motion.div>
@@ -483,7 +485,7 @@ const Index = () => (
           Your Spiritual Journey Awaits
         </h2>
         <p className="text-accent-foreground/80 font-sans mb-8 text-sm">
-          Join thousands of seekers finding answers from our ancient scriptures — anytime, in your language.
+          {t.home.ctaSubtitle}
         </p>
         <Link to="/signup">
           <Button size="lg" className="bg-accent-foreground text-accent font-sans font-semibold px-10 hover:bg-accent-foreground/90 transition-colors">
@@ -504,7 +506,7 @@ const Index = () => (
           from authentic scriptures but should be used for guidance only.
         </p>
         <p className="text-xs text-muted-foreground/60 font-sans">
-          © 2026 OmVani. All rights reserved. · Users must be 14+ to use this service.
+          {t.home.footerRights}
         </p>
       </div>
     </footer>
