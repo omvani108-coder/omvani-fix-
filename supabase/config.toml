@@ -1,5 +1,8 @@
 project_id = "yxlnvwjwdkylfmzdzavn"
 
+[functions.chat]
+verify_jwt = false
+
 [functions.spiritual-chat]
 verify_jwt = false
 
