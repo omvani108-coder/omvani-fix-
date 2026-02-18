@@ -216,7 +216,7 @@ const Index = () => (
               size="lg"
               className="text-base px-8 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300"
             >
-              ॐ Talk to Guru
+              ॐ Talk to AI Guru
             </Button>
           </Link>
           <Link to="/signup">
