@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.elevenlabs-stt]
 verify_jwt = false
+
+[functions.identify-deity]
+verify_jwt = false
