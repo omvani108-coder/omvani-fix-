@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { useTranslations } from "@/hooks/useTranslations";
 import { mandirs, type Mandir } from "@/data/mandirs";
 
 const CATEGORIES = ["All", "Jyotirlinga", "Shakti Peeth", "Char Dham", "Divya Desam", "Ashtavinayak", "Famous Temple"] as const;
@@ -20,6 +21,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const Mandirs = () => {
+  const { t } = useTranslations();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [state, setState] = useState<string>("All States");
@@ -66,7 +68,7 @@ const Mandirs = () => {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4"
           >
-            Mandir Tracker
+            {t.mandirs.title}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -120,7 +122,7 @@ const Mandirs = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search temple, deity, city, state..."
+                placeholder={t.mandirs.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 font-sans"
