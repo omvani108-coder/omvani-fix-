@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Scriptures from "@/pages/scriptures/Scriptures";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/bhajans" element={<Bhajans />} />
+            <Route path="/scriptures" element={<Scriptures />} />
             <Route path="/mandirs" element={<Mandirs />} />
             <Route path="/identify" element={<Identify />} />
             <Route path="*" element={<NotFound />} />
