@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Trash2, Loader2, BookOpen, RotateCcw } from "lucide-react";
+import { useTranslations } from "@/hooks/useTranslations";
 import { Link } from "react-router-dom";
 import { SeoHead } from "@/components/SeoHead";
 import { useChat } from "./useChat";
@@ -177,6 +178,7 @@ function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
 
 export default function Chat() {
   const { messages, isLoading, sendMessage, clearChat } = useChat();
+  const { t } = useTranslations();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -318,7 +320,7 @@ export default function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything about dharma, karma, or life…"
+              placeholder={t.chat.placeholder}
               aria-label="Your question"
               rows={1}
               className="flex-1 bg-transparent resize-none text-sm font-sans text-foreground placeholder:text-muted-foreground/50 focus:outline-none leading-relaxed max-h-40"
