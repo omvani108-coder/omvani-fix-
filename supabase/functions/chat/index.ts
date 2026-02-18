@@ -1,0 +1,114 @@
+// supabase/functions/chat/index.ts
+// Deploy with: supabase functions deploy chat
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS });
+  }
+
+  try {
+    const { messages, system } = await req.json();
+
+    if (!messages || !Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "messages array is required" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!anthropicKey) {
+      return new Response(
+        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Call Anthropic with streaming
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001", // Fast + cost-effective for chat
+        max_tokens: 1024,
+        system: system ?? "",
+        stream: true,
+        messages: messages.slice(-10), // Keep last 10 messages for context window efficiency
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      return new Response(
+        JSON.stringify({ error: `Anthropic error: ${err}` }),
+        { status: response.status, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Stream Anthropic's SSE response, extract just the text chunks
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const data = line.slice(6).trim();
+              if (data === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                // Extract text from content_block_delta events
+                if (
+                  parsed.type === "content_block_delta" &&
+                  parsed.delta?.type === "text_delta" &&
+                  parsed.delta?.text
+                ) {
+                  controller.enqueue(new TextEncoder().encode(parsed.delta.text));
+                }
+              } catch {
+                // Skip malformed SSE lines
+              }
+            }
+          }
+        } finally {
+          controller.close();
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...CORS,
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: String(err) }),
+      { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+    );
+  }
+});
