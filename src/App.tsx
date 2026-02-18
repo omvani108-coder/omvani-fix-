@@ -43,7 +43,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+            <Route path="/chat" element={<Chat />} />
             <Route path="/bhajans" element={<Bhajans />} />
             <Route path="/scriptures" element={<Scriptures />} />
             <Route path="/mandirs" element={<Mandirs />} />
