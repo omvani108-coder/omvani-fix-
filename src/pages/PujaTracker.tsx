@@ -531,9 +531,9 @@ export default function PujaTracker() {
             {/* Legend */}
             <div className="flex items-center justify-center gap-5 mt-4 pt-3 border-t border-border">
               {[
-                { color: "bg-card border border-border", label: {t.puja.notStarted} },
-                { color: "bg-saffron/20", label: {t.puja.partial} },
-                { color: "bg-gold/20 border border-gold/40", label: {t.puja.complete} },
+                { color: "bg-card border border-border", label: t.puja.notStarted },
+                { color: "bg-saffron/20", label: t.puja.partial },
+                { color: "bg-gold/20 border border-gold/40", label: t.puja.complete },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div className={`w-3 h-3 rounded-sm ${color}`} />
