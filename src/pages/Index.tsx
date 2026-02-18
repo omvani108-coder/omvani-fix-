@@ -262,28 +262,29 @@ const Index = () => (
 
         <div className="grid md:grid-cols-2 gap-8">
           {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={fadeUp}
-              custom={i}
-              className="group bg-card rounded-xl p-8 shadow-sacred border border-border hover:border-gold-light focus-within:border-gold-light transition-all duration-300"
-            >
-              <div className="flex items-start gap-5">
-                <div aria-hidden="true" className="shrink-0 w-12 h-12 rounded-lg bg-sacred-gradient flex items-center justify-center">
-                  <feature.icon className="w-6 h-6 text-accent-foreground" />
+            <Link to={feature.href} key={feature.title}>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUp}
+                custom={i}
+                className="group bg-card rounded-xl p-8 shadow-sacred border border-border hover:border-saffron hover:shadow-lg hover:-translate-y-0.5 focus-within:border-gold-light transition-all duration-300 cursor-pointer h-full"
+              >
+                <div className="flex items-start gap-5">
+                  <div aria-hidden="true" className="shrink-0 w-12 h-12 rounded-lg bg-sacred-gradient flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <feature.icon className="w-6 h-6 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-serif font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground font-sans leading-relaxed mb-3">{feature.description}</p>
+                    <span className="inline-block text-xs font-sans font-medium text-saffron bg-saffron/10 px-3 py-1 rounded-full">
+                      {feature.tag}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-serif font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground font-sans leading-relaxed mb-3">{feature.description}</p>
-                  <span className="inline-block text-xs font-sans font-medium text-saffron bg-saffron/10 px-3 py-1 rounded-full">
-                    {feature.tag}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </div>
