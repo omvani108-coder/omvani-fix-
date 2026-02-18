@@ -4,6 +4,7 @@ import { Upload, Camera, Sparkles, X, Loader2, Eye, Info, Star, MapPin, Clock, Z
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { useTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
 
 type DeityResult = {
@@ -38,6 +39,7 @@ const typeEmojis: Record<string, string> = {
 };
 
 const Identify = () => {
+  const { t } = useTranslations();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMime, setImageMime] = useState<string>("image/jpeg");
@@ -133,7 +135,7 @@ const Identify = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-saffron font-sans text-sm tracking-[0.25em] uppercase mb-3"
           >
-            ✨ AI-Powered Recognition
+            {t.identify.eyebrow}
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -149,7 +151,7 @@ const Identify = () => {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground font-sans max-w-xl mx-auto"
           >
-            Upload a photo of a deity, temple, ritual, or sacred object — our AI will identify it and share its spiritual significance.
+            {t.identify.subtitle}
           </motion.p>
         </div>
       </section>
@@ -178,8 +180,8 @@ const Identify = () => {
                   <Upload className="w-8 h-8 text-accent-foreground" />
                 </div>
                 <div>
-                  <p className="font-serif font-bold text-foreground text-xl mb-1">Drop your image here</p>
-                  <p className="text-muted-foreground font-sans text-sm">or click to browse · JPG, PNG, WEBP up to 10MB</p>
+                  <p className="font-serif font-bold text-foreground text-xl mb-1">{t.identify.dropTitle}</p>
+                  <p className="text-muted-foreground font-sans text-sm">{t.identify.dropSubtitle}</p>
                 </div>
                 <div className="flex gap-3 text-xs text-muted-foreground font-sans">
                   <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Deities</span>
@@ -212,7 +214,7 @@ const Identify = () => {
                 </button>
               </div>
               <div className="p-5 flex items-center justify-between gap-4">
-                <p className="text-sm font-sans text-muted-foreground">Image ready for identification</p>
+                <p className="text-sm font-sans text-muted-foreground">{t.identify.imageReady}</p>
                 <Button
                   onClick={handleIdentify}
                   disabled={loading}
@@ -220,9 +222,9 @@ const Identify = () => {
                   className="gap-2 shrink-0"
                 >
                   {loading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Identifying...</>
+                    <><Loader2 className="w-4 h-4 animate-spin" />{t.identify.identifying}</>
                   ) : (
-                    <><Sparkles className="w-4 h-4" /> Identify</>
+                    <><Sparkles className="w-4 h-4" />{t.identify.identify}</>
                   )}
                 </Button>
               </div>
@@ -246,8 +248,8 @@ const Identify = () => {
                 <Loader2 className="absolute -top-1 -right-1 w-5 h-5 text-saffron animate-spin" />
               </div>
               <div className="text-center">
-                <p className="font-serif font-bold text-foreground">Consulting the sacred texts...</p>
-                <p className="text-sm text-muted-foreground font-sans mt-1">Our AI is analyzing the image</p>
+                <p className="font-serif font-bold text-foreground">{t.identify.consultingTexts}</p>
+                <p className="text-sm text-muted-foreground font-sans mt-1">{t.identify.analyzingImage}</p>
               </div>
             </motion.div>
           )}
@@ -272,7 +274,7 @@ const Identify = () => {
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <h2 className="font-serif font-bold text-accent-foreground text-2xl leading-tight">{result.name}</h2>
                         <span className={`shrink-0 text-xs font-sans font-bold px-3 py-1 rounded-full border ${confidenceColors[result.confidence]}`}>
-                          {result.confidence} Confidence
+                          {result.confidence} {t.identify.confidence}
                         </span>
                       </div>
                       <p className="text-accent-foreground/80 font-sans text-sm mt-1">{result.type}</p>
@@ -308,7 +310,7 @@ const Identify = () => {
                   {/* Attributes */}
                   {result.attributes?.length > 0 && (
                     <div>
-                      <h3 className="font-sans font-semibold text-foreground text-sm mb-2">Key Attributes</h3>
+                      <h3 className="font-sans font-semibold text-foreground text-sm mb-2">{t.identify.keyAttributes}</h3>
                       <div className="flex flex-wrap gap-2">
                         {result.attributes.map((attr, i) => (
                           <span key={i} className="text-xs font-sans bg-secondary text-secondary-foreground px-3 py-1 rounded-full">
@@ -405,7 +407,7 @@ const Identify = () => {
         <div className="max-w-4xl mx-auto text-center">
           <Link to="/" className="font-serif text-xl font-bold text-gradient-sacred">OmVani</Link>
           <p className="text-xs text-muted-foreground/60 font-sans mt-2">
-            © 2026 OmVani · AI identification is for educational purposes
+            © 2026 OmVani · {t.identify.footerNote}
           </p>
         </div>
       </footer>
