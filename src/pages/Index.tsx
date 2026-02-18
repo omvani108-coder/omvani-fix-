@@ -211,6 +211,14 @@ const Index = () => (
           transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
+          <Link to="/chat">
+            <Button
+              size="lg"
+              className="text-base px-8 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 animate-pulse hover:animate-none transition-all duration-300"
+            >
+              🙏 Talk to AI Guru
+            </Button>
+          </Link>
           <Link to="/signup">
             <Button variant="hero" size="lg" className="text-base px-8 py-6">
               Start 7-Day Free Trial
