@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Play, Pause, ChevronDown, ChevronUp, BookOpen, Music, X, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -273,9 +272,11 @@ const Bhajans = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border mt-8">
         <div className="max-w-4xl mx-auto text-center">
-          <Link to="/" className="font-serif text-xl font-bold text-gradient-sacred">OmVani</Link>
+          <Link to="/" className="inline-flex items-center gap-1 font-serif text-xl font-bold text-gradient-sacred">
+            <span>ॐ</span><span>Vani</span>
+          </Link>
           <p className="text-xs text-muted-foreground/60 font-sans mt-2">
-            © 2026 OmVani · Audio content powered by YouTube
+            © 2026 ॐVani · Audio content powered by YouTube
           </p>
         </div>
       </footer>
