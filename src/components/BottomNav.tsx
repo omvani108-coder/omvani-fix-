@@ -5,7 +5,13 @@ import { MessageCircle, BookOpen, Music, Flame, User } from "lucide-react";
 
 // ─── Pages where the bottom nav should NOT show ───────────────────────────────
 
-const HIDDEN_ON = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const HIDDEN_ON = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/onboarding",   // ← Bug 2 fix: hide nav during onboarding flow
+];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
