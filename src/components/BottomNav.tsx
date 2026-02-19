@@ -1,11 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslations } from "@/hooks/useTranslations";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, BookOpen, Music, MapPin, Flame } from "lucide-react";
-
-// ─── Nav items ────────────────────────────────────────────────────────────────
-
-// navItems built dynamically inside component using translations
+import { MessageCircle, BookOpen, Music, Flame, User } from "lucide-react";
 
 // ─── Pages where the bottom nav should NOT show ───────────────────────────────
 
@@ -23,7 +19,7 @@ export function BottomNav() {
     { label: t.bottomNav.gita,    icon: BookOpen,      href: "/scriptures" },
     { label: t.bottomNav.puja,    icon: Flame,         href: "/puja-tracker" },
     { label: t.bottomNav.bhajans, icon: Music,         href: "/bhajans" },
-    { label: t.bottomNav.mandirs, icon: MapPin,        href: "/mandirs" },
+    { label: t.bottomNav.profile, icon: User,          href: "/profile" },
   ] as const;
 
   if (HIDDEN_ON.includes(location.pathname)) return null;
