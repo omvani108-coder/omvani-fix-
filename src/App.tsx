@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import Profile from "./pages/Profile";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Scriptures from "@/pages/scriptures/Scriptures";
 import { BottomNav } from "@/components/BottomNav";
@@ -47,7 +46,6 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/profile" element={<Profile />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/bhajans" element={<Bhajans />} />
             <Route path="/scriptures" element={<Scriptures />} />
