@@ -40,25 +40,26 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <LanguageProvider>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/bhajans" element={<Bhajans />} />
-            <Route path="/scriptures" element={<Scriptures />} />
-            <Route path="/mandirs" element={<Mandirs />} />
-            <Route path="/identify" element={<Identify />} />
-            <Route path="/puja-tracker" element={<PujaTracker />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/bhajans" element={<Bhajans />} />
+              <Route path="/scriptures" element={<Scriptures />} />
+              <Route path="/mandirs" element={<Mandirs />} />
+              <Route path="/identify" element={<Identify />} />
+              <Route path="/puja-tracker" element={<PujaTracker />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            {/* BottomNav is inside AuthProvider so it can access auth state */}
+            <BottomNav />
+          </AuthProvider>
         </LanguageProvider>
-        <BottomNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
