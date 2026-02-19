@@ -27,14 +27,14 @@ interface MonthRecord {
 // ── Puja items list ───────────────────────────────────────────────────────────
 
 const PUJA_ITEM_BASE = [
-  { id: "snan",      emoji: "🪔",  sanskrit: "प्रातः स्नान" },
-  { id: "deepak",    emoji: "🕯️", sanskrit: "दीप प्रज्वलन" },
-  { id: "incense",   emoji: "🌿",  sanskrit: "धूप अर्पण" },
-  { id: "flowers",   emoji: "🌸",  sanskrit: "पुष्प अर्पण" },
-  { id: "mantra",    emoji: "📿",  sanskrit: "मंत्र जाप" },
-  { id: "aarti",     emoji: "🔔",  sanskrit: "आरती" },
-  { id: "prasad",    emoji: "🍬",  sanskrit: "प्रसाद" },
-  { id: "meditation",emoji: "🧘",  sanskrit: "ध्यान" },
+  { id: "snan",       emoji: "🪔",  sanskrit: "प्रातः स्नान" },
+  { id: "deepak",     emoji: "🕯️", sanskrit: "दीप प्रज्वलन" },
+  { id: "incense",    emoji: "🌿",  sanskrit: "धूप अर्पण" },
+  { id: "flowers",    emoji: "🌸",  sanskrit: "पुष्प अर्पण" },
+  { id: "mantra",     emoji: "📿",  sanskrit: "मंत्र जाप" },
+  { id: "aarti",      emoji: "🔔",  sanskrit: "आरती" },
+  { id: "prasad",     emoji: "🍬",  sanskrit: "प्रसाद" },
+  { id: "meditation", emoji: "🧘",  sanskrit: "ध्यान" },
 ] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -235,7 +235,7 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className={`font-sans font-semibold text-sm ${checked ? "text-foreground" : "text-foreground"}`}>
+        <p className="font-sans font-semibold text-sm text-foreground">
           {item.name}
         </p>
         <p className="text-muted-foreground font-sans text-xs mt-0.5 leading-relaxed">
@@ -261,17 +261,23 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 
 export default function PujaTracker() {
   const { t } = useTranslations();
-  const PUJA_ITEMS: PujaItem[] = PUJA_ITEM_BASE.map(item => ({
-    ...item,
-    name: t.pujaItems[item.id as keyof typeof t.pujaItems].name,
-    description: t.pujaItems[item.id as keyof typeof t.pujaItems].description,
-  }));
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [data, setData] = useState<MonthRecord>(loadData);
   const [showInfo, setShowInfo] = useState(false);
+
+  // ✅ Bug 3 fix: wrapped in useMemo so it only rebuilds when language changes
+  const PUJA_ITEMS = useMemo<PujaItem[]>(
+    () =>
+      PUJA_ITEM_BASE.map((item) => ({
+        ...item,
+        name: t.pujaItems[item.id as keyof typeof t.pujaItems].name,
+        description: t.pujaItems[item.id as keyof typeof t.pujaItems].description,
+      })),
+    [t]
+  );
 
   // Build calendar grid
   const { calendarDays, firstDow } = useMemo(() => {
@@ -324,7 +330,7 @@ export default function PujaTracker() {
     }
 
     return { totalDays, completeDays, totalItems, checkedItems };
-  }, [data, viewYear, viewMonth, today]);
+  }, [data, viewYear, viewMonth, today, PUJA_ITEMS]);
 
   // Streak calculation
   const streak = useMemo(() => {
@@ -339,7 +345,7 @@ export default function PujaTracker() {
       d.setDate(d.getDate() - 1);
     }
     return count;
-  }, [data, today]);
+  }, [data, today, PUJA_ITEMS]);
 
   // Nav months
   const goMonth = (dir: number) => {
@@ -429,7 +435,7 @@ export default function PujaTracker() {
                   {streak === 1 ? t.puja.day : t.puja.days}
                 </span>
               </div>
-              <p className="text-white/70 font-sans text-xs mt-2">{t.puja.streakLabel}</p>
+              <p className="text-white/70 font-sans text-xs mt-2">{streakMessage(streak)}</p>
             </div>
 
             {/* Month summary pills */}
@@ -518,11 +524,7 @@ export default function PujaTracker() {
                     record={data[key]}
                     isToday={isToday}
                     isFuture={isFuture}
-                    isSelected={
-                      viewYear === today.getFullYear() || true
-                        ? selectedDay === day && viewYear === viewYear && viewMonth === viewMonth
-                        : false
-                    }
+                    isSelected={selectedDay === day}
                     onClick={() => setSelectedDay(day)}
                   />
                 );
