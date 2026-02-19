@@ -75,9 +75,9 @@ const Navbar = () => {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-serif font-bold text-gradient-sacred">OmVani</span>
-          <span className="text-gold-light text-base hidden sm:inline" aria-hidden="true">🪔</span>
+        <Link to="/" className="flex items-center gap-1.5">
+          <span className="text-2xl font-serif font-bold text-gradient-sacred">ॐ</span>
+          <span className="text-2xl font-serif font-bold text-gradient-sacred">Vani</span>
         </Link>
 
         {/* Desktop nav links */}
