@@ -132,7 +132,7 @@ export default function Onboarding() {
       return;
     }
 
-    toast.success("Welcome to OmVani! 🙏");
+    toast.success("Welcome to ॐVani! 🙏");
     navigate("/chat");
   };
 
@@ -268,7 +268,9 @@ export default function Onboarding() {
         transition={{ duration: 0.5 }}
         className="text-center mb-10"
       >
-        <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-1">OmVani</h1>
+        <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-1">
+          <span>ॐ</span>Vani
+        </h1>
         <p className="text-muted-foreground font-sans text-xs tracking-[0.25em] uppercase">
           ॐ Your Spiritual Companion
         </p>
@@ -403,7 +405,7 @@ export default function Onboarding() {
                 disabled={!canProceed() || saving}
                 className="flex-1 font-sans gap-2"
               >
-                {saving ? "Saving…" : "Enter OmVani 🙏"}
+                {saving ? "Saving…" : "Enter ॐVani 🙏"}
               </Button>
             )}
           </div>
