@@ -74,3 +74,4 @@ export function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
     </div>
   );
 }
+
