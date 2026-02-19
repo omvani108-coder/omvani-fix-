@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, Globe, Trash2, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, Globe, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,15 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, delay: i * 0.07, ease: "easeOut" },
-  }),
-};
+import { fadeUp } from "@/lib/animations";
 
 export default function Profile() {
   const { user, signOut } = useAuth();

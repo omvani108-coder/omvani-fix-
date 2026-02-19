@@ -111,8 +111,9 @@ interface DayCellProps {
 }
 
 function DayCell({ day, dateKey, record, isToday, isFuture, isSelected, onClick }: DayCellProps) {
+  const totalItems = PUJA_ITEM_BASE.length;
   const checked = Object.values(record ?? {}).filter(Boolean).length;
-  const pct = checked / PUJA_ITEMS.length;
+  const pct = checked / totalItems;
   const isComplete = pct === 1;
 
   return (
@@ -120,7 +121,7 @@ function DayCell({ day, dateKey, record, isToday, isFuture, isSelected, onClick 
       whileTap={{ scale: isFuture ? 1 : 0.92 }}
       onClick={onClick}
       disabled={isFuture}
-      aria-label={`${dateKey} — ${checked} of ${PUJA_ITEMS.length} completed`}
+      aria-label={`${dateKey} — ${checked} of ${totalItems} completed`}
       aria-pressed={isSelected}
       className={`
         relative flex flex-col items-center justify-center rounded-xl
