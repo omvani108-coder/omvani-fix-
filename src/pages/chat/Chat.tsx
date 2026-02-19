@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Trash2, Loader2, BookOpen, RotateCcw } from "lucide-react";
+import { Send, Loader2, BookOpen, RotateCcw, Mic, MicOff } from "lucide-react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { Link } from "react-router-dom";
 import { SeoHead } from "@/components/SeoHead";
 import { useChat } from "./useChat";
 import { SUGGESTED_QUESTIONS, Message, ScriptureRef } from "./types";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 // ─── Scripture Reference Badge ────────────────────────────────────────────────
 
@@ -24,7 +27,7 @@ function StreamCursor() {
   return (
     <motion.span
       animate={{ opacity: [1, 0] }}
-      transition={{ duration: 0.6, repeat: Infinity, ease: "steps(1)" }}
+      transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
       className="inline-block w-0.5 h-4 bg-saffron ml-0.5 align-middle"
       aria-hidden="true"
     />
@@ -174,14 +177,74 @@ function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
   );
 }
 
+// ─── Voice Mic Button ─────────────────────────────────────────────────────────
+
+function VoiceMicButton({
+  isListening,
+  isSupported,
+  onToggle,
+}: {
+  isListening: boolean;
+  isSupported: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={isListening ? "Stop recording" : "Start voice input"}
+      aria-pressed={isListening}
+      className={`
+        relative shrink-0 w-9 h-9 rounded-xl flex items-center justify-center
+        font-serif text-base transition-all duration-200 focus-visible:ring-2
+        focus-visible:ring-saffron active:scale-95
+        ${isListening
+          ? "bg-red-500 text-white shadow-lg"
+          : "border border-border bg-card text-saffron hover:border-saffron/50 hover:bg-saffron/5"
+        }
+      `}
+    >
+      {/* Pulsing ring when listening */}
+      {isListening && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 rounded-xl ring-2 ring-red-400 animate-ping opacity-60"
+        />
+      )}
+      <span aria-hidden="true" className="leading-none">ॐ</span>
+    </button>
+  );
+}
+
 // ─── Main Chat Page ───────────────────────────────────────────────────────────
 
 export default function Chat() {
   const { messages, isLoading, sendMessage, clearChat } = useChat();
   const { t } = useTranslations();
+  const { language } = useLanguage();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Voice input
+  const { isSupported: voiceSupported, isListening, toggle: toggleVoice } = useVoiceInput({
+    language,
+    onTranscript: (text) => {
+      setInput((prev) => (prev ? prev + " " + text : text));
+      textareaRef.current?.focus();
+    },
+    onError: () => {
+      toast.error("Microphone access denied or an error occurred.");
+    },
+  });
+
+  const handleVoiceClick = () => {
+    if (!voiceSupported) {
+      toast.error("Voice input not supported on this browser");
+      return;
+    }
+    toggleVoice();
+  };
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -308,13 +371,28 @@ export default function Chat() {
       {/* ── Input bar ──────────────────────────────────────────────────────── */}
       <footer className="shrink-0 px-4 md:px-6 py-4 border-t border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-2xl mx-auto">
+          {/* Listening indicator */}
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center gap-2 mb-2"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
+              <span className="text-xs font-sans text-red-500 font-medium">Listening…</span>
+            </motion.div>
+          )}
+
           {/* Disclaimer */}
-          <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
-            OmVani draws from authentic scriptures. Not a substitute for a living guru.
-          </p>
+          {!isListening && (
+            <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
+              OmVani draws from authentic scriptures. Not a substitute for a living guru.
+            </p>
+          )}
 
           {/* Input row */}
-          <div className="flex items-end gap-3 bg-card border border-border rounded-2xl px-4 py-3 focus-within:border-saffron/50 transition-colors duration-200 shadow-sm">
+          <div className="flex items-end gap-2 bg-card border border-border rounded-2xl px-4 py-3 focus-within:border-saffron/50 transition-colors duration-200 shadow-sm">
             <textarea
               ref={textareaRef}
               value={input}
@@ -327,6 +405,14 @@ export default function Chat() {
               style={{ scrollbarWidth: "none" }}
             />
 
+            {/* Voice mic button */}
+            <VoiceMicButton
+              isListening={isListening}
+              isSupported={voiceSupported}
+              onToggle={handleVoiceClick}
+            />
+
+            {/* Send button */}
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
