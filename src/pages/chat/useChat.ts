@@ -66,7 +66,6 @@ export function useChat(): UseChatReturn {
     abortRef.current = new AbortController();
 
     try {
-      // ✅ FIXED: use correct env variable name
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
@@ -75,9 +74,13 @@ export function useChat(): UseChatReturn {
         .filter((m) => !m.isStreaming && m.content)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const languageInstruction = language === "hi"
-        ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
-        : "\n\nIMPORTANT: Respond in English.";
+      // ── Language instruction sent to the AI ──────────────────────────────
+      const languageInstruction =
+        language === "hi"
+          ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
+          : language === "ta"
+          ? "\n\nIMPORTANT: The user has selected Tamil. You MUST respond entirely in Tamil script (தமிழ்). Do not use English except for proper nouns like scripture names."
+          : "\n\nIMPORTANT: Respond in English.";
 
       const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
         method: "POST",
