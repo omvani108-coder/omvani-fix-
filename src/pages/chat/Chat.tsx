@@ -219,7 +219,7 @@ function VoiceMicButton({
 // ─── Main Chat Page ───────────────────────────────────────────────────────────
 
 export default function Chat() {
-  const { messages, isLoading, sendMessage, clearChat } = useChat();
+  const { messages, isLoading, isLoadingHistory, sendMessage, clearChat } = useChat();
   const { t } = useTranslations();
   const { language } = useLanguage();
   const [input, setInput] = useState("");
@@ -288,7 +288,7 @@ export default function Chat() {
           <div aria-hidden="true" className="w-8 h-8 rounded-full bg-sacred-gradient flex items-center justify-center text-sm shadow-sacred">
             ॐ
           </div>
-          <span className="font-serif font-bold text-lg text-gradient-sacred">OmVani</span>
+          <span className="font-serif font-bold text-lg text-gradient-sacred">ॐVani</span>
         </Link>
 
         <div className="flex items-center gap-1 text-center">
@@ -316,7 +316,31 @@ export default function Chat() {
       >
         <div className="max-w-2xl mx-auto w-full">
           <AnimatePresence mode="wait">
-            {messages.length === 0 ? (
+            {isLoadingHistory ? (
+              /* Loading history skeleton */
+              <motion.div
+                key="loading-history"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full min-h-[60vh] flex flex-col items-center justify-center gap-4"
+              >
+                <div className="w-12 h-12 rounded-full bg-sacred-gradient flex items-center justify-center text-xl shadow-sacred">
+                  ॐ
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {[0, 0.15, 0.3].map((delay, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ y: [0, -4, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay }}
+                      className="w-1.5 h-1.5 rounded-full bg-saffron/60"
+                    />
+                  ))}
+                </div>
+                <p className="text-xs font-sans text-muted-foreground">Restoring your conversation…</p>
+              </motion.div>
+            ) : messages.length === 0 ? (
               <motion.div
                 key="empty"
                 className="h-full min-h-[60vh] flex items-center justify-center"
@@ -387,7 +411,7 @@ export default function Chat() {
           {/* Disclaimer */}
           {!isListening && (
             <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
-              OmVani draws from authentic scriptures. Not a substitute for a living guru.
+              ॐVani draws from authentic scriptures. Not a substitute for a living guru.
             </p>
           )}
 
