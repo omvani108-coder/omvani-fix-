@@ -23,25 +23,18 @@ const categoryColors: Record<string, string> = {
 const Bhajans = () => {
   const { t } = useTranslations();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("All");
-  const [language, setLanguage] = useState<string>("All");
-  const [deity, setDeity] = useState<string>("All");
   const [selectedBhajan, setSelectedBhajan] = useState<Bhajan | null>(null);
   const [expandedLyrics, setExpandedLyrics] = useState<string | null>(null);
   const [expandedMeaning, setExpandedMeaning] = useState<string | null>(null);
 
   const filtered = bhajans.filter((b) => {
     const q = search.toLowerCase();
-    const matchSearch =
+    return (
       !q ||
       b.title.toLowerCase().includes(q) ||
       b.deity.toLowerCase().includes(q) ||
-      b.tags.some((t) => t.includes(q));
-    const matchCategory = category === "All" || b.category === category;
-    const matchLanguage = language === "All" || b.language === language;
-    const matchDeity =
-      deity === "All" || b.deity.toLowerCase().includes(deity.toLowerCase());
-    return matchSearch && matchCategory && matchLanguage && matchDeity;
+      b.tags.some((t) => t.includes(q))
+    );
   });
 
   return (
@@ -91,53 +84,7 @@ const Bhajans = () => {
             />
           </div>
 
-          {/* Filter chips */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-sans font-medium border transition-all ${
-                  category === c
-                    ? "bg-saffron text-accent-foreground border-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-            <div className="w-px bg-border shrink-0" />
-            {LANGUAGES.map((l) => (
-              <button
-                key={l}
-                onClick={() => setLanguage(l)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-sans font-medium border transition-all ${
-                  language === l
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border text-muted-foreground hover:border-primary"
-                }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
 
-          {/* Deity filter */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {DEITIES.map((d) => (
-              <button
-                key={d}
-                onClick={() => setDeity(d)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-sans font-medium border transition-all ${
-                  deity === d
-                    ? "bg-gold text-accent-foreground border-gold"
-                    : "border-border text-muted-foreground hover:border-gold"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
