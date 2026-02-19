@@ -372,7 +372,7 @@ export default function PujaTracker() {
   return (
     <div className="min-h-screen bg-background">
       <SeoHead
-        title="Puja Tracker — OmVani"
+        title="Puja Tracker — ॐVani"
         description="Track your daily puja routine. Build a sacred habit and maintain your spiritual streak."
         canonicalPath="/puja-tracker"
       />
