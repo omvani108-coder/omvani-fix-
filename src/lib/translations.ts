@@ -5,7 +5,7 @@ export const translations = {
       mandirs: "Mandirs", identify: "Identify", pricing: "Pricing",
       signIn: "Sign In", startTrial: "Start Free Trial", openChat: "Open Chat",
     },
-    bottomNav: { chat: "Chat", gita: "Gita", puja: "Puja", bhajans: "Bhajans", profile: "Profile" },
+    bottomNav: { chat: "AI Guru", gita: "Gita", puja: "Puja", bhajans: "Bhajans", profile: "Profile" },
     home: {
       eyebrow: "Your Spiritual Companion",
       subtitle: "Talk to a spiritual guru anytime, in your language — no waiting, no travel.",
@@ -130,7 +130,7 @@ export const translations = {
       mandirs: "मंदिर", identify: "पहचानें", pricing: "मूल्य",
       signIn: "साइन इन", startTrial: "निःशुल्क परीक्षण", openChat: "चैट खोलें",
     },
-    bottomNav: { chat: "चैट", gita: "गीता", puja: "पूजा", bhajans: "भजन", profile: "प्रोफ़ाइल" },
+    bottomNav: { chat: "AI Guru", gita: "गीता", puja: "पूजा", bhajans: "भजन", profile: "प्रोफ़ाइल" },
     home: {
       eyebrow: "आपका आध्यात्मिक साथी",
       subtitle: "कभी भी, अपनी भाषा में एक आध्यात्मिक गुरु से बात करें — कोई प्रतीक्षा नहीं।",
@@ -255,7 +255,7 @@ export const translations = {
       mandirs: "கோயில்கள்", identify: "அடையாளம்", pricing: "விலை",
       signIn: "உள்நுழைக", startTrial: "இலவச சோதனை", openChat: "அரட்டை திறக்க",
     },
-    bottomNav: { chat: "அரட்டை", gita: "கீதை", puja: "பூஜை", bhajans: "பஜனை", profile: "சுயவிவரம்" },
+    bottomNav: { chat: "AI Guru", gita: "கீதை", puja: "பூஜை", bhajans: "பஜனை", profile: "சுயவிவரம்" },
     home: {
       eyebrow: "உங்கள் ஆன்மீக துணை",
       subtitle: "எந்நேரமும் உங்கள் மொழியில் ஒரு ஆன்மீக குருவிடம் பேசுங்கள் — காத்திருப்பு இல்லை.",
