@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, Globe, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, BellOff, Globe, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,11 +11,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fadeUp } from "@/lib/animations";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { language, setLanguage, isHindi } = useLanguage();
   const navigate = useNavigate();
+  const { supported: notifSupported, enabled: notifEnabled, permission, toggleNotifications } = useNotifications();
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -260,11 +262,83 @@ export default function Profile() {
           </motion.div>
         )}
 
+        {/* Notifications */}
+        {notifSupported && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            custom={3}
+            variants={fadeUp}
+            className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
+          >
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+              <Bell className="w-4 h-4 text-saffron" />
+              <h2 className="font-sans font-semibold text-foreground text-sm">
+                {isHindi ? "सूचनाएं" : "Notifications"}
+              </h2>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-xs text-muted-foreground font-sans mb-4">
+                {isHindi
+                  ? "हर सुबह 7 बजे दैनिक श्लोक प्राप्त करें"
+                  : "Receive your daily shloka every morning at 7am"}
+              </p>
+              <button
+                onClick={async () => {
+                  await toggleNotifications();
+                  if (!notifEnabled) {
+                    toast.success(isHindi ? "सूचनाएं सक्षम की गईं 🔔" : "Notifications enabled 🔔");
+                  } else {
+                    toast.success(isHindi ? "सूचनाएं बंद की गईं" : "Notifications disabled");
+                  }
+                }}
+                disabled={permission === "denied"}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                  notifEnabled
+                    ? "border-saffron bg-saffron/10"
+                    : "border-border hover:border-saffron/40"
+                } ${permission === "denied" ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${
+                    notifEnabled ? "bg-sacred-gradient shadow-sacred" : "bg-muted"
+                  }`}>
+                    ॐ
+                  </div>
+                  <div className="text-left">
+                    <p className={`text-sm font-sans font-semibold ${notifEnabled ? "text-saffron" : "text-foreground"}`}>
+                      {isHindi ? "दैनिक श्लोक" : "Daily Shloka"}
+                    </p>
+                    <p className="text-xs font-sans text-muted-foreground">
+                      {permission === "denied"
+                        ? (isHindi ? "ब्राउज़र ने ब्लॉक किया" : "Blocked by browser")
+                        : notifEnabled
+                        ? (isHindi ? "सक्षम — हर सुबह 7 बजे" : "Enabled — every morning at 7am")
+                        : (isHindi ? "बंद है" : "Currently off")}
+                    </p>
+                  </div>
+                </div>
+                {notifEnabled
+                  ? <Bell className="w-5 h-5 text-saffron shrink-0" aria-hidden="true" />
+                  : <BellOff className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
+                }
+              </button>
+              {permission === "denied" && (
+                <p className="text-[10px] text-muted-foreground font-sans mt-2 text-center">
+                  {isHindi
+                    ? "नोटिफिकेशन के लिए ब्राउज़र सेटिंग में अनुमति दें"
+                    : "Allow notifications in your browser settings to enable this"}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Links */}
         <motion.div
           initial="hidden"
           animate="visible"
-          custom={3}
+          custom={4}
           variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
@@ -300,7 +374,7 @@ export default function Profile() {
         <motion.div
           initial="hidden"
           animate="visible"
-          custom={4}
+          custom={5}
           variants={fadeUp}
         >
           <button
