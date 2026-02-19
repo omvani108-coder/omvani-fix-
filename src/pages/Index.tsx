@@ -533,11 +533,12 @@ const Index = () => {
     <Navbar />
 
     {/* ── Hero ──────────────────────────────────────────────────────────────── */}
-    <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden" style={{ backgroundColor: "#1a0a00" }}>
       <img
         src={heroBg}
         alt="Sacred temple at golden hour"
         fetchPriority="high"
+        decoding="async"
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-hero-overlay" aria-hidden="true" />
@@ -842,4 +843,3 @@ const Index = () => {
 };
 
 export default Index;
-
