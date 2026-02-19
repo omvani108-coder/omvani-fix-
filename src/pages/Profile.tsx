@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
-  const { language, setLanguage, isHindi } = useLanguage();
+  const { language, setLanguage, isHindi, isTamil } = useLanguage();
   const navigate = useNavigate();
   const { supported: notifSupported, enabled: notifEnabled, permission, toggleNotifications } = useNotifications();
   const { theme, setTheme } = useTheme();
@@ -34,20 +34,24 @@ export default function Profile() {
     : "";
   const provider = user?.app_metadata?.provider || "email";
 
+  // Helper: pick text by active language (EN / HI / TA)
+  const tx = (en: string, hi: string, ta: string) =>
+    isTamil ? ta : isHindi ? hi : en;
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
-    toast.success(isHindi ? "आप सफलतापूर्वक साइन आउट हो गए" : "Signed out successfully");
+    toast.success(tx("Signed out successfully", "आप सफलतापूर्वक साइन आउट हो गए", "வெற்றிகரமாக வெளியேறினீர்கள்"));
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      toast.error(isHindi ? "पासवर्ड मेल नहीं खाते" : "Passwords do not match");
+      toast.error(tx("Passwords do not match", "पासवर्ड मेल नहीं खाते", "கடவுச்சொற்கள் பொருந்தவில்லை"));
       return;
     }
     if (newPassword.length < 8) {
-      toast.error(isHindi ? "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए" : "Password must be at least 8 characters");
+      toast.error(tx("Password must be at least 8 characters", "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए", "கடவுச்சொல் குறைந்தது 8 எழுத்துகளாக இருக்க வேண்டும்"));
       return;
     }
     setPasswordLoading(true);
@@ -58,7 +62,7 @@ export default function Profile() {
       setPasswordSuccess(true);
       setNewPassword("");
       setConfirmPassword("");
-      toast.success(isHindi ? "पासवर्ड सफलतापूर्वक बदला गया" : "Password updated successfully");
+      toast.success(tx("Password updated successfully", "पासवर्ड सफलतापूर्वक बदला गया", "கடவுச்சொல் வெற்றிகரமாக புதுப்பிக்கப்பட்டது"));
       setTimeout(() => setPasswordSuccess(false), 3000);
     }
     setPasswordLoading(false);
@@ -93,7 +97,7 @@ export default function Profile() {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground font-sans text-sm"
           >
-            {email} · {isHindi ? "सदस्य" : "Member"} {joinDate}
+            {email} · {tx("Member", "सदस्य", "உறுப்பினர்")} {joinDate}
           </motion.p>
         </div>
       </section>
@@ -102,35 +106,32 @@ export default function Profile() {
 
         {/* Account Info */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={0}
-          variants={fadeUp}
+          initial="hidden" animate="visible" custom={0} variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
             <User className="w-4 h-4 text-saffron" />
             <h2 className="font-sans font-semibold text-foreground text-sm">
-              {isHindi ? "खाता जानकारी" : "Account Info"}
+              {tx("Account Info", "खाता जानकारी", "கணக்கு தகவல்")}
             </h2>
           </div>
           <div className="divide-y divide-border">
             <div className="flex items-center justify-between px-6 py-4">
               <div>
-                <p className="text-xs text-muted-foreground font-sans mb-0.5">{isHindi ? "नाम" : "Name"}</p>
+                <p className="text-xs text-muted-foreground font-sans mb-0.5">{tx("Name", "नाम", "பெயர்")}</p>
                 <p className="text-sm font-sans text-foreground font-medium">{displayName}</p>
               </div>
             </div>
             <div className="flex items-center justify-between px-6 py-4">
               <div>
-                <p className="text-xs text-muted-foreground font-sans mb-0.5">{isHindi ? "ईमेल" : "Email"}</p>
+                <p className="text-xs text-muted-foreground font-sans mb-0.5">{tx("Email", "ईमेल", "மின்னஞ்சல்")}</p>
                 <p className="text-sm font-sans text-foreground font-medium">{email}</p>
               </div>
               <Mail className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex items-center justify-between px-6 py-4">
               <div>
-                <p className="text-xs text-muted-foreground font-sans mb-0.5">{isHindi ? "साइन-इन विधि" : "Sign-in method"}</p>
+                <p className="text-xs text-muted-foreground font-sans mb-0.5">{tx("Sign-in method", "साइन-इन विधि", "உள்நுழைவு முறை")}</p>
                 <p className="text-sm font-sans text-foreground font-medium capitalize">
                   {provider === "google" ? "🔵 Google" : "📧 Email & Password"}
                 </p>
@@ -140,143 +141,105 @@ export default function Profile() {
           </div>
         </motion.div>
 
-        {/* Appearance — Dark Mode */}
+        {/* Appearance */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={1}
-          variants={fadeUp}
+          initial="hidden" animate="visible" custom={1} variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-            {theme === "dark" ? (
-              <Moon className="w-4 h-4 text-saffron" />
-            ) : (
-              <Sun className="w-4 h-4 text-saffron" />
-            )}
+            {theme === "dark" ? <Moon className="w-4 h-4 text-saffron" /> : <Sun className="w-4 h-4 text-saffron" />}
             <h2 className="font-sans font-semibold text-foreground text-sm">
-              {isHindi ? "दिखावट" : "Appearance"}
+              {tx("Appearance", "दिखावट", "தோற்றம்")}
             </h2>
           </div>
           <div className="px-6 py-5">
             <p className="text-xs text-muted-foreground font-sans mb-4">
-              {isHindi ? "ऐप की थीम चुनें" : "Choose the app theme"}
+              {tx("Choose the app theme", "ऐप की थीम चुनें", "பயன்பாட்டின் தீம் தேர்வு செய்க")}
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setTheme("light")}
-                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
-                  theme === "light"
-                    ? "border-saffron bg-saffron/10 text-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron/40"
-                }`}
-              >
-                <Sun className="w-6 h-6" />
-                <span className="font-sans font-semibold text-sm">{isHindi ? "लाइट" : "Light"}</span>
-                {theme === "light" && <CheckCircle className="w-4 h-4 text-saffron" />}
-              </button>
-              <button
-                onClick={() => setTheme("dark")}
-                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
-                  theme === "dark"
-                    ? "border-saffron bg-saffron/10 text-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron/40"
-                }`}
-              >
-                <Moon className="w-6 h-6" />
-                <span className="font-sans font-semibold text-sm">{isHindi ? "डार्क" : "Dark"}</span>
-                {theme === "dark" && <CheckCircle className="w-4 h-4 text-saffron" />}
-              </button>
-              <button
-                onClick={() => setTheme("system")}
-                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
-                  theme === "system"
-                    ? "border-saffron bg-saffron/10 text-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron/40"
-                }`}
-              >
-                <span className="text-xl">⚙️</span>
-                <span className="font-sans font-semibold text-sm">{isHindi ? "सिस्टम" : "System"}</span>
-                {theme === "system" && <CheckCircle className="w-4 h-4 text-saffron" />}
-              </button>
+              {[
+                { value: "light", icon: <Sun className="w-6 h-6" />, label: tx("Light", "लाइट", "வெளிர்") },
+                { value: "dark",  icon: <Moon className="w-6 h-6" />, label: tx("Dark",  "डार्क",  "இருள்") },
+                { value: "system",icon: <span className="text-xl">⚙️</span>, label: tx("System", "सिस्टम", "சிஸ்டம்") },
+              ].map(({ value, icon, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setTheme(value)}
+                  className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
+                    theme === value
+                      ? "border-saffron bg-saffron/10 text-saffron"
+                      : "border-border text-muted-foreground hover:border-saffron/40"
+                  }`}
+                >
+                  {icon}
+                  <span className="font-sans font-semibold text-sm">{label}</span>
+                  {theme === value && <CheckCircle className="w-4 h-4 text-saffron" />}
+                </button>
+              ))}
             </div>
           </div>
         </motion.div>
 
-        {/* Language Toggle */}
+        {/* Language — 3-option: EN / HI / TA */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={2}
-          variants={fadeUp}
+          initial="hidden" animate="visible" custom={2} variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
             <Globe className="w-4 h-4 text-saffron" />
             <h2 className="font-sans font-semibold text-foreground text-sm">
-              {isHindi ? "भाषा / Language" : "Language / भाषा"}
+              {tx("Language / भाषा / மொழி", "भाषा / Language / மொழி", "மொழி / Language / भाषा")}
             </h2>
           </div>
           <div className="px-6 py-5">
             <p className="text-xs text-muted-foreground font-sans mb-4">
-              {isHindi
-                ? "चैट में AI गुरु किस भाषा में उत्तर देंगे"
-                : "Choose the language for AI Guru responses in chat"}
+              {tx(
+                "Choose the language for the app UI and AI Guru responses",
+                "ऐप UI और AI गुरु के उत्तर की भाषा चुनें",
+                "பயன்பாட்டு UI மற்றும் AI குரு பதில்களுக்கான மொழியை தேர்வு செய்க"
+              )}
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setLanguage("en")}
-                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
-                  language === "en"
-                    ? "border-saffron bg-saffron/10 text-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron/40"
-                }`}
-              >
-                <span className="text-2xl">🇬🇧</span>
-                <span className="font-sans font-semibold text-sm">English</span>
-                <span className="font-sans text-xs opacity-70">Respond in English</span>
-                {language === "en" && (
-                  <CheckCircle className="w-4 h-4 text-saffron" />
-                )}
-              </button>
-              <button
-                onClick={() => setLanguage("hi")}
-                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
-                  language === "hi"
-                    ? "border-saffron bg-saffron/10 text-saffron"
-                    : "border-border text-muted-foreground hover:border-saffron/40"
-                }`}
-              >
-                <span className="text-2xl">🇮🇳</span>
-                <span className="font-sans font-semibold text-sm">हिंदी</span>
-                <span className="font-sans text-xs opacity-70">हिंदी में उत्तर दें</span>
-                {language === "hi" && (
-                  <CheckCircle className="w-4 h-4 text-saffron" />
-                )}
-              </button>
+              {[
+                { lang: "en" as const, flag: "🇬🇧", name: "English",  sub: "Respond in English" },
+                { lang: "hi" as const, flag: "🇮🇳", name: "हिंदी",    sub: "हिंदी में उत्तर दें" },
+                { lang: "ta" as const, flag: "🇮🇳", name: "தமிழ்",   sub: "தமிழில் பதில் தருக" },
+              ].map(({ lang, flag, name, sub }) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
+                    language === lang
+                      ? "border-saffron bg-saffron/10 text-saffron"
+                      : "border-border text-muted-foreground hover:border-saffron/40"
+                  }`}
+                >
+                  <span className="text-2xl">{flag}</span>
+                  <span className="font-sans font-semibold text-sm">{name}</span>
+                  <span className="font-sans text-xs opacity-70 text-center leading-tight">{sub}</span>
+                  {language === lang && <CheckCircle className="w-4 h-4 text-saffron" />}
+                </button>
+              ))}
             </div>
           </div>
         </motion.div>
 
-        {/* Change Password — only for email users */}
+        {/* Change Password */}
         {provider !== "google" && (
           <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={3}
-            variants={fadeUp}
+            initial="hidden" animate="visible" custom={3} variants={fadeUp}
             className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
           >
             <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
               <Lock className="w-4 h-4 text-saffron" />
               <h2 className="font-sans font-semibold text-foreground text-sm">
-                {isHindi ? "पासवर्ड बदलें" : "Change Password"}
+                {tx("Change Password", "पासवर्ड बदलें", "கடவுச்சொல் மாற்று")}
               </h2>
             </div>
             <form onSubmit={handlePasswordChange} className="px-6 py-5 space-y-4">
               <div className="space-y-2">
                 <Label className="font-sans text-xs text-muted-foreground">
-                  {isHindi ? "नया पासवर्ड" : "New Password"}
+                  {tx("New Password", "नया पासवर्ड", "புதிய கடவுச்சொல்")}
                 </Label>
                 <div className="relative">
                   <Input
@@ -298,7 +261,7 @@ export default function Profile() {
               </div>
               <div className="space-y-2">
                 <Label className="font-sans text-xs text-muted-foreground">
-                  {isHindi ? "पासवर्ड की पुष्टि करें" : "Confirm New Password"}
+                  {tx("Confirm New Password", "पासवर्ड की पुष्टि करें", "கடவுச்சொல்லை உறுதிப்படுத்துக")}
                 </Label>
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -315,13 +278,11 @@ export default function Profile() {
                 disabled={passwordLoading || !newPassword || !confirmPassword}
                 className="w-full gap-2"
               >
-                {passwordLoading ? (
-                  isHindi ? "अपडेट हो रहा है..." : "Updating..."
-                ) : passwordSuccess ? (
-                  <><CheckCircle className="w-4 h-4" /> {isHindi ? "सफल!" : "Updated!"}</>
-                ) : (
-                  isHindi ? "पासवर्ड अपडेट करें" : "Update Password"
-                )}
+                {passwordLoading
+                  ? tx("Updating...", "अपडेट हो रहा है...", "புதுப்பிக்கிறோம்...")
+                  : passwordSuccess
+                  ? <><CheckCircle className="w-4 h-4" /> {tx("Updated!", "सफल!", "வெற்றி!")}</>
+                  : tx("Update Password", "पासवर्ड अपडेट करें", "கடவுச்சொல் புதுப்பி")}
               </Button>
             </form>
           </motion.div>
@@ -330,69 +291,64 @@ export default function Profile() {
         {/* Notifications */}
         {notifSupported && (
           <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={4}
-            variants={fadeUp}
+            initial="hidden" animate="visible" custom={4} variants={fadeUp}
             className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
           >
             <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
               <Bell className="w-4 h-4 text-saffron" />
               <h2 className="font-sans font-semibold text-foreground text-sm">
-                {isHindi ? "सूचनाएं" : "Notifications"}
+                {tx("Notifications", "सूचनाएं", "அறிவிப்புகள்")}
               </h2>
             </div>
             <div className="px-6 py-5">
               <p className="text-xs text-muted-foreground font-sans mb-4">
-                {isHindi
-                  ? "हर सुबह 7 बजे दैनिक श्लोक प्राप्त करें"
-                  : "Receive your daily shloka every morning at 7am"}
+                {tx(
+                  "Receive your daily shloka every morning at 7am",
+                  "हर सुबह 7 बजे दैनिक श्लोक प्राप्त करें",
+                  "தினமும் காலை 7 மணிக்கு தினசரி ஸ்லோகம் பெறுங்கள்"
+                )}
               </p>
               <button
                 onClick={async () => {
                   await toggleNotifications();
-                  if (!notifEnabled) {
-                    toast.success(isHindi ? "सूचनाएं सक्षम की गईं 🔔" : "Notifications enabled 🔔");
-                  } else {
-                    toast.success(isHindi ? "सूचनाएं बंद की गईं" : "Notifications disabled");
-                  }
+                  toast.success(notifEnabled
+                    ? tx("Notifications disabled", "सूचनाएं बंद की गईं", "அறிவிப்புகள் நிறுத்தப்பட்டன")
+                    : tx("Notifications enabled 🔔", "सूचनाएं सक्षम की गईं 🔔", "அறிவிப்புகள் இயக்கப்பட்டன 🔔")
+                  );
                 }}
                 disabled={permission === "denied"}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                  notifEnabled
-                    ? "border-saffron bg-saffron/10"
-                    : "border-border hover:border-saffron/40"
+                  notifEnabled ? "border-saffron bg-saffron/10" : "border-border hover:border-saffron/40"
                 } ${permission === "denied" ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${
                     notifEnabled ? "bg-sacred-gradient shadow-sacred" : "bg-muted"
-                  }`}>
-                    ॐ
-                  </div>
+                  }`}>ॐ</div>
                   <div className="text-left">
                     <p className={`text-sm font-sans font-semibold ${notifEnabled ? "text-saffron" : "text-foreground"}`}>
-                      {isHindi ? "दैनिक श्लोक" : "Daily Shloka"}
+                      {tx("Daily Shloka", "दैनिक श्लोक", "தினசரி ஸ்லோகம்")}
                     </p>
                     <p className="text-xs font-sans text-muted-foreground">
                       {permission === "denied"
-                        ? (isHindi ? "ब्राउज़र ने ब्लॉक किया" : "Blocked by browser")
+                        ? tx("Blocked by browser", "ब्राउज़र ने ब्लॉक किया", "உலாவியால் தடுக்கப்பட்டது")
                         : notifEnabled
-                        ? (isHindi ? "सक्षम — हर सुबह 7 बजे" : "Enabled — every morning at 7am")
-                        : (isHindi ? "बंद है" : "Currently off")}
+                        ? tx("Enabled — every morning at 7am", "सक्षम — हर सुबह 7 बजे", "இயக்கப்பட்டது — தினமும் காலை 7 மணி")
+                        : tx("Currently off", "बंद है", "தற்போது அணைக்கப்பட்டுள்ளது")}
                     </p>
                   </div>
                 </div>
                 {notifEnabled
                   ? <Bell className="w-5 h-5 text-saffron shrink-0" aria-hidden="true" />
-                  : <BellOff className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
-                }
+                  : <BellOff className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />}
               </button>
               {permission === "denied" && (
                 <p className="text-[10px] text-muted-foreground font-sans mt-2 text-center">
-                  {isHindi
-                    ? "नोटिफिकेशन के लिए ब्राउज़र सेटिंग में अनुमति दें"
-                    : "Allow notifications in your browser settings to enable this"}
+                  {tx(
+                    "Allow notifications in your browser settings to enable this",
+                    "नोटिफिकेशन के लिए ब्राउज़र सेटिंग में अनुमति दें",
+                    "இதை இயக்க உங்கள் உலாவி அமைப்புகளில் அறிவிப்புகளை அனுமதிக்கவும்"
+                  )}
                 </p>
               )}
             </div>
@@ -401,24 +357,21 @@ export default function Profile() {
 
         {/* Quick Links */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={5}
-          variants={fadeUp}
+          initial="hidden" animate="visible" custom={5} variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
             <ChevronRight className="w-4 h-4 text-saffron" />
             <h2 className="font-sans font-semibold text-foreground text-sm">
-              {isHindi ? "त्वरित लिंक" : "Quick Links"}
+              {tx("Quick Links", "त्वरित लिंक", "விரைவு இணைப்புகள்")}
             </h2>
           </div>
           <div className="divide-y divide-border">
             {[
-              { label: isHindi ? "गुरु से बात करें" : "Talk to Guru", href: "/chat", emoji: "ॐ" },
-              { label: isHindi ? "भगवद गीता पढ़ें" : "Read Bhagavad Gita", href: "/scriptures", emoji: "📖" },
-              { label: isHindi ? "भजन सुनें" : "Listen to Bhajans", href: "/bhajans", emoji: "🎵" },
-              { label: isHindi ? "मंदिर खोजें" : "Find Mandirs", href: "/mandirs", emoji: "🛕" },
+              { label: tx("Talk to Guru", "गुरु से बात करें", "குருவிடம் பேசுங்கள்"), href: "/chat", emoji: "ॐ" },
+              { label: tx("Read Bhagavad Gita", "भगवद गीता पढ़ें", "பகவத் கீதை படிக்க"), href: "/scriptures", emoji: "📖" },
+              { label: tx("Listen to Bhajans", "भजन सुनें", "பஜனைகள் கேளுங்கள்"), href: "/bhajans", emoji: "🎵" },
+              { label: tx("Find Mandirs", "मंदिर खोजें", "கோயில்கள் தேடுங்கள்"), href: "/mandirs", emoji: "🛕" },
             ].map((item) => (
               <Link
                 key={item.href}
@@ -436,18 +389,13 @@ export default function Profile() {
         </motion.div>
 
         {/* Sign Out */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={6}
-          variants={fadeUp}
-        >
+        <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border border-border bg-card text-muted-foreground hover:text-red-500 hover:border-red-200 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all duration-200 font-sans text-sm font-medium"
           >
             <LogOut className="w-4 h-4" />
-            {isHindi ? "साइन आउट करें" : "Sign Out"}
+            {tx("Sign Out", "साइन आउट करें", "வெளியேறு")}
           </button>
         </motion.div>
 
@@ -455,3 +403,4 @@ export default function Profile() {
     </div>
   );
 }
+
