@@ -277,9 +277,11 @@ const Mandirs = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border mt-8">
         <div className="max-w-4xl mx-auto text-center">
-          <Link to="/" className="font-serif text-xl font-bold text-gradient-sacred">OmVani</Link>
+          <Link to="/" className="inline-flex items-center gap-1 font-serif text-xl font-bold text-gradient-sacred">
+            <span>ॐ</span><span>Vani</span>
+          </Link>
           <p className="text-xs text-muted-foreground/60 font-sans mt-2">
-            © 2026 OmVani · Temple data is for pilgrimage guidance. Verify timings before visiting.
+            © 2026 ॐVani · Temple data is for pilgrimage guidance. Verify timings before visiting.
           </p>
         </div>
       </footer>
