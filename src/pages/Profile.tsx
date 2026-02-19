@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, BellOff, Globe, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, BellOff, Globe, Eye, EyeOff, CheckCircle, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +12,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fadeUp } from "@/lib/animations";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTheme } from "next-themes";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { language, setLanguage, isHindi } = useLanguage();
   const navigate = useNavigate();
   const { supported: notifSupported, enabled: notifEnabled, permission, toggleNotifications } = useNotifications();
+  const { theme, setTheme } = useTheme();
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -138,11 +140,74 @@ export default function Profile() {
           </div>
         </motion.div>
 
-        {/* Language Toggle */}
+        {/* Appearance — Dark Mode */}
         <motion.div
           initial="hidden"
           animate="visible"
           custom={1}
+          variants={fadeUp}
+          className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
+        >
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+            {theme === "dark" ? (
+              <Moon className="w-4 h-4 text-saffron" />
+            ) : (
+              <Sun className="w-4 h-4 text-saffron" />
+            )}
+            <h2 className="font-sans font-semibold text-foreground text-sm">
+              {isHindi ? "दिखावट" : "Appearance"}
+            </h2>
+          </div>
+          <div className="px-6 py-5">
+            <p className="text-xs text-muted-foreground font-sans mb-4">
+              {isHindi ? "ऐप की थीम चुनें" : "Choose the app theme"}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setTheme("light")}
+                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
+                  theme === "light"
+                    ? "border-saffron bg-saffron/10 text-saffron"
+                    : "border-border text-muted-foreground hover:border-saffron/40"
+                }`}
+              >
+                <Sun className="w-6 h-6" />
+                <span className="font-sans font-semibold text-sm">{isHindi ? "लाइट" : "Light"}</span>
+                {theme === "light" && <CheckCircle className="w-4 h-4 text-saffron" />}
+              </button>
+              <button
+                onClick={() => setTheme("dark")}
+                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
+                  theme === "dark"
+                    ? "border-saffron bg-saffron/10 text-saffron"
+                    : "border-border text-muted-foreground hover:border-saffron/40"
+                }`}
+              >
+                <Moon className="w-6 h-6" />
+                <span className="font-sans font-semibold text-sm">{isHindi ? "डार्क" : "Dark"}</span>
+                {theme === "dark" && <CheckCircle className="w-4 h-4 text-saffron" />}
+              </button>
+              <button
+                onClick={() => setTheme("system")}
+                className={`flex-1 flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 ${
+                  theme === "system"
+                    ? "border-saffron bg-saffron/10 text-saffron"
+                    : "border-border text-muted-foreground hover:border-saffron/40"
+                }`}
+              >
+                <span className="text-xl">⚙️</span>
+                <span className="font-sans font-semibold text-sm">{isHindi ? "सिस्टम" : "System"}</span>
+                {theme === "system" && <CheckCircle className="w-4 h-4 text-saffron" />}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Language Toggle */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={2}
           variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
@@ -198,7 +263,7 @@ export default function Profile() {
           <motion.div
             initial="hidden"
             animate="visible"
-            custom={2}
+            custom={3}
             variants={fadeUp}
             className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
           >
@@ -267,7 +332,7 @@ export default function Profile() {
           <motion.div
             initial="hidden"
             animate="visible"
-            custom={3}
+            custom={4}
             variants={fadeUp}
             className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
           >
@@ -338,19 +403,19 @@ export default function Profile() {
         <motion.div
           initial="hidden"
           animate="visible"
-          custom={4}
+          custom={5}
           variants={fadeUp}
           className="bg-card rounded-2xl border border-border shadow-sacred overflow-hidden"
         >
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-            <Bell className="w-4 h-4 text-saffron" />
+            <ChevronRight className="w-4 h-4 text-saffron" />
             <h2 className="font-sans font-semibold text-foreground text-sm">
               {isHindi ? "त्वरित लिंक" : "Quick Links"}
             </h2>
           </div>
           <div className="divide-y divide-border">
             {[
-              { label: isHindi ? "गुरु से बात करें" : "Talk to Guru", labelHi: "", href: "/chat", emoji: "ॐ" },
+              { label: isHindi ? "गुरु से बात करें" : "Talk to Guru", href: "/chat", emoji: "ॐ" },
               { label: isHindi ? "भगवद गीता पढ़ें" : "Read Bhagavad Gita", href: "/scriptures", emoji: "📖" },
               { label: isHindi ? "भजन सुनें" : "Listen to Bhajans", href: "/bhajans", emoji: "🎵" },
               { label: isHindi ? "मंदिर खोजें" : "Find Mandirs", href: "/mandirs", emoji: "🛕" },
@@ -374,7 +439,7 @@ export default function Profile() {
         <motion.div
           initial="hidden"
           animate="visible"
-          custom={5}
+          custom={6}
           variants={fadeUp}
         >
           <button
