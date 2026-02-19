@@ -1,4 +1,4 @@
-\/**
+/**
  * useTranslations.ts
  * Simple hook — returns the full translation object for the current language.
  *
