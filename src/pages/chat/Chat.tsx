@@ -280,7 +280,7 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <SeoHead title="Chat with OmVani" description="Ask your spiritual questions and receive scripture-based guidance from the Bhagavad Gita, Vedas and Puranas." canonicalPath="/chat" />
+      <SeoHead title="Chat with ॐVani" description="Ask your spiritual questions and receive scripture-based guidance from the Bhagavad Gita, Vedas and Puranas." canonicalPath="/chat" />
 
       {/* ── Top bar ────────────────────────────────────────────────────────── */}
       <header className="shrink-0 flex items-center justify-between px-4 md:px-6 h-16 border-b border-border bg-background/80 backdrop-blur-md z-10">
