@@ -64,7 +64,7 @@ function ShlokaCarousel() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-accent-foreground/70 font-sans text-xs tracking-[0.25em] uppercase">
-              🪔 Shloka of the Day
+              ✦ Shloka of the Day
             </p>
             <p className="text-accent-foreground/50 font-sans text-xs mt-0.5">
               {shloka.ref}
@@ -822,10 +822,10 @@ const Index = () => {
     {/* ── Footer ────────────────────────────────────────────────────────────── */}
     <footer className="py-12 px-4 border-t border-border" role="contentinfo">
       <div className="max-w-4xl mx-auto text-center">
-        <p className="font-serif text-2xl font-bold text-gradient-sacred mb-2">OmVani</p>
+        <p className="font-serif text-2xl font-bold text-gradient-sacred mb-2">ॐVani</p>
         <p className="text-saffron font-sans text-xs mb-4" aria-label="Om Tat Sat">ॐ तत् सत्</p>
         <p className="text-xs text-muted-foreground font-sans max-w-lg mx-auto mb-6 leading-relaxed">
-          Disclaimer: OmVani is an AI-powered tool designed to assist with spiritual learning. It is
+          Disclaimer: ॐVani is an AI-powered tool designed to assist with spiritual learning. It is
           not a replacement for a living guru or personal spiritual practice. All answers are sourced
           from authentic scriptures but should be used for guidance only.
         </p>
