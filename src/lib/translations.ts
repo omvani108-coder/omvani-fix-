@@ -5,7 +5,7 @@ export const translations = {
       mandirs: "Mandirs", identify: "Identify", pricing: "Pricing",
       signIn: "Sign In", startTrial: "Start Free Trial", openChat: "Open Chat",
     },
-    bottomNav: { chat: "Chat", gita: "Gita", puja: "Puja", bhajans: "Bhajans", mandirs: "Mandirs" },
+    bottomNav: { chat: "Chat", gita: "Gita", puja: "Puja", bhajans: "Bhajans", profile: "Profile" },
     home: {
       eyebrow: "Your Spiritual Companion",
       subtitle: "Talk to a spiritual guru anytime, in your language — no waiting, no travel.",
@@ -130,7 +130,7 @@ export const translations = {
       mandirs: "मंदिर", identify: "पहचानें", pricing: "मूल्य",
       signIn: "साइन इन", startTrial: "निःशुल्क परीक्षण", openChat: "चैट खोलें",
     },
-    bottomNav: { chat: "चैट", gita: "गीता", puja: "पूजा", bhajans: "भजन", mandirs: "मंदिर" },
+    bottomNav: { chat: "चैट", gita: "गीता", puja: "पूजा", bhajans: "भजन", profile: "प्रोफ़ाइल" },
     home: {
       eyebrow: "आपका आध्यात्मिक साथी",
       subtitle: "कभी भी, अपनी भाषा में एक आध्यात्मिक गुरु से बात करें — कोई प्रतीक्षा नहीं।",
