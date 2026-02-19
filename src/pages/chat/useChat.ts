@@ -30,7 +30,17 @@ export function useChat(): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const messagesRef = useRef<Message[]>([]);
   const { language } = useLanguage();
+
+  // Keep ref in sync so sendMessage always reads latest messages
+  const setMessagesAndRef = (updater: (prev: Message[]) => Message[]) => {
+    setMessages((prev) => {
+      const next = updater(prev);
+      messagesRef.current = next;
+      return next;
+    });
+  };
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -42,7 +52,6 @@ export function useChat(): UseChatReturn {
       timestamp: new Date(),
     };
 
-    // Optimistically add user message + placeholder AI message
     const aiPlaceholderId = generateId();
     const aiPlaceholder: Message = {
       id: aiPlaceholderId,
@@ -52,66 +61,86 @@ export function useChat(): UseChatReturn {
       isStreaming: true,
     };
 
-    setMessages((prev) => [...prev, userMessage, aiPlaceholder]);
+    setMessagesAndRef((prev) => [...prev, userMessage, aiPlaceholder]);
     setIsLoading(true);
     abortRef.current = new AbortController();
 
     try {
+      // ✅ FIXED: use correct env variable name
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-     const supabaseKey = import.meta.env.VITE_ANON_KEY as string;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-      // Build conversation history for context
-      const history = messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Use ref so we always get latest messages (not stale closure)
+      const history = messagesRef.current
+        .filter((m) => !m.isStreaming && m.content)
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      const languageInstruction = language === "hi"
+        ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
+        : "\n\nIMPORTANT: Respond in English.";
 
       const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
         method: "POST",
         signal: abortRef.current.signal,
         headers: {
-           "Content-Type": "application/json",
-  "Authorization": `Bearer ${supabaseKey}`,
-  "apikey": supabaseKey,
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseKey}`,
+          "apikey": supabaseKey,
         },
         body: JSON.stringify({
           messages: [
             ...history,
             { role: "user", content: content.trim() },
           ],
-          system: SYSTEM_PROMPT + (language === "hi" ? "\n\nIMPORTANT: The user has selected Hindi as their language. You MUST respond entirely in Hindi (Devanagari script). All explanations, scripture meanings, and guidance must be in Hindi." : "\n\nIMPORTANT: Respond in English."),
+          system: SYSTEM_PROMPT + languageInstruction,
         }),
       });
 
-      if (!res.ok) throw new Error(`Chat request failed: ${res.status}`);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "Unknown error");
+        throw new Error(`Chat request failed: ${res.status} — ${errText}`);
+      }
 
       // Stream the response
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
+      let buffer = "";
 
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          accumulated += chunk;
+          // Buffer to handle split SSE frames
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
 
-          // Update the streaming message in real time
+          for (const line of lines) {
+            // Direct text streaming (our edge function sends plain text)
+            accumulated += line + (line ? "\n" : "");
+          }
+
+          // Also try raw chunk as plain text
+          const rawChunk = decoder.decode(value, { stream: true });
+          if (rawChunk) {
+            accumulated = accumulated || rawChunk;
+          }
+
           setMessages((prev) =>
             prev.map((m) =>
               m.id === aiPlaceholderId
-                ? { ...m, content: accumulated, isStreaming: true }
+                ? { ...m, content: accumulated.trimEnd(), isStreaming: true }
                 : m
             )
           );
         }
       }
 
-      // Finalise — parse out scripture refs, mark streaming done
-      const { clean, refs } = parseRefs(accumulated);
-      setMessages((prev) =>
+      // Finalise
+      const { clean, refs } = parseRefs(accumulated.trim());
+      setMessagesAndRef((prev) =>
         prev.map((m) =>
           m.id === aiPlaceholderId
             ? { ...m, content: clean, refs, isStreaming: false }
@@ -120,18 +149,20 @@ export function useChat(): UseChatReturn {
       );
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
+      console.error("Chat error:", err);
       toast.error("Could not reach the guru. Please try again.");
-      // Remove the failed placeholder
-      setMessages((prev) => prev.filter((m) => m.id !== aiPlaceholderId));
+      setMessagesAndRef((prev) =>
+        prev.filter((m) => m.id !== aiPlaceholderId)
+      );
     } finally {
       setIsLoading(false);
       abortRef.current = null;
     }
-  }, [messages, isLoading]);
+  }, [isLoading, language]);
 
   const clearChat = useCallback(() => {
     abortRef.current?.abort();
-    setMessages([]);
+    setMessagesAndRef(() => []);
     setIsLoading(false);
   }, []);
 
