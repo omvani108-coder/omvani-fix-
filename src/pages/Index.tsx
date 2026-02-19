@@ -35,18 +35,21 @@ function ShlokaCarousel() {
     []
   );
   const [index, setIndex] = useState(todayIndex);
+  const [dragDir, setDragDir] = useState<number>(0);
   const shloka = shlokas[index];
 
-  const ttsText = `${shloka.sanskrit}. ${shloka.transliteration}. Meaning: ${shloka.meaning}`;
+  const ttsText = `${shloka.sanskrit}. Meaning: ${shloka.meaning}`;
   const { isPlaying, isLoading, handleToggle, stop } = useShlokaAudio({ text: ttsText });
 
   const goTo = (dir: number) => {
     stop();
+    setDragDir(dir);
     setIndex((i) => (i + dir + shlokas.length) % shlokas.length);
   };
 
   const jumpTo = (i: number) => {
     stop();
+    setDragDir(i > index ? 1 : -1);
     setIndex(i);
   };
 
@@ -61,7 +64,7 @@ function ShlokaCarousel() {
               🪔 Shloka of the Day
             </p>
             <p className="text-accent-foreground/50 font-sans text-xs mt-0.5">
-              {shloka.ref} · {shloka.theme}
+              {shloka.ref}
             </p>
           </div>
 
@@ -107,28 +110,43 @@ function ShlokaCarousel() {
           </div>
         </div>
 
-        {/* Animated shloka content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={shloka.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35 }}
-            className="text-center"
-          >
-            <p className="text-accent-foreground font-serif text-xl md:text-2xl font-semibold mb-3 leading-relaxed whitespace-pre-line">
-              {shloka.sanskrit}
-            </p>
-            <div className="w-12 h-px bg-accent-foreground/30 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-accent-foreground/80 font-sans text-sm italic mb-4 whitespace-pre-line">
-              {shloka.transliteration}
-            </p>
-            <p className="text-accent-foreground/90 font-sans text-sm max-w-2xl mx-auto leading-relaxed">
-              {shloka.meaning}
-            </p>
-          </motion.div>
-        </AnimatePresence>
+        {/* Swipeable shloka content */}
+        <motion.div
+          key="swipe-container"
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDragEnd={(_e, info) => {
+            if (info.offset.x < -60) goTo(1);
+            else if (info.offset.x > 60) goTo(-1);
+          }}
+          className="cursor-grab active:cursor-grabbing touch-pan-y"
+        >
+          <AnimatePresence mode="wait" custom={dragDir}>
+            <motion.div
+              key={shloka.id}
+              custom={dragDir}
+              variants={{
+                enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
+                center: { opacity: 1, x: 0 },
+                exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -60 : 60 }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="text-center select-none"
+            >
+              <p className="text-accent-foreground font-serif text-xl md:text-2xl font-semibold mb-4 leading-relaxed whitespace-pre-line">
+                {shloka.sanskrit}
+              </p>
+              <div className="w-12 h-px bg-accent-foreground/30 mx-auto mb-4" aria-hidden="true" />
+              <p className="text-accent-foreground/90 font-sans text-sm max-w-2xl mx-auto leading-relaxed">
+                {shloka.meaning}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-1.5 mt-6" role="tablist" aria-label="Shloka selector">
