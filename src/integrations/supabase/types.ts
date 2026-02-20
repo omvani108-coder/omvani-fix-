@@ -106,6 +106,78 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_logs: {
+        Row: {
+          channel: string
+          content_type: string
+          id: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          content_type?: string
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          content_type?: string
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminder_preferences: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          id: string
+          include_festivals: boolean
+          include_shloka: boolean
+          language: string
+          reminder_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          include_festivals?: boolean
+          include_shloka?: boolean
+          language?: string
+          reminder_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          include_festivals?: boolean
+          include_shloka?: boolean
+          language?: string
+          reminder_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
