@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fadeUp } from "@/lib/animations";
 import { useNotifications } from "@/hooks/useNotifications";
+import ReminderSettings from "@/components/ReminderSettings";
 import { useTheme } from "next-themes";
 
 export default function Profile() {
@@ -354,6 +355,11 @@ export default function Profile() {
             </div>
           </motion.div>
         )}
+
+        {/* Puja Reminders (Email/WhatsApp) */}
+        <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
+          <ReminderSettings />
+        </motion.div>
 
         {/* Quick Links */}
         <motion.div
