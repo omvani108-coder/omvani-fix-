@@ -14,7 +14,7 @@ export function useTranslations() {
   const { language, setLanguage, isHindi, isTamil } = useLanguage();
 
   // Fall back to English if key is missing (safety net during dev)
-  const t = (translations as Record<string, typeof translations.en>)[language] ?? translations.en;
+  const t = (translations as unknown as Record<string, typeof translations.en>)[language] ?? translations.en;
 
   // Cycles EN → HI → TA → EN (kept for backward compat)
   const toggleLanguage = () => {

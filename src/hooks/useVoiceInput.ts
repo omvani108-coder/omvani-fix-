@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 interface UseVoiceInputOptions {
-  language: "en" | "hi";
+  language: string;
   onTranscript: (text: string) => void;
   onError?: () => void;
 }
