@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, BookOpen, RotateCcw, Mic, MicOff } from "lucide-react";
+import { Send, Loader2, BookOpen, RotateCcw, Mic, MicOff, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { Link } from "react-router-dom";
 import { SeoHead } from "@/components/SeoHead";
@@ -8,7 +8,10 @@ import { useChat } from "./useChat";
 import { SUGGESTED_QUESTIONS, Message, ScriptureRef } from "./types";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ConversationSidebar from "@/components/ConversationSidebar";
 
 // ─── Scripture Reference Badge ────────────────────────────────────────────────
 
@@ -216,15 +219,50 @@ function VoiceMicButton({
   );
 }
 
+// ─── DB row → Message helper (same as useChat) ───────────────────────────────
+
+function dbRowToMessage(row: {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+  source_references: unknown;
+}): Message {
+  const refs = Array.isArray(row.source_references)
+    ? (row.source_references as { text: string }[]).map((r) => ({ text: r.text }))
+    : [];
+  return {
+    id: row.id,
+    role: row.role as "user" | "assistant",
+    content: row.content,
+    timestamp: new Date(row.created_at),
+    refs: refs.length > 0 ? refs : undefined,
+  };
+}
+
 // ─── Main Chat Page ───────────────────────────────────────────────────────────
 
 export default function Chat() {
   const { messages, isLoading, isLoadingHistory, sendMessage, clearChat } = useChat();
+  const { user } = useAuth();
   const { t } = useTranslations();
   const { language } = useLanguage();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Historical conversation viewing state
+  const [viewingConvId, setViewingConvId] = useState<string | null>(null);
+  const [historicalMessages, setHistoricalMessages] = useState<Message[]>([]);
+  const [loadingHistorical, setLoadingHistorical] = useState(false);
+
+  // Determine which messages to display
+  const isViewingHistory = viewingConvId !== null;
+  const displayMessages = isViewingHistory ? historicalMessages : messages;
+  const displayLoading = isViewingHistory ? loadingHistorical : isLoadingHistory;
 
   // Voice input
   const { isSupported: voiceSupported, isListening, toggle: toggleVoice } = useVoiceInput({
@@ -249,7 +287,7 @@ export default function Chat() {
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [displayMessages]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -259,8 +297,42 @@ export default function Chat() {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [input]);
 
+  // Load a historical conversation's messages
+  const loadConversation = useCallback(async (convId: string) => {
+    setLoadingHistorical(true);
+    setViewingConvId(convId);
+    try {
+      const { data: rows, error } = await supabase
+        .from("chat_messages")
+        .select("id, role, content, created_at, source_references")
+        .eq("conversation_id", convId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setHistoricalMessages(rows ? rows.map(dbRowToMessage) : []);
+    } catch (err) {
+      console.error("Failed to load conversation:", err);
+      toast.error("Could not load conversation");
+      setViewingConvId(null);
+    } finally {
+      setLoadingHistorical(false);
+    }
+  }, []);
+
+  const handleNewChat = () => {
+    setViewingConvId(null);
+    setHistoricalMessages([]);
+    clearChat();
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    // If viewing history, switch back to live chat mode before sending
+    if (isViewingHistory) {
+      setViewingConvId(null);
+      setHistoricalMessages([]);
+      clearChat();
+    }
     const text = input;
     setInput("");
     await sendMessage(text);
@@ -279,183 +351,222 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex h-screen bg-background">
       <SeoHead title="Chat with ॐVani" description="Ask your spiritual questions and receive scripture-based guidance from the Bhagavad Gita, Vedas and Puranas." canonicalPath="/chat" />
 
-      {/* ── Top bar ────────────────────────────────────────────────────────── */}
-      <header className="shrink-0 flex items-center justify-between px-4 md:px-6 h-16 border-b border-border bg-background/80 backdrop-blur-md z-10">
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div aria-hidden="true" className="w-8 h-8 rounded-full bg-sacred-gradient flex items-center justify-center text-sm shadow-sacred">
-            ॐ
-          </div>
-          <span className="font-serif font-bold text-lg text-gradient-sacred">ॐVani</span>
-        </Link>
+      {/* ── Conversation Sidebar ──────────────────────────────────────────── */}
+      {user && (
+        <ConversationSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onNewChat={handleNewChat}
+          onSelectConversation={loadConversation}
+          activeConversationId={viewingConvId}
+        />
+      )}
 
-        <div className="flex items-center gap-1 text-center">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-          <span className="text-xs font-sans text-muted-foreground ml-1.5">Guru is present</span>
-        </div>
-
-        <button
-          onClick={clearChat}
-          disabled={messages.length === 0}
-          aria-label="Clear conversation"
-          className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
-        >
-          <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-          Clear
-        </button>
-      </header>
-
-      {/* ── Messages area ──────────────────────────────────────────────────── */}
-      <main
-        className="flex-1 overflow-y-auto px-4 md:px-6 py-6"
-        aria-label="Conversation"
-        aria-live="polite"
-        aria-atomic="false"
-      >
-        <div className="max-w-2xl mx-auto w-full">
-          <AnimatePresence mode="wait">
-            {isLoadingHistory ? (
-              /* Loading history skeleton */
-              <motion.div
-                key="loading-history"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="h-full min-h-[60vh] flex flex-col items-center justify-center gap-4"
+      {/* ── Main chat column ─────────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* ── Top bar ──────────────────────────────────────────────────────── */}
+        <header className="shrink-0 flex items-center justify-between px-4 md:px-6 h-16 border-b border-border bg-background/80 backdrop-blur-md z-10">
+          <div className="flex items-center gap-2">
+            {/* Sidebar toggle */}
+            {user && (
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label={sidebarOpen ? "Close history" : "Open history"}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground transition-colors"
               >
-                <div className="w-12 h-12 rounded-full bg-sacred-gradient flex items-center justify-center text-xl shadow-sacred">
-                  ॐ
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {[0, 0.15, 0.3].map((delay, i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ y: [0, -4, 0] }}
-                      transition={{ duration: 0.6, repeat: Infinity, delay }}
-                      className="w-1.5 h-1.5 rounded-full bg-saffron/60"
-                    />
-                  ))}
-                </div>
-                <p className="text-xs font-sans text-muted-foreground">Restoring your conversation…</p>
-              </motion.div>
-            ) : messages.length === 0 ? (
-              <motion.div
-                key="empty"
-                className="h-full min-h-[60vh] flex items-center justify-center"
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <EmptyState onSelect={handleSuggest} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="messages"
-                className="flex flex-col gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {messages.map((message) => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
-
-                {/* Thinking indicator — shows while waiting for first chunk */}
-                {isLoading && messages[messages.length - 1]?.isStreaming && messages[messages.length - 1]?.content === "" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3"
-                  >
-                    <div aria-hidden="true" className="w-8 h-8 rounded-full bg-sacred-gradient flex items-center justify-center text-sm shadow-sacred">
-                      ॐ
-                    </div>
-                    <div className="flex items-center gap-1.5 px-4 py-3 bg-card border border-border rounded-2xl rounded-bl-sm">
-                      {[0, 0.15, 0.3].map((delay, i) => (
-                        <motion.div
-                          key={i}
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay }}
-                          className="w-1.5 h-1.5 rounded-full bg-saffron/60"
-                          aria-hidden="true"
-                        />
-                      ))}
-                      <span className="sr-only">Guru is thinking…</span>
-                    </div>
-                  </motion.div>
+                {sidebarOpen ? (
+                  <PanelLeftClose className="w-4.5 h-4.5" aria-hidden="true" />
+                ) : (
+                  <PanelLeftOpen className="w-4.5 h-4.5" aria-hidden="true" />
                 )}
+              </button>
+            )}
 
-                <div ref={bottomRef} />
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div aria-hidden="true" className="w-8 h-8 rounded-full bg-sacred-gradient flex items-center justify-center text-sm shadow-sacred">
+                ॐ
+              </div>
+              <span className="font-serif font-bold text-lg text-gradient-sacred">ॐVani</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-1 text-center">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
+            <span className="text-xs font-sans text-muted-foreground ml-1.5">Guru is present</span>
+          </div>
+
+          <button
+            onClick={handleNewChat}
+            disabled={displayMessages.length === 0 && !isViewingHistory}
+            aria-label="New conversation"
+            className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
+          >
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+            New
+          </button>
+        </header>
+
+        {/* ── Messages area ────────────────────────────────────────────────── */}
+        <main
+          className="flex-1 overflow-y-auto px-4 md:px-6 py-6"
+          aria-label="Conversation"
+          aria-live="polite"
+          aria-atomic="false"
+        >
+          <div className="max-w-2xl mx-auto w-full">
+            <AnimatePresence mode="wait">
+              {displayLoading ? (
+                /* Loading history skeleton */
+                <motion.div
+                  key="loading-history"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="h-full min-h-[60vh] flex flex-col items-center justify-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-sacred-gradient flex items-center justify-center text-xl shadow-sacred">
+                    ॐ
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {[0, 0.15, 0.3].map((delay, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ y: [0, -4, 0] }}
+                        transition={{ duration: 0.6, repeat: Infinity, delay }}
+                        className="w-1.5 h-1.5 rounded-full bg-saffron/60"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs font-sans text-muted-foreground">Restoring your conversation…</p>
+                </motion.div>
+              ) : displayMessages.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  className="h-full min-h-[60vh] flex items-center justify-center"
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EmptyState onSelect={handleSuggest} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={isViewingHistory ? `hist-${viewingConvId}` : "messages"}
+                  className="flex flex-col gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  {/* Historical viewing banner */}
+                  {isViewingHistory && (
+                    <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-saffron/5 border border-saffron/20 text-xs font-sans text-saffron">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      Viewing past conversation
+                    </div>
+                  )}
+
+                  {displayMessages.map((message) => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+
+                  {/* Thinking indicator — shows while waiting for first chunk */}
+                  {!isViewingHistory && isLoading && messages[messages.length - 1]?.isStreaming && messages[messages.length - 1]?.content === "" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3"
+                    >
+                      <div aria-hidden="true" className="w-8 h-8 rounded-full bg-sacred-gradient flex items-center justify-center text-sm shadow-sacred">
+                        ॐ
+                      </div>
+                      <div className="flex items-center gap-1.5 px-4 py-3 bg-card border border-border rounded-2xl rounded-bl-sm">
+                        {[0, 0.15, 0.3].map((delay, i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay }}
+                            className="w-1.5 h-1.5 rounded-full bg-saffron/60"
+                            aria-hidden="true"
+                          />
+                        ))}
+                        <span className="sr-only">Guru is thinking…</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div ref={bottomRef} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </main>
+
+        {/* ── Input bar ────────────────────────────────────────────────────── */}
+        <footer className="shrink-0 px-4 md:px-6 py-4 border-t border-border bg-background/80 backdrop-blur-md">
+          <div className="max-w-2xl mx-auto">
+            {/* Listening indicator */}
+            {isListening && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center gap-2 mb-2"
+              >
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
+                <span className="text-xs font-sans text-red-500 font-medium">Listening…</span>
               </motion.div>
             )}
-          </AnimatePresence>
-        </div>
-      </main>
 
-      {/* ── Input bar ──────────────────────────────────────────────────────── */}
-      <footer className="shrink-0 px-4 md:px-6 py-4 border-t border-border bg-background/80 backdrop-blur-md">
-        <div className="max-w-2xl mx-auto">
-          {/* Listening indicator */}
-          {isListening && (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center justify-center gap-2 mb-2"
-            >
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
-              <span className="text-xs font-sans text-red-500 font-medium">Listening…</span>
-            </motion.div>
-          )}
+            {/* Disclaimer */}
+            {!isListening && (
+              <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
+                ॐVani draws from authentic scriptures. Not a substitute for a living guru.
+              </p>
+            )}
 
-          {/* Disclaimer */}
-          {!isListening && (
-            <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
-              ॐVani draws from authentic scriptures. Not a substitute for a living guru.
+            {/* Input row */}
+            <div className="flex items-end gap-2 bg-card border border-border rounded-2xl px-4 py-3 focus-within:border-saffron/50 transition-colors duration-200 shadow-sm">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={isViewingHistory ? "Type to start a new conversation…" : t.chat.placeholder}
+                aria-label="Your question"
+                rows={1}
+                className="flex-1 bg-transparent resize-none text-sm font-sans text-foreground placeholder:text-muted-foreground/50 focus:outline-none leading-relaxed max-h-40"
+                style={{ scrollbarWidth: "none" }}
+              />
+
+              {/* Voice mic button */}
+              <VoiceMicButton
+                isListening={isListening}
+                isSupported={voiceSupported}
+                onToggle={handleVoiceClick}
+              />
+
+              {/* Send button */}
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                aria-label="Send message"
+                className="shrink-0 w-9 h-9 rounded-xl bg-sacred-gradient flex items-center justify-center text-accent-foreground shadow-sacred hover:opacity-90 focus-visible:ring-2 focus-visible:ring-saffron disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send className="w-4 h-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground/40 font-sans text-center mt-2">
+              Press Enter to send · Shift+Enter for new line
             </p>
-          )}
-
-          {/* Input row */}
-          <div className="flex items-end gap-2 bg-card border border-border rounded-2xl px-4 py-3 focus-within:border-saffron/50 transition-colors duration-200 shadow-sm">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={t.chat.placeholder}
-              aria-label="Your question"
-              rows={1}
-              className="flex-1 bg-transparent resize-none text-sm font-sans text-foreground placeholder:text-muted-foreground/50 focus:outline-none leading-relaxed max-h-40"
-              style={{ scrollbarWidth: "none" }}
-            />
-
-            {/* Voice mic button */}
-            <VoiceMicButton
-              isListening={isListening}
-              isSupported={voiceSupported}
-              onToggle={handleVoiceClick}
-            />
-
-            {/* Send button */}
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              aria-label="Send message"
-              className="shrink-0 w-9 h-9 rounded-xl bg-sacred-gradient flex items-center justify-center text-accent-foreground shadow-sacred hover:opacity-90 focus-visible:ring-2 focus-visible:ring-saffron disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Send className="w-4 h-4" aria-hidden="true" />
-              )}
-            </button>
           </div>
-
-          <p className="text-[10px] text-muted-foreground/40 font-sans text-center mt-2">
-            Press Enter to send · Shift+Enter for new line
-          </p>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
