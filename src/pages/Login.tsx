@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,17 +16,18 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { getPostLoginPath } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/chat");
+    } else if (data.user) {
+      navigate(getPostLoginPath(data.user));
     }
     setLoading(false);
   };
@@ -35,7 +37,7 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/">
-            <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-2">OmVani</h1>
+            <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-2">ॐVani</h1>
           </Link>
           <p className="text-muted-foreground font-sans text-sm">
             Welcome back to your spiritual journey
@@ -101,7 +103,7 @@ const Login = () => {
             size="lg"
             className="w-full font-sans"
             onClick={async () => {
-              const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/chat" });
+              const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/onboarding" });
               if (error) toast({ title: "Google sign-in failed", description: String(error), variant: "destructive" });
             }}
           >

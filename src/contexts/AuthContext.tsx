@@ -2,11 +2,16 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+const getPostLoginPath = (user: User): string => {
+  return user.user_metadata?.onboarding_complete === true ? "/chat" : "/onboarding";
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  getPostLoginPath: (user: User) => string;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  getPostLoginPath,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -46,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, getPostLoginPath }}>
       {children}
     </AuthContext.Provider>
   );
