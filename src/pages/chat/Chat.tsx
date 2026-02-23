@@ -12,10 +12,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConversationSidebar from "@/components/ConversationSidebar";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 // ─── Scripture Reference Badge ────────────────────────────────────────────────
 
-function RefBadge({ ref: scriptureRef }: { ref: ScriptureRef }) {
+function RefBadge({ scriptureRef }: { scriptureRef: ScriptureRef }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[10px] font-sans font-semibold tracking-wide text-saffron bg-saffron/10 border border-saffron/20 px-2.5 py-1 rounded-full">
       <BookOpen className="w-3 h-3" aria-hidden="true" />
@@ -106,7 +108,7 @@ function MessageBubble({ message }: { message: Message }) {
             aria-label="Scripture references"
           >
             {message.refs.map((ref, i) => (
-              <RefBadge key={i} ref={ref} />
+              <RefBadge key={i} scriptureRef={ref} />
             ))}
           </motion.div>
         )}
@@ -247,7 +249,9 @@ export default function Chat() {
   const { user } = useAuth();
   const { t } = useTranslations();
   const { language } = useLanguage();
+  const { canChat, chatWarning, chatRemaining, incrementUsage } = useSubscription();
   const [input, setInput] = useState("");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -327,6 +331,11 @@ export default function Chat() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    // Paywall: check if user can still chat
+    if (!canChat) {
+      setUpgradeOpen(true);
+      return;
+    }
     // If viewing history, switch back to live chat mode before sending
     if (isViewingHistory) {
       setViewingConvId(null);
@@ -336,6 +345,8 @@ export default function Chat() {
     const text = input;
     setInput("");
     await sendMessage(text);
+    // Increment usage counter after successful send
+    await incrementUsage("chat");
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -353,6 +364,14 @@ export default function Chat() {
   return (
     <div className="flex h-screen bg-background">
       <SeoHead title="Chat with ॐVani" description="Ask your spiritual questions and receive scripture-based guidance from the Bhagavad Gita, Vedas and Puranas." canonicalPath="/chat" />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="chat"
+        remaining={chatRemaining}
+      />
 
       {/* ── Conversation Sidebar ──────────────────────────────────────────── */}
       {user && (
@@ -505,6 +524,27 @@ export default function Chat() {
         {/* ── Input bar ────────────────────────────────────────────────────── */}
         <footer className="shrink-0 px-4 md:px-6 py-4 border-t border-border bg-background/80 backdrop-blur-md">
           <div className="max-w-2xl mx-auto">
+            {/* Soft limit warning */}
+            {chatWarning && canChat && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between mb-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700"
+              >
+                <span className="text-xs font-sans text-amber-700 dark:text-amber-400">
+                  {chatRemaining === 1
+                    ? "1 free chat remaining today"
+                    : `${chatRemaining} free chats remaining today`}
+                </span>
+                <button
+                  onClick={() => setUpgradeOpen(true)}
+                  className="text-xs font-sans font-semibold text-amber-700 dark:text-amber-400 underline ml-3"
+                >
+                  Upgrade
+                </button>
+              </motion.div>
+            )}
+
             {/* Listening indicator */}
             {isListening && (
               <motion.div
