@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useRef, useCallback } from "react";
 import UpgradeModal from "@/components/UpgradeModal";
+import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
   MicOff,
   X,
   Send,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -38,8 +40,9 @@ function ShlokaCarousel() {
     () => shlokas.findIndex((s) => s.id === getDailyShloka().id),
     []
   );
-  const [index, setIndex] = useState(todayIndex);
-  const [dragDir, setDragDir] = useState<number>(0);
+  const [index,      setIndex]      = useState(todayIndex);
+  const [dragDir,    setDragDir]    = useState<number>(0);
+  const [shareOpen,  setShareOpen]  = useState(false);
   const shloka = shlokas[index];
 
   const ttsText = `${shloka.sanskrit}. Meaning: ${shloka.meaning}`;
@@ -111,8 +114,28 @@ function ShlokaCarousel() {
                 <Volume2 className="w-4 h-4" aria-hidden="true" />
               )}
             </button>
+
+            {/* Divya Sandesh — share button */}
+            <button
+              onClick={() => setShareOpen(true)}
+              aria-label="Create Divine Status"
+              className="w-8 h-8 rounded-full bg-accent-foreground/10 hover:bg-accent-foreground/20 focus-visible:ring-2 focus-visible:ring-accent-foreground flex items-center justify-center text-accent-foreground transition-colors ml-1"
+            >
+              <Share2 className="w-4 h-4" aria-hidden="true" />
+            </button>
           </div>
         </div>
+
+        {/* Divya Sandesh modal */}
+        <DivyaSandeshModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          type="shloka"
+          title={shloka.ref}
+          sanskrit={shloka.sanskrit}
+          translation={shloka.meaning}
+          deity="Krishna"
+        />
 
         {/* Swipeable shloka content */}
         <motion.div

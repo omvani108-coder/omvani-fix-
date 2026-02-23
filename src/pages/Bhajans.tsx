@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Play, Pause, ChevronDown, ChevronUp, BookOpen, Music, X, ExternalLink } from "lucide-react";
+import { Search, Play, ChevronDown, ChevronUp, BookOpen, Music, X, ExternalLink, XCircle, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import { useTranslations } from "@/hooks/useTranslations";
 import { bhajans, type Bhajan } from "@/data/bhajans";
 
@@ -19,15 +21,112 @@ const categoryColors: Record<string, string> = {
   Stotra: "bg-primary/10 text-primary",
 };
 
+// ── Skeleton card ─────────────────────────────────────────────────────────────
+
+function BhajanSkeletonCard() {
+  return (
+    <div className="bg-card rounded-xl border border-border p-5 animate-pulse flex flex-col">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-secondary rounded w-3/4" />
+          <div className="h-3 bg-secondary rounded w-1/2" />
+        </div>
+        <div className="h-5 w-14 bg-secondary rounded-full shrink-0" />
+      </div>
+      <div className="flex gap-2 mb-4">
+        <div className="h-5 w-16 bg-secondary rounded-full" />
+        <div className="h-5 w-12 bg-secondary rounded-full" />
+      </div>
+      <div className="flex gap-1 mb-4">
+        <div className="h-3 w-12 bg-secondary rounded" />
+        <div className="h-3 w-16 bg-secondary rounded" />
+        <div className="h-3 w-10 bg-secondary rounded" />
+      </div>
+      <div className="mt-auto pt-3 border-t border-border">
+        <div className="h-9 bg-secondary rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+function BhajanSkeletonGrid() {
+  return (
+    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <BhajanSkeletonCard key={i} />
+      ))}
+    </div>
+  );
+}
+
+// ── Empty state ────────────────────────────────────────────────────────────────
+
+interface BhajanEmptyStateProps {
+  search:         string;
+  activeCategory: string;
+  activeDeity:    string;
+  activeLanguage: string;
+  onReset:        () => void;
+}
+
+function BhajanEmptyState({ search, activeCategory, activeDeity, activeLanguage, onReset }: BhajanEmptyStateProps) {
+  const hasFilter =
+    search ||
+    activeCategory !== "All" ||
+    activeDeity !== "All" ||
+    activeLanguage !== "All";
+
+  return (
+    <div className="text-center py-20 px-4">
+      <div className="text-6xl mb-4 select-none">🎵</div>
+      <h3 className="font-serif font-bold text-xl text-foreground mb-2">
+        {hasFilter ? "No hymns match your filters" : "No hymns found"}
+      </h3>
+      <p className="text-muted-foreground font-sans text-sm max-w-sm mx-auto mb-6">
+        {hasFilter
+          ? "Try clearing some filters or using a different search term."
+          : "We couldn't load the hymn library right now. Please try again."}
+      </p>
+      {hasFilter && (
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="gap-2 font-sans"
+        >
+          <XCircle className="w-4 h-4" />
+          Clear all filters
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 const Bhajans = () => {
   const { t } = useTranslations();
   const [search, setSearch] = useState("");
   const [selectedBhajan, setSelectedBhajan] = useState<Bhajan | null>(null);
-  const [expandedLyrics, setExpandedLyrics] = useState<string | null>(null);
+  const [expandedLyrics,  setExpandedLyrics]  = useState<string | null>(null);
   const [expandedMeaning, setExpandedMeaning] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [activeDeity, setActiveDeity] = useState<string>("All");
-  const [activeLanguage, setActiveLanguage] = useState<string>("All");
+  const [activeCategory,  setActiveCategory]  = useState<string>("All");
+  const [activeDeity,     setActiveDeity]     = useState<string>("All");
+  const [activeLanguage,  setActiveLanguage]  = useState<string>("All");
+  const [sandeshBhajan,   setSandeshBhajan]   = useState<Bhajan | null>(null);
+
+  // Skeleton flash on initial paint (same pattern as Mandirs)
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const resetFilters = () => {
+    setSearch("");
+    setActiveCategory("All");
+    setActiveDeity("All");
+    setActiveLanguage("All");
+  };
 
   const filtered = bhajans.filter((b) => {
     const q = search.toLowerCase();
@@ -142,15 +241,22 @@ const Bhajans = () => {
 
       {/* Song Cards Grid */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <p className="text-xs text-muted-foreground font-sans mb-6">
-          {filtered.length} of {bhajans.length} hymns
-        </p>
+        {ready && (
+          <p className="text-xs text-muted-foreground font-sans mb-6">
+            {filtered.length} of {bhajans.length} hymns
+          </p>
+        )}
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-4xl mb-3">🔍</p>
-            <p className="text-muted-foreground font-sans">{t.bhajans.noResults}</p>
-          </div>
+        {!ready ? (
+          <BhajanSkeletonGrid />
+        ) : filtered.length === 0 ? (
+          <BhajanEmptyState
+            search={search}
+            activeCategory={activeCategory}
+            activeDeity={activeDeity}
+            activeLanguage={activeLanguage}
+            onReset={resetFilters}
+          />
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filtered.map((b, i) => (
@@ -239,13 +345,23 @@ const Bhajans = () => {
                 </div>
 
                 {/* Play Button */}
-                <div className="px-5 pb-5">
+                <div className="px-5 pb-5 flex gap-2">
+                  {/* Play button */}
                   <button
                     onClick={() => setSelectedBhajan(b)}
-                    className="w-full flex items-center justify-center gap-2 bg-sacred-gradient text-accent-foreground rounded-lg py-2.5 text-sm font-sans font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+                    className="flex-1 flex items-center justify-center gap-2 bg-sacred-gradient text-accent-foreground rounded-lg py-2.5 text-sm font-sans font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                   >
                     <Play className="w-4 h-4" />
-                    Play on YouTube
+                    Play
+                  </button>
+                  {/* Divya Sandesh — create divine status */}
+                  <button
+                    onClick={() => setSandeshBhajan(b)}
+                    aria-label="Create Divine Status"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border border-saffron/40 text-saffron hover:bg-saffron/10 transition-colors text-xs font-sans font-semibold"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share
                   </button>
                 </div>
               </motion.div>
@@ -322,6 +438,19 @@ const Bhajans = () => {
         )}
       </AnimatePresence>
 
+      {/* Divya Sandesh modal */}
+      {sandeshBhajan && (
+        <DivyaSandeshModal
+          open={!!sandeshBhajan}
+          onClose={() => setSandeshBhajan(null)}
+          type="bhajan"
+          title={sandeshBhajan.title}
+          translation={sandeshBhajan.meaning.slice(0, 220)}
+          deity={sandeshBhajan.deity}
+          youtubeId={sandeshBhajan.youtubeId}
+        />
+      )}
+
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border mt-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -338,3 +467,4 @@ const Bhajans = () => {
 };
 
 export default Bhajans;
+
