@@ -251,29 +251,25 @@ export function useChat(): UseChatReturn {
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
-      let buffer = "";
 
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            accumulated += line + (line ? "\n" : "");
-          }
+          // Edge function streams raw text chunks — just concatenate
+          accumulated += decoder.decode(value, { stream: true });
 
           setMessages((prev) =>
             prev.map((m) =>
               m.id === aiPlaceholderId
-                ? { ...m, content: accumulated.trimEnd(), isStreaming: true }
+                ? { ...m, content: accumulated, isStreaming: true }
                 : m
             )
           );
         }
+        // Flush any remaining bytes
+        accumulated += decoder.decode();
       }
 
       // Finalise the message in state
