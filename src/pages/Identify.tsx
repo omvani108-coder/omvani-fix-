@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradeModal } from "@/components/UpgradeModal";
+import UpgradeModal from "@/components/UpgradeModal";
 
 type DeityResult = {
   name: string;
