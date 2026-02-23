@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, MapPin, Clock, Star, ExternalLink, ChevronDown, ChevronUp, Navigation } from "lucide-react";
+import { Search, MapPin, Clock, Star, ExternalLink, ChevronDown, ChevronUp, Navigation, XCircle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -20,12 +20,98 @@ const categoryColors: Record<string, string> = {
   "Famous Temple": "bg-muted text-muted-foreground border-border",
 };
 
+// ── Skeleton card (shown while page hydrates) ─────────────────────────────────
+
+function MandirsSkeletonCard() {
+  return (
+    <div className="bg-card rounded-xl border border-border p-5 animate-pulse">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-12 h-12 rounded-xl bg-secondary shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-secondary rounded w-3/4" />
+          <div className="h-3 bg-secondary rounded w-1/2" />
+          <div className="h-3 bg-secondary rounded w-1/3" />
+        </div>
+      </div>
+      <div className="space-y-2 mb-4">
+        <div className="h-3 bg-secondary rounded w-full" />
+        <div className="h-3 bg-secondary rounded w-5/6" />
+        <div className="h-3 bg-secondary rounded w-4/6" />
+      </div>
+      <div className="h-10 bg-secondary rounded-lg mb-4" />
+      <div className="h-8 bg-secondary rounded-lg" />
+    </div>
+  );
+}
+
+function MandirsSkeletonGrid() {
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <MandirsSkeletonCard key={i} />
+      ))}
+    </div>
+  );
+}
+
+// ── Empty state ────────────────────────────────────────────────────────────────
+
+interface MandirsEmptyStateProps {
+  search:   string;
+  category: string;
+  state:    string;
+  onReset:  () => void;
+}
+
+function MandirsEmptyState({ search, category, state, onReset }: MandirsEmptyStateProps) {
+  const hasFilter = search || category !== "All" || state !== "All States";
+  return (
+    <div className="text-center py-20 px-4">
+      <div className="text-6xl mb-4 select-none">🛕</div>
+      <h3 className="font-serif font-bold text-xl text-foreground mb-2">
+        {hasFilter ? "No temples match your filters" : "No temples found"}
+      </h3>
+      <p className="text-muted-foreground font-sans text-sm max-w-sm mx-auto mb-6">
+        {hasFilter
+          ? "Try broadening your search — clear the filters or use a shorter keyword."
+          : "We couldn't find any temples right now. Please try again."}
+      </p>
+      {hasFilter && (
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="gap-2 font-sans"
+        >
+          <XCircle className="w-4 h-4" />
+          Clear all filters
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 const Mandirs = () => {
   const { t } = useTranslations();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [state, setState] = useState<string>("All States");
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  // Simulate a tiny hydration delay so the skeleton has a chance to flash
+  // (static data loads instantly, but this gives the UX the feel of a real load)
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const resetFilters = () => {
+    setSearch("");
+    setCategory("All");
+    setState("All States");
+  };
 
   const filtered = mandirs.filter((m) => {
     const q = search.toLowerCase();
@@ -159,15 +245,21 @@ const Mandirs = () => {
 
       {/* Temple List */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <p className="text-xs text-muted-foreground font-sans mb-6">
-          Showing {filtered.length} of {mandirs.length} temples
-        </p>
+        {ready && (
+          <p className="text-xs text-muted-foreground font-sans mb-6">
+            Showing {filtered.length} of {mandirs.length} temples
+          </p>
+        )}
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-4xl mb-3">🛕</p>
-            <p className="text-muted-foreground font-sans">No temples found. Try a different search.</p>
-          </div>
+        {!ready ? (
+          <MandirsSkeletonGrid />
+        ) : filtered.length === 0 ? (
+          <MandirsEmptyState
+            search={search}
+            category={category}
+            state={state}
+            onReset={resetFilters}
+          />
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {filtered.map((mandir, i) => (
