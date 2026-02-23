@@ -1,79 +1,130 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Helper function to get today's date in IST
-function getTodayIST() {
-    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-}
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
-// Helper function to get client IP address
-function getClientIP(request) {
-    return request.headers.get('x-forwarded-for') || request.headers.get('remote-address') || 'unknown';
-}
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
 
-// Helper function to verify JWT
-async function verifyJWT(token) {
-    // Token verification logic here (e.g., using a library)
-    // Assuming a function decodeJWT() exists to decode and validate JWT
-    return await decodeJWT(token);
-}
+  try {
+    const { messages, system } = await req.json();
 
-serve(async (request) => {
-    const url = new URL(request.url);
-    const method = request.method;
-
-    // Allow CORS
-    const headers = new Headers();
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    if (method === 'OPTIONS') {
-        return new Response(null, { headers });
+    if (!messages || !Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "messages array is required" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
     }
 
-    // Extract JWT from Authorization header
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader ? authHeader.split(' ')[1] : null;
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!anthropicKey) {
+      return new Response(
+        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Create Supabase client
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-latest",
+        max_tokens: 1024,
+        ...(system ? { system } : {}),
+        stream: true,
+        messages: messages.slice(-10),
+      }),
+    });
 
-    let userId = null;
-    if (token) {
-        userId = await verifyJWT(token);
-        if (!userId) {
-            return new Response('Unauthorized', { status: 401, headers });
+    if (!response.ok) {
+      const err = await response.text();
+      return new Response(
+        JSON.stringify({ error: `Anthropic error: ${err}` }),
+        { status: response.status, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!response.body) {
+      throw new Error("Anthropic response did not include a stream body");
+    }
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        const encoder = new TextEncoder();
+        let buffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const data = line.slice(6).trim();
+              if (data === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (
+                  parsed.type === "content_block_delta" &&
+                  parsed.delta?.type === "text_delta" &&
+                  parsed.delta?.text
+                ) {
+                  controller.enqueue(encoder.encode(parsed.delta.text));
+                }
+              } catch {
+                // Skip malformed SSE lines
+              }
+            }
+          }
+
+          if (buffer.startsWith("data: ")) {
+            const data = buffer.slice(6).trim();
+            if (data && data !== "[DONE]") {
+              try {
+                const parsed = JSON.parse(data);
+                if (
+                  parsed.type === "content_block_delta" &&
+                  parsed.delta?.type === "text_delta" &&
+                  parsed.delta?.text
+                ) {
+                  controller.enqueue(encoder.encode(parsed.delta.text));
+                }
+              } catch {
+                // Skip malformed trailing line
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+          controller.close();
         }
-    }
+      },
+    });
 
-    // Get today's date for checking daily limits
-    const today = getTodayIST();
-    const usageLogs = await supabase
-        .from('usage_logs')
-        .select('*')
-        .eq('date', today)
-        .eq('user_id', userId)
-        .single();
-
-    const userPlan = await supabase
-        .from('subscriptions')
-        .select('plan')
-        .eq('user_id', userId)
-        .single();
-
-    const DAILY_LIMITS = { free: 3, basic: 30, basic_annual: 30, pro: Infinity, pro_annual: Infinity, family: Infinity };
-
-    // Check rate limits
-    const chatCount = usageLogs.data ? usageLogs.data.count : 0;
-    const dailyLimit = DAILY_LIMITS[userPlan.data.plan] || DAILY_LIMITS.free;
-    if (chatCount >= dailyLimit) {
-        return new Response('Daily limit exceeded', { status: 403, headers });
-    }
-
-    // Implement complete streaming logic here...
-    // This should include ReadableStream, SSE parsing, error handling, etc.
-
-    return new Response('Streaming response', { headers });
+    return new Response(stream, {
+      headers: {
+        ...CORS,
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: String(err) }),
+      { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+    );
+  }
 });
