@@ -57,8 +57,15 @@ export function useChat(): UseChatReturn {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
+  const isLoadingRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
   const conversationIdRef = useRef<string | null>(null);
+
+  // Keep isLoadingRef in sync so sendMessage always reads the latest value
+  const setLoadingState = (val: boolean) => {
+    isLoadingRef.current = val;
+    setIsLoading(val);
+  };
 
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -179,7 +186,7 @@ export function useChat(): UseChatReturn {
 
   // ── Main send function ──────────────────────────────────────────────────────
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || isLoading) return;
+    if (!content.trim() || isLoadingRef.current) return;
 
     const userMessage: Message = {
       id: generateId(),
@@ -198,7 +205,7 @@ export function useChat(): UseChatReturn {
     };
 
     setMessagesAndRef((prev) => [...prev, userMessage, aiPlaceholder]);
-    setIsLoading(true);
+    setLoadingState(true);
     abortRef.current = new AbortController();
 
     // Ensure we have a conversation in the DB before saving anything
@@ -296,17 +303,17 @@ export function useChat(): UseChatReturn {
         prev.filter((m) => m.id !== aiPlaceholderId)
       );
     } finally {
-      setIsLoading(false);
+      setLoadingState(false);
       abortRef.current = null;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, language, user]);
+  }, [language, user]);
 
   // ── Clear chat (delete from DB + reset state) ───────────────────────────────
   const clearChat = useCallback(async () => {
     abortRef.current?.abort();
     setMessagesAndRef(() => []);
-    setIsLoading(false);
+    setLoadingState(false);
 
     // Delete the conversation from DB (cascade deletes messages too)
     if (user && conversationIdRef.current) {

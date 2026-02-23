@@ -12,18 +12,25 @@ serve(async (req) => {
 
   try {
     const formData = await req.formData();
-    const audioFile = formData.get("audio") as File;
+    const audioFile = formData.get("audio");
     const language = formData.get("language") as string || "en";
-    
+
+    if (!audioFile || !(audioFile instanceof File)) {
+      return new Response(JSON.stringify({ error: "No audio file provided" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     if (!ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY is not configured");
 
     const apiFormData = new FormData();
     apiFormData.append("file", audioFile);
     apiFormData.append("model_id", "scribe_v2");
-    
-    // Map language codes
-    const langMap: Record<string, string> = { en: "eng", hi: "hin" };
+
+    // Map language codes (ta = Tamil)
+    const langMap: Record<string, string> = { en: "eng", hi: "hin", ta: "tam" };
     apiFormData.append("language_code", langMap[language] || "eng");
 
     const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {

@@ -19,10 +19,13 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export const useLanguage = () => useContext(LanguageContext);
 
+const VALID_LANGUAGES: Language[] = ["en", "hi", "ta"];
+
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>(
-    () => (localStorage.getItem("omvani-language") as Language) || "en"
-  );
+  const [language, setLanguage] = useState<Language>(() => {
+    const stored = localStorage.getItem("omvani-language") as Language;
+    return VALID_LANGUAGES.includes(stored) ? stored : "en";
+  });
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,29 +54,30 @@ export default function ConversationSidebar({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchConversations = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("conversations")
-        .select("id, title, updated_at")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(30);
-
-      if (error) throw error;
-      setConversations(data ?? []);
-    } catch (err) {
-      console.error("Failed to load conversations:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
   useEffect(() => {
-    if (isOpen && user) fetchConversations();
-  }, [isOpen, user, fetchConversations]);
+    if (!isOpen || !user) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    supabase
+      .from("conversations")
+      .select("id, title, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(30)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("Failed to load conversations:", error);
+        } else {
+          setConversations(data ?? []);
+        }
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [isOpen, user]);
 
   if (!user) return null;
 

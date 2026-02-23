@@ -48,14 +48,20 @@ export function useVoiceInput({
     const recognition = new SpeechRecognitionClass();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = language === "hi" ? "hi-IN" : "en-US";
+    recognition.lang =
+      language === "hi" ? "hi-IN" :
+      language === "ta" ? "ta-IN" :
+      "en-US";
 
     recognition.onstart = () => setIsListening(true);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
+      if (!event.results?.length || !event.results[0]?.length) return;
       const transcript = event.results[0][0].transcript;
-      onTranscript(transcript);
+      if (transcript) {
+        onTranscript(transcript);
+      }
       setIsListening(false);
     };
 

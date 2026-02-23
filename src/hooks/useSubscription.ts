@@ -100,11 +100,12 @@ export function useSubscription() {
     setLoading(true);
     try {
       // ── 1. Get subscription ────────────────────────────────────────────────
-      const { data: sub } = await supabase
+      const { data: sub, error: subErr } = await supabase
         .from("subscriptions")
         .select("plan, status, trial_ends_at, current_period_end, family_owner_id")
         .eq("user_id", user.id)
         .maybeSingle();
+      if (subErr) throw subErr;
 
       // If no subscription row exists yet (shouldn't happen — trigger creates it)
       // default to free
@@ -130,11 +131,12 @@ export function useSubscription() {
       // ── 2. Get today's usage (IST date) ───────────────────────────────────
       const todayIST = getTodayIST();
 
-      const { data: usageRows } = await supabase
+      const { data: usageRows, error: usageErr } = await supabase
         .from("usage_logs")
         .select("feature, count")
         .eq("user_id", user.id)
         .eq("date_ist", todayIST);
+      if (usageErr) throw usageErr;
 
       const counts: UsageToday = { chat: 0, identify: 0 };
       usageRows?.forEach((row) => {
@@ -177,7 +179,7 @@ export function useSubscription() {
     if (error) {
       console.error("Failed to increment usage:", error);
       // Roll back local state if DB write failed
-      setUsage(prev => ({ ...prev, [feature]: (prev[feature] ?? 1) - 1 }));
+      setUsage(prev => ({ ...prev, [feature]: (prev[feature] ?? 0) - 1 }));
     }
   }, [user, usage]);
 

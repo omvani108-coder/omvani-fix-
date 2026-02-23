@@ -71,6 +71,9 @@ const Identify = () => {
       setImageBase64(base64);
       setResult(null);
     };
+    reader.onerror = () => {
+      toast.error("Failed to read the image file. Please try again.");
+    };
     reader.readAsDataURL(file);
   }, []);
 

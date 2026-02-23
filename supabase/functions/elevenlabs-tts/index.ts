@@ -12,6 +12,14 @@ serve(async (req) => {
 
   try {
     const { text, voiceId } = await req.json();
+
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return new Response(JSON.stringify({ error: "text is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     if (!ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY is not configured");
 
