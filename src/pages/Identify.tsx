@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 type DeityResult = {
   name: string;
@@ -40,6 +42,8 @@ const typeEmojis: Record<string, string> = {
 
 const Identify = () => {
   const { t } = useTranslations();
+  const { canIdentify, incrementUsage } = useSubscription();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMime, setImageMime] = useState<string>("image/jpeg");
@@ -84,6 +88,11 @@ const Identify = () => {
 
   const handleIdentify = async () => {
     if (!imageBase64) return;
+    // Paywall check
+    if (!canIdentify) {
+      setUpgradeOpen(true);
+      return;
+    }
     setLoading(true);
     setResult(null);
 
@@ -93,7 +102,8 @@ const Identify = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ imageBase64, mimeType: imageMime }),
       });
@@ -108,6 +118,7 @@ const Identify = () => {
       }
 
       setResult(data);
+      await incrementUsage("identify");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
       console.error(err);
@@ -125,6 +136,7 @@ const Identify = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="identify" />
       <Navbar />
 
       {/* Header */}
