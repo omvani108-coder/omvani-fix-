@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronRight, ChevronLeft, User, Calendar, Globe, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -67,30 +68,88 @@ const slide = {
 
 const transition = { duration: 0.28, ease: "easeInOut" as const };
 
+// ── Age helper — calculate actual age from a YYYY-MM-DD date string ───────────
+
+function calcAgeFromDob(dob: string): number {
+  const birth = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+// ── sessionStorage keys ───────────────────────────────────────────────────────
+
+const SS_DATA = "omvani_onboarding";
+const SS_STEP = "omvani_onboarding_step";
+
+function clearSession() {
+  sessionStorage.removeItem(SS_DATA);
+  sessionStorage.removeItem(SS_STEP);
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [step, setStep]   = useState(1);
-  const [dir,  setDir]    = useState(1);
+  const { setLanguage } = useLanguage();
+
+  const [dir,    setDir]    = useState(1);
   const [saving, setSaving] = useState(false);
 
-  const [data, setData] = useState<OnboardingData>({
-    firstName: "",
-    lastName:  "",
-    age:       "",
-    dob:       "",
-    language:  "en",
+  // ── Fix 2: Restore step from sessionStorage on mount ──────────────────────
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const saved = sessionStorage.getItem(SS_STEP);
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (n >= 1 && n <= 3) return n;
+      }
+    } catch {}
+    return 1;
   });
+
+  // ── Fix 2: Restore form data from sessionStorage on mount ─────────────────
+  const [data, setData] = useState<OnboardingData>(() => {
+    try {
+      const saved = sessionStorage.getItem(SS_DATA);
+      if (saved) return JSON.parse(saved) as OnboardingData;
+    } catch {}
+    return { firstName: "", lastName: "", age: "", dob: "", language: "en" };
+  });
+
+  // ── Fix 2: Persist data & step to sessionStorage on every change ───────────
+  useEffect(() => {
+    try { sessionStorage.setItem(SS_DATA, JSON.stringify(data)); } catch {}
+  }, [data]);
+
+  useEffect(() => {
+    try { sessionStorage.setItem(SS_STEP, String(step)); } catch {}
+  }, [step]);
 
   const totalSteps = STEPS.length;
   const pct        = Math.round((step / totalSteps) * 100);
+
+  // ── Fix 1: Derived age-mismatch check ─────────────────────────────────────
+  const dobAge     = data.dob ? calcAgeFromDob(data.dob) : null;
+  const ageMismatch =
+    step === 2 &&
+    data.age !== "" &&
+    data.dob !== "" &&
+    dobAge !== null &&
+    Math.abs(parseInt(data.age, 10) - dobAge) > 1;
 
   // ── Validation ──────────────────────────────────────────────────────────────
 
   const canProceed = () => {
     if (step === 1) return data.firstName.trim() !== "" && data.lastName.trim() !== "";
-    if (step === 2) return data.age.trim() !== "" && data.dob.trim() !== "";
+    if (step === 2) {
+      if (!data.age.trim() || !data.dob.trim()) return false;
+      // Fix 1: Block continuation if age doesn't match DOB (±1 yr tolerance)
+      if (ageMismatch) return false;
+      return true;
+    }
     if (step === 3) return !!data.language;
     return false;
   };
@@ -131,6 +190,13 @@ export default function Onboarding() {
       setSaving(false);
       return;
     }
+
+    // Fix 2: Clear persisted session data
+    clearSession();
+
+    // Fix 3: Sync chosen language into LanguageContext + localStorage immediately
+    // so the very first chat page render is already in the correct language.
+    setLanguage(data.language);
 
     toast.success("Welcome to ॐVani! 🙏");
     navigate("/chat");
@@ -210,8 +276,14 @@ export default function Onboarding() {
                 value={data.dob}
                 max={new Date().toISOString().split("T")[0]}
                 onChange={e => setData(d => ({ ...d, dob: e.target.value }))}
-                className="h-12 font-sans text-base"
+                className={`h-12 font-sans text-base ${ageMismatch ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
+              {/* Fix 1: Inline error when age and DOB don't match */}
+              {ageMismatch && dobAge !== null && (
+                <p className="text-xs text-destructive font-sans mt-1">
+                  Age doesn't match your date of birth (expected ~{dobAge})
+                </p>
+              )}
             </div>
           </div>
         );
@@ -414,7 +486,11 @@ export default function Onboarding() {
         {/* Skip */}
         <p className="text-center mt-5">
           <button
-            onClick={() => navigate("/chat")}
+            onClick={() => {
+              // Fix 2: Clear session data when skipping
+              clearSession();
+              navigate("/chat");
+            }}
             className="text-xs font-sans text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
           >
             Skip for now
