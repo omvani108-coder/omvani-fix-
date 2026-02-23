@@ -60,7 +60,8 @@ export function useShlokaAudio({ text }: UseShlokaAudioOptions): UseShlokaAudioR
         signal: abortRef.current.signal,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
+          "Authorization": `Bearer ${supabaseKey}`,
+          "apikey": supabaseKey,
         },
         body: JSON.stringify({ text, voiceId: ELEVENLABS_VOICE_ID }),
       });
