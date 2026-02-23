@@ -1,4 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useState as useStateModal } from "react";
+import UpgradeModal from "@/components/UpgradeModal";
 import { useState, useMemo, useRef, useCallback } from "react";
 import {
   ChevronLeft,
@@ -745,7 +747,83 @@ const Index = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        {/* Upgrade modal — opens when user clicks a paid plan button */}
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          trigger="general"
+        />
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((plan, i) => (
+            <motion.div
+              key={plan.name}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              custom={i}
+              className={`relative rounded-xl p-8 border transition-all duration-300 ${
+                plan.popular
+                  ? "bg-card border-saffron shadow-sacred scale-[1.02]"
+                  : "bg-card border-border"
+              }`}
+            >
+              {plan.popular && (
+                <span
+                  aria-label="Most popular plan"
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 bg-sacred-gradient text-accent-foreground text-xs font-sans font-semibold px-4 py-1 rounded-full"
+                >
+                  Most Popular
+                </span>
+              )}
+
+              {/* Plan emoji + name */}
+              <div className="flex items-center gap-2 mb-2">
+                {"emoji" in plan && <span className="text-2xl">{(plan as any).emoji}</span>}
+                <h3 className="text-2xl font-serif font-bold text-foreground">{plan.name}</h3>
+              </div>
+
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-serif font-bold text-gradient-sacred">{plan.price}</span>
+                <span className="text-muted-foreground font-sans text-sm">{plan.period}</span>
+              </div>
+
+              <ul className="space-y-3 mb-8" aria-label={`${plan.name} plan features`}>
+                {plan.features.map((feat) => (
+                  <li key={feat} className="flex items-center gap-3 text-sm font-sans text-foreground">
+                    <span aria-hidden="true" className="w-5 h-5 rounded-full bg-saffron/15 flex items-center justify-center text-saffron text-xs">✓</span>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Free plan → go to signup. Paid plans → open upgrade modal */}
+              {"id" in plan && (plan as any).id === "free" ? (
+                <Link to="/signup">
+                  <Button variant="outline" size="lg" className="w-full">
+                    {plan.cta ?? "Get Started"}
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant={plan.popular ? "hero" : "outline"}
+                  size="lg"
+                  className="w-full"
+                  onClick={() => setUpgradeOpen(true)}
+                >
+                  {plan.cta ?? t.home.startFreeTrial}
+                </Button>
+              )}
+
+              {"trialNote" in plan && (plan as any).trialNote && (
+                <p className="text-center text-xs text-muted-foreground font-sans mt-2">
+                  {(plan as any).trialNote}
+                </p>
+              )}
+            </motion.div>
+          ))}
+        </div>
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
