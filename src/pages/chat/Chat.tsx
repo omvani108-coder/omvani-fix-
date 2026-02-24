@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, BookOpen, RotateCcw, Mic, MicOff, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Send, Loader2, BookOpen, RotateCcw, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { Link } from "react-router-dom";
 import { SeoHead } from "@/components/SeoHead";
 import { useChat } from "./useChat";
-import { SUGGESTED_QUESTIONS, Message, ScriptureRef } from "./types";
+import { SUGGESTED_QUESTIONS, Message, ScriptureRef, dbRowToMessage } from "./types";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -223,24 +223,6 @@ function VoiceMicButton({
 
 // ─── DB row → Message helper (same as useChat) ───────────────────────────────
 
-function dbRowToMessage(row: {
-  id: string;
-  role: string;
-  content: string;
-  created_at: string;
-  source_references: unknown;
-}): Message {
-  const refs = Array.isArray(row.source_references)
-    ? (row.source_references as { text: string }[]).map((r) => ({ text: r.text }))
-    : [];
-  return {
-    id: row.id,
-    role: row.role as "user" | "assistant",
-    content: row.content,
-    timestamp: new Date(row.created_at),
-    refs: refs.length > 0 ? refs : undefined,
-  };
-}
 
 // ─── Main Chat Page ───────────────────────────────────────────────────────────
 
