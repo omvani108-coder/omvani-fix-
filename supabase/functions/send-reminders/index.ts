@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -150,13 +150,25 @@ serve(async (req) => {
 
         for (const channel of channelsToSend) {
           if (channel === "email") {
-            // Use Supabase's built-in email sending via auth.admin
-            // We'll use a Resend integration or similar
-            const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-            if (LOVABLE_API_KEY) {
-              // Use Lovable AI to send email via a supported method
-              // For MVP, log the reminder and note email would be sent
-              console.log(`[REMINDER] Would send email to ${userData.user.email}: ${shloka.verse}`);
+            const resendKey = Deno.env.get("RESEND_API_KEY");
+            if (resendKey) {
+              const emailResp = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${resendKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: "OmVani <noreply@omvani.app>",
+                  to: userData.user.email,
+                  subject: "ॐ OmVani — Your Daily Shloka",
+                  html: emailHtml,
+                }),
+              });
+              if (!emailResp.ok) {
+                const errText = await emailResp.text();
+                console.error(`Resend error for ${pref.user_id}: ${errText}`);
+              }
             }
           }
 

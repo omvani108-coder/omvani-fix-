@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, ChevronLeft, ChevronRight, RotateCcw, Info } from "lucide-react";
+import { Check, Flame, ChevronLeft, ChevronRight, RotateCcw, Info, Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { SeoHead } from "@/components/SeoHead";
 import { useTranslations } from "@/hooks/useTranslations";
 import { fadeUp, defaultViewport } from "@/lib/animations";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -106,11 +108,12 @@ interface DayCellProps {
   record: DayRecord | undefined;
   isToday: boolean;
   isFuture: boolean;
+  isLocked: boolean;
   isSelected: boolean;
   onClick: () => void;
 }
 
-function DayCell({ day, dateKey, record, isToday, isFuture, isSelected, onClick }: DayCellProps) {
+function DayCell({ day, dateKey, record, isToday, isFuture, isLocked, isSelected, onClick }: DayCellProps) {
   const totalItems = PUJA_ITEM_BASE.length;
   const checked = Object.values(record ?? {}).filter(Boolean).length;
   const pct = checked / totalItems;
@@ -118,28 +121,30 @@ function DayCell({ day, dateKey, record, isToday, isFuture, isSelected, onClick 
 
   return (
     <motion.button
-      whileTap={{ scale: isFuture ? 1 : 0.92 }}
+      whileTap={{ scale: (isFuture || isLocked) ? 1 : 0.92 }}
       onClick={onClick}
       disabled={isFuture}
-      aria-label={`${dateKey} — ${checked} of ${totalItems} completed`}
+      aria-label={isLocked ? `${dateKey} — locked` : `${dateKey} — ${checked} of ${totalItems} completed`}
       aria-pressed={isSelected}
       className={`
         relative flex flex-col items-center justify-center rounded-xl
         aspect-square text-xs font-sans transition-all duration-200
         focus-visible:ring-2 focus-visible:ring-saffron outline-none
         ${isFuture ? "opacity-30 cursor-default" : "cursor-pointer"}
-        ${isSelected
-          ? "bg-sacred-gradient text-white shadow-sacred scale-105"
-          : isComplete
-            ? "bg-gold/15 border border-gold/40 text-foreground"
-            : isToday
-              ? "border-2 border-saffron/60 bg-saffron/5 text-foreground"
-              : "bg-card border border-border hover:border-saffron/40 text-foreground"
+        ${isLocked
+          ? "opacity-40 bg-muted border border-border cursor-pointer"
+          : isSelected
+            ? "bg-sacred-gradient text-white shadow-sacred scale-105"
+            : isComplete
+              ? "bg-gold/15 border border-gold/40 text-foreground"
+              : isToday
+                ? "border-2 border-saffron/60 bg-saffron/5 text-foreground"
+                : "bg-card border border-border hover:border-saffron/40 text-foreground"
         }
       `}
     >
       {/* Completion glow ring */}
-      {isComplete && !isSelected && (
+      {isComplete && !isSelected && !isLocked && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -149,8 +154,13 @@ function DayCell({ day, dateKey, record, isToday, isFuture, isSelected, onClick 
 
       <span className={`font-semibold ${isSelected ? "text-white" : ""}`}>{day}</span>
 
+      {/* Lock icon for locked days */}
+      {isLocked && !isFuture && (
+        <Lock className="w-3 h-3 text-muted-foreground/50 mt-0.5" />
+      )}
+
       {/* Progress dots */}
-      {!isFuture && (
+      {!isFuture && !isLocked && (
         <div className="flex gap-0.5 mt-0.5">
           {pct === 0 ? (
             <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
@@ -261,7 +271,11 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 
 export default function PujaTracker() {
   const { t } = useTranslations();
-  const today = new Date();
+  const { pujaHistoryDays } = useSubscription();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  // Memoize so `today` stays stable across re-renders within the same session.
+  // Note: won't auto-update at midnight — user must refresh the page.
+  const today = useMemo(() => new Date(), []);
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState(today.getDate());
@@ -515,6 +529,9 @@ export default function PujaTracker() {
                   viewMonth === today.getMonth() &&
                   day === today.getDate();
                 const isFuture = new Date(viewYear, viewMonth, day) > today;
+                const dayDate = new Date(viewYear, viewMonth, day);
+                const diffDays = Math.floor((today.getTime() - dayDate.getTime()) / 86_400_000);
+                const isLocked = !isFuture && diffDays > pujaHistoryDays;
 
                 return (
                   <DayCell
@@ -524,8 +541,9 @@ export default function PujaTracker() {
                     record={data[key]}
                     isToday={isToday}
                     isFuture={isFuture}
-                    isSelected={selectedDay === day}
-                    onClick={() => setSelectedDay(day)}
+                    isLocked={isLocked}
+                    isSelected={selectedDay === day && !isLocked}
+                    onClick={() => isLocked ? setUpgradeOpen(true) : setSelectedDay(day)}
                   />
                 );
               })}
@@ -692,6 +710,13 @@ export default function PujaTracker() {
         </AnimatePresence>
 
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="puja"
+      />
     </div>
   );
 }

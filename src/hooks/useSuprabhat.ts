@@ -6,7 +6,7 @@
  *   2. At that time, pre-generates a "Divine Morning Card"
  *      (AI deity image + today's shloka from getDailyShloka())
  *   3. Sends a browser push notification
- *   4. On notification click → opens /share-suprabhat route
+ *   4. On notification click → opens /profile route
  *      so the user can share the card to WhatsApp with one tap
  *
  * Storage:
@@ -76,13 +76,13 @@ function sendMorningNotification(shloka: ReturnType<typeof getDailyShloka>) {
       badge:             "/favicon.ico",
       tag:               "omvani-suprabhat",
       requireInteraction: true,   // stays visible until tapped
-      data:              { url: "/share-suprabhat" },
+      data:              { url: "/profile" },
     });
 
     // Desktop: clicking the notification opens the share screen
     n.onclick = () => {
       window.focus();
-      window.location.href = "/share-suprabhat";
+      window.location.href = "/profile";
     };
   } catch (err) {
     console.warn("[useSuprabhat] Notification error:", err);
