@@ -295,16 +295,10 @@ export function useChat(): UseChatReturn {
     abortRef.current?.abort();
     setMessagesAndRef(() => []);
     setLoadingState(false);
-
-    // Delete the conversation from DB (cascade deletes messages too)
-    if (user && conversationIdRef.current) {
-      await supabase
-        .from("conversations")
-        .delete()
-        .eq("id", conversationIdRef.current);
-    }
-
+   setLoadingState(false);
+    // Just reset the ref — history stays in DB and is visible in sidebar
     conversationIdRef.current = null;
+  }, []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
