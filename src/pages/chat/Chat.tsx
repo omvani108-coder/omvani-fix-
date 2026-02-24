@@ -327,7 +327,7 @@ export default function Chat() {
     const text = input;
     setInput("");
     await sendMessage(text);
-    // Increment usage counter after successful send
+    // Usage is incremented by the edge function - no client call needed
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
