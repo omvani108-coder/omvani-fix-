@@ -121,7 +121,7 @@ const Identify = () => {
       }
 
       setResult(data);
-      await incrementUsage("identify");
+     // Usage incremented by the edge function
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
       console.error(err);
