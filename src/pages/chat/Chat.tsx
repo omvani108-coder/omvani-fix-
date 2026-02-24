@@ -328,7 +328,6 @@ export default function Chat() {
     setInput("");
     await sendMessage(text);
     // Increment usage counter after successful send
-    await incrementUsage("chat");
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
