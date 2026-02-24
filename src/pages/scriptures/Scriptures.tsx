@@ -3,12 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Bookmark, BookmarkCheck, Share2,
   ChevronLeft, ChevronRight, MessageSquare,
-  X, Send, Loader2, Menu, BookOpen, ChevronDown, Mic, MicOff,
+  X, Send, Loader2, Menu, BookOpen, ChevronDown, Mic, MicOff, Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
 import { SeoHead } from "@/components/SeoHead";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
+import { streamAI } from "@/lib/streamAI";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   chapters, searchShlokas, getBookmarks,
   toggleBookmark, isBookmarked,
@@ -28,39 +32,9 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Scripture = "gita" | "upanishad" | "sutras";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function streamAI(
-  prompt: string,
-  onChunk: (text: string) => void,
-  signal: AbortSignal
-): Promise<void> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-  return fetch(`${supabaseUrl}/functions/v1/chat`, {
-    method: "POST", signal,
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
-    body: JSON.stringify({
-      messages: [{ role: "user", content: prompt }],
-      system: "You are OmVani, a compassionate AI spiritual guide rooted in Hindu scripture and yoga philosophy. Answer questions about sacred texts with wisdom, warmth and precision. When the user asks verbally, keep answers to 2-3 paragraphs — clear and spoken-friendly.",
-    }),
-  }).then(async res => {
-    if (!res.ok) throw new Error("Failed");
-    const reader = res.body?.getReader();
-    const decoder = new TextDecoder();
-    let accumulated = "";
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
-        onChunk(accumulated);
-      }
-    }
-  });
-}
-
 // ─── OM Voice Button ──────────────────────────────────────────────────────────
 function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; currentContext: string }) {
+  const { language } = useLanguage();
   const [open, setOpen]           = useState(false);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -87,7 +61,8 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
     if (!SpeechRecog) { toast.error("Voice not supported in this browser"); return; }
     recogRef.current?.abort();
     const rec = new SpeechRecog();
-    rec.continuous = false; rec.interimResults = false; rec.lang = "en-US";
+    rec.continuous = false; rec.interimResults = false;
+    rec.lang = language === "hi" ? "hi-IN" : language === "ta" ? "ta-IN" : "en-US";
     rec.onstart = () => { setListening(true); setPhase("listening"); setTranscript(""); setAnswer(""); };
     rec.onresult = (e: any) => {
       const text = e.results[0][0].transcript;
@@ -99,7 +74,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
     rec.onend   = () => setListening(false);
     recogRef.current = rec;
     rec.start();
-  }, [SpeechRecog, currentContext]);
+  }, [SpeechRecog, currentContext, language]);
 
   const askAI = async (question: string) => {
     setLoading(true); setPhase("thinking"); setAnswer("");
@@ -715,6 +690,8 @@ function TitleBlock({ eyebrow, title, subtitle, summary, stat, accentColor, orna
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Scriptures() {
   const { t } = useTranslations();
+  const { canAccessAllScriptures, scripturePageLimit } = useSubscription();
+  const [upgradeOpen, setUpgradeOpen]       = useState(false);
   const [scripture, setScripture]           = useState<Scripture>("gita");
   const [currentChapter, setCurrentChapter] = useState(1);
   const [currentUpanishad, setCurrentUpanishad] = useState("isha");
@@ -747,7 +724,23 @@ export default function Scriptures() {
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const switchScripture = (s: Scripture) => { setScripture(s); setSearchQuery(""); setShowBookmarks(false); scrollTop(); };
+  const switchScripture = (s: Scripture) => {
+    if ((s === "upanishad" || s === "sutras") && !canAccessAllScriptures) {
+      setUpgradeOpen(true);
+      return;
+    }
+    setScripture(s); setSearchQuery(""); setShowBookmarks(false); scrollTop();
+  };
+
+  const goToChapter = (n: number) => {
+    if (n > scripturePageLimit) {
+      setUpgradeOpen(true);
+      return;
+    }
+    setCurrentChapter(n);
+    setSearchQuery("");
+    scrollTop();
+  };
 
   // Current context string for voice button
   const voiceContext = scripture === "gita"
@@ -795,7 +788,7 @@ export default function Scriptures() {
               ))}
             </div>
             <div className="border-t border-border pt-4">
-              {scripture === "gita"      && <GitaSidebar current={currentChapter} onSelect={n => { setCurrentChapter(n); setSearchQuery(""); scrollTop(); }} />}
+              {scripture === "gita"      && <GitaSidebar current={currentChapter} onSelect={n => goToChapter(n)} />}
               {scripture === "upanishad" && <UpanishadSidebar currentId={currentUpanishad} onSelect={id => { setCurrentUpanishad(id); setSearchQuery(""); scrollTop(); }} />}
               {scripture === "sutras"    && <SutraSidebar current={currentPada} onSelect={n => { setCurrentPada(n); setSearchQuery(""); scrollTop(); }} />}
             </div>
@@ -819,7 +812,7 @@ export default function Scriptures() {
                     ))}
                   </div>
                   <div className="border-t border-border pt-4">
-                    {scripture === "gita"      && <GitaSidebar current={currentChapter} onSelect={n => { setCurrentChapter(n); setSearchQuery(""); setSidebarOpen(false); scrollTop(); }} />}
+                    {scripture === "gita"      && <GitaSidebar current={currentChapter} onSelect={n => { goToChapter(n); setSidebarOpen(false); }} />}
                     {scripture === "upanishad" && <UpanishadSidebar currentId={currentUpanishad} onSelect={id => { setCurrentUpanishad(id); setSearchQuery(""); setSidebarOpen(false); scrollTop(); }} />}
                     {scripture === "sutras"    && <SutraSidebar current={currentPada} onSelect={n => { setCurrentPada(n); setSearchQuery(""); setSidebarOpen(false); scrollTop(); }} />}
                   </div>
@@ -871,12 +864,12 @@ export default function Scriptures() {
                       stat={`${chapter.total_verses} verses`} accentColor="hsl(28,90%,55%)" ornament="❦"
                     />
                     <div className="flex items-center justify-between">
-                      <button onClick={() => { setCurrentChapter(Math.max(1, currentChapter - 1)); scrollTop(); }} disabled={currentChapter === 1}
+                      <button onClick={() => goToChapter(Math.max(1, currentChapter - 1))} disabled={currentChapter === 1}
                         className="flex items-center gap-1.5 text-xs font-sans px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all">
                         <ChevronLeft className="w-3.5 h-3.5" /> Previous
                       </button>
                       <span className="text-xs font-sans text-muted-foreground/50">{currentChapter} of 18</span>
-                      <button onClick={() => { setCurrentChapter(Math.min(18, currentChapter + 1)); scrollTop(); }} disabled={currentChapter === 18}
+                      <button onClick={() => goToChapter(Math.min(18, currentChapter + 1))} disabled={currentChapter === 18}
                         className="flex items-center gap-1.5 text-xs font-sans px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all">
                         Next <ChevronRight className="w-3.5 h-3.5" />
                       </button>
@@ -899,11 +892,11 @@ export default function Scriptures() {
                 </div>
                 {!searchQuery && !showBookmarks && gitaShlokas.length > 0 && (
                   <div className="flex justify-between mt-10 pt-8 border-t border-border">
-                    <button onClick={() => { setCurrentChapter(Math.max(1, currentChapter - 1)); scrollTop(); }} disabled={currentChapter === 1}
+                    <button onClick={() => goToChapter(Math.max(1, currentChapter - 1))} disabled={currentChapter === 1}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground disabled:opacity-30 transition-all">
                       <ChevronLeft className="w-3.5 h-3.5" /> Previous
                     </button>
-                    <button onClick={() => { setCurrentChapter(Math.min(18, currentChapter + 1)); scrollTop(); }} disabled={currentChapter === 18}
+                    <button onClick={() => goToChapter(Math.min(18, currentChapter + 1))} disabled={currentChapter === 18}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground disabled:opacity-30 transition-all">
                       Next <ChevronRight className="w-3.5 h-3.5" />
                     </button>
@@ -1006,6 +999,13 @@ export default function Scriptures() {
           </main>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="scriptures"
+      />
 
       {/* ── OM Floating Voice Button ─────────────────────────────────────── */}
       <OmVoiceButton scripture={scripture} currentContext={voiceContext} />

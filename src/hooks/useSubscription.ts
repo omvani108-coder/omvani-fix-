@@ -161,11 +161,14 @@ export function useSubscription() {
   const incrementUsage = useCallback(async (feature: "chat" | "identify") => {
     if (!user) return;
 
-    const todayIST  = getTodayIST();
-    const newCount  = (usage[feature] ?? 0) + 1;
+    const todayIST = getTodayIST();
+    let newCount = 0;
 
-    // Optimistically update local state immediately (feels instant to user)
-    setUsage(prev => ({ ...prev, [feature]: newCount }));
+    // Optimistically update local state using functional form to read latest state
+    setUsage(prev => {
+      newCount = (prev[feature] ?? 0) + 1;
+      return { ...prev, [feature]: newCount };
+    });
 
     // Then persist to DB (upsert = insert or update if row exists)
     const { error } = await supabase.from("usage_logs").upsert({
@@ -178,10 +181,10 @@ export function useSubscription() {
 
     if (error) {
       console.error("Failed to increment usage:", error);
-      // Roll back local state if DB write failed
-      setUsage(prev => ({ ...prev, [feature]: (prev[feature] ?? 0) - 1 }));
+      // Roll back using functional form to decrement from latest state
+      setUsage(prev => ({ ...prev, [feature]: Math.max(0, (prev[feature] ?? 0) - 1) }));
     }
-  }, [user, usage]);
+  }, [user]);
 
   // ── Derived plan info ─────────────────────────────────────────────────────
   const limits       = DAILY_LIMITS[plan];
