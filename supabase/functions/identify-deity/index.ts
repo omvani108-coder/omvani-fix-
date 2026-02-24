@@ -1,4 +1,18 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// ── IST date helper (same logic as useSubscription.ts) ──────────────────────
+function getTodayIST(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+// ── Daily identify limits per plan ──────────────────────────────────────────
+const IDENTIFY_LIMITS: Record<string, number> = {
+  free:         1,
+  basic:        3,
+  basic_annual: 3,
+  // pro, pro_annual, family → unlimited (not in this map)
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +23,64 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // ── Step 1: Verify JWT ──────────────────────────────────────────────────
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.replace("Bearer ", "");
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Step 2: Get user's plan ─────────────────────────────────────────────
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const plan = (sub?.plan as string) ?? "free";
+
+    // ── Step 3: Check daily usage (IST) ─────────────────────────────────────
+    const todayIST = getTodayIST();
+    let currentCount = 0;
+
+    const limit = IDENTIFY_LIMITS[plan]; // undefined for unlimited plans
+
+    if (limit !== undefined) {
+      const { data: usageRow } = await supabase
+        .from("usage_logs")
+        .select("count")
+        .eq("user_id", user.id)
+        .eq("feature", "identify")
+        .eq("date_ist", todayIST)
+        .maybeSingle();
+
+      currentCount = usageRow?.count ?? 0;
+
+      if (currentCount >= limit) {
+        return new Response(
+          JSON.stringify({ error: "Daily limit reached" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // ── Step 4: Parse request body ──────────────────────────────────────────
     const { imageBase64, mimeType } = await req.json();
 
     if (!imageBase64) {
@@ -116,6 +188,21 @@ If you cannot identify the image as anything Hindu/spiritual, set type to "Unkno
         interesting_fact: "",
         location: "",
       };
+    }
+
+    // ── Step 5: Increment usage after successful identification ────────────
+    if (limit !== undefined) {
+      const { error: upsertErr } = await supabase.from("usage_logs").upsert(
+        {
+          user_id:    user.id,
+          feature:    "identify",
+          date_ist:   todayIST,
+          count:      currentCount + 1,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,feature,date_ist" },
+      );
+      if (upsertErr) console.error("Failed to increment identify usage:", upsertErr);
     }
 
     return new Response(JSON.stringify(result), {

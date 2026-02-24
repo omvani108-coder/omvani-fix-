@@ -16,6 +16,27 @@ export interface Message {
   isStreaming?: boolean;
 }
 
+// ─── DB row → Message converter ──────────────────────────────────────────────
+
+export function dbRowToMessage(row: {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+  source_references: unknown;
+}): Message {
+  const refs = Array.isArray(row.source_references)
+    ? (row.source_references as { text: string }[]).map((r) => ({ text: r.text }))
+    : [];
+  return {
+    id: row.id,
+    role: row.role as "user" | "assistant",
+    content: row.content,
+    timestamp: new Date(row.created_at),
+    refs: refs.length > 0 ? refs : undefined,
+  };
+}
+
 // ─── Suggested opening questions ─────────────────────────────────────────────
 
 export const SUGGESTED_QUESTIONS = [

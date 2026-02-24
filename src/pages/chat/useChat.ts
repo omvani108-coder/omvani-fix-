@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Message, SYSTEM_PROMPT, ScriptureRef } from "./types";
+import { Message, SYSTEM_PROMPT, ScriptureRef, dbRowToMessage } from "./types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -20,25 +20,6 @@ function parseRefs(content: string): { clean: string; refs: ScriptureRef[] } {
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function dbRowToMessage(row: {
-  id: string;
-  role: string;
-  content: string;
-  created_at: string;
-  source_references: unknown;
-}): Message {
-  const refs = Array.isArray(row.source_references)
-    ? (row.source_references as { text: string }[]).map((r) => ({ text: r.text }))
-    : [];
-  return {
-    id: row.id,
-    role: row.role as "user" | "assistant",
-    content: row.content,
-    timestamp: new Date(row.created_at),
-    refs: refs.length > 0 ? refs : undefined,
-  };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────

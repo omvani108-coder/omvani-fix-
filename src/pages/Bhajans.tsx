@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Play, ChevronDown, ChevronUp, BookOpen, Music, X, ExternalLink, XCircle, Share2 } from "lucide-react";
+import { Search, Play, ChevronDown, ChevronUp, BookOpen, Music, X, ExternalLink, XCircle, Share2, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -8,6 +8,8 @@ import Navbar from "@/components/Navbar";
 import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import { useTranslations } from "@/hooks/useTranslations";
 import { bhajans, type Bhajan } from "@/data/bhajans";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const CATEGORIES = ["All", "Bhajan", "Mantra", "Aarti", "Chalisa", "Stotra"] as const;
 const LANGUAGES = ["All", "Hindi", "Sanskrit", "Both"] as const;
@@ -21,43 +23,7 @@ const categoryColors: Record<string, string> = {
   Stotra: "bg-primary/10 text-primary",
 };
 
-// ── Skeleton card ─────────────────────────────────────────────────────────────
 
-function BhajanSkeletonCard() {
-  return (
-    <div className="bg-card rounded-xl border border-border p-5 animate-pulse flex flex-col">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-secondary rounded w-3/4" />
-          <div className="h-3 bg-secondary rounded w-1/2" />
-        </div>
-        <div className="h-5 w-14 bg-secondary rounded-full shrink-0" />
-      </div>
-      <div className="flex gap-2 mb-4">
-        <div className="h-5 w-16 bg-secondary rounded-full" />
-        <div className="h-5 w-12 bg-secondary rounded-full" />
-      </div>
-      <div className="flex gap-1 mb-4">
-        <div className="h-3 w-12 bg-secondary rounded" />
-        <div className="h-3 w-16 bg-secondary rounded" />
-        <div className="h-3 w-10 bg-secondary rounded" />
-      </div>
-      <div className="mt-auto pt-3 border-t border-border">
-        <div className="h-9 bg-secondary rounded-lg" />
-      </div>
-    </div>
-  );
-}
-
-function BhajanSkeletonGrid() {
-  return (
-    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <BhajanSkeletonCard key={i} />
-      ))}
-    </div>
-  );
-}
 
 // ── Empty state ────────────────────────────────────────────────────────────────
 
@@ -105,6 +71,7 @@ function BhajanEmptyState({ search, activeCategory, activeDeity, activeLanguage,
 
 const Bhajans = () => {
   const { t } = useTranslations();
+  const { bhajanLimit } = useSubscription();
   const [search, setSearch] = useState("");
   const [selectedBhajan, setSelectedBhajan] = useState<Bhajan | null>(null);
   const [expandedLyrics,  setExpandedLyrics]  = useState<string | null>(null);
@@ -113,13 +80,7 @@ const Bhajans = () => {
   const [activeDeity,     setActiveDeity]     = useState<string>("All");
   const [activeLanguage,  setActiveLanguage]  = useState<string>("All");
   const [sandeshBhajan,   setSandeshBhajan]   = useState<Bhajan | null>(null);
-
-  // Skeleton flash on initial paint (same pattern as Mandirs)
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+  const [upgradeOpen,     setUpgradeOpen]     = useState(false);
 
   const resetFilters = () => {
     setSearch("");
@@ -241,15 +202,11 @@ const Bhajans = () => {
 
       {/* Song Cards Grid */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {ready && (
-          <p className="text-xs text-muted-foreground font-sans mb-6">
-            {filtered.length} of {bhajans.length} hymns
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground font-sans mb-6">
+          {filtered.length} of {bhajans.length} hymns
+        </p>
 
-        {!ready ? (
-          <BhajanSkeletonGrid />
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <BhajanEmptyState
             search={search}
             activeCategory={activeCategory}
@@ -259,7 +216,7 @@ const Bhajans = () => {
           />
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filtered.map((b, i) => (
+            {filtered.slice(0, bhajanLimit).map((b, i) => (
               <motion.div
                 key={b.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -366,9 +323,30 @@ const Bhajans = () => {
                 </div>
               </motion.div>
             ))}
+            {filtered.length > bhajanLimit && (
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="bg-card rounded-xl border border-border p-5 flex flex-col items-center justify-center gap-3 opacity-70 hover:opacity-100 transition-opacity cursor-pointer min-h-[200px]"
+              >
+                <Lock className="w-8 h-8 text-saffron" />
+                <p className="font-serif font-bold text-foreground text-lg">
+                  +{filtered.length - bhajanLimit} more bhajans
+                </p>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Upgrade to unlock the full library
+                </p>
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="bhajans"
+      />
 
       {/* YouTube Player Modal */}
       <AnimatePresence>
