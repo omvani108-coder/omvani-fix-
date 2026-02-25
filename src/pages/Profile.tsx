@@ -170,7 +170,6 @@ export default function Profile() {
               {[
                 { value: "light", icon: <Sun className="w-6 h-6" />, label: tx("Light", "लाइट", "வெளிர்") },
                 { value: "dark",  icon: <Moon className="w-6 h-6" />, label: tx("Dark",  "डार्क",  "இருள்") },
-                { value: "system",icon: <span className="text-xl">⚙️</span>, label: tx("System", "सिस्टम", "சிஸ்டம்") },
               ].map(({ value, icon, label }) => (
                 <button
                   key={value}

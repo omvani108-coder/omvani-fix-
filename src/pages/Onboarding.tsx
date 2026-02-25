@@ -199,7 +199,7 @@ export default function Onboarding() {
     setLanguage(data.language);
 
     toast.success("Welcome to ॐVani! 🙏");
-    navigate("/chat");
+    navigate("/home");
   };
 
   // ── Step content ─────────────────────────────────────────────────────────────
@@ -489,7 +489,7 @@ export default function Onboarding() {
             onClick={() => {
               // Fix 2: Clear session data when skipping
               clearSession();
-              navigate("/chat");
+              navigate("/home");
             }}
             className="text-xs font-sans text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
           >

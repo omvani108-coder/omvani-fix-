@@ -302,7 +302,7 @@ export default function UpgradeModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 24 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 top-1/2 -translate-y-1/2 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[700px] bg-card rounded-2xl border border-border shadow-2xl z-50 overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="fixed inset-x-3 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[700px] w-[calc(100%-1.5rem)] bg-card rounded-2xl border border-border shadow-2xl z-50 overflow-hidden max-h-[85vh] overflow-y-auto"
           >
             {/* ── Header ────────────────────────────────────────────────── */}
             <div className="relative px-6 pt-7 pb-5 text-center border-b border-border bg-gradient-to-b from-secondary/50 to-card">

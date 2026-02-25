@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 const getPostLoginPath = (user: User): string => {
-  return user.user_metadata?.onboarding_complete === true ? "/chat" : "/onboarding";
+  return user.user_metadata?.onboarding_complete === true ? "/home" : "/onboarding";
 };
 
 interface AuthContextType {
