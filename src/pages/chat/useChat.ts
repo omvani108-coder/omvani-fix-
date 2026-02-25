@@ -295,12 +295,8 @@ export function useChat(): UseChatReturn {
     abortRef.current?.abort();
     setMessagesAndRef(() => []);
     setLoadingState(false);
-   setLoadingState(false);
-    // Just reset the ref — history stays in DB and is visible in sidebar
     conversationIdRef.current = null;
   }, []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
 
   return { messages, isLoading, isLoadingHistory, sendMessage, clearChat };
 }
