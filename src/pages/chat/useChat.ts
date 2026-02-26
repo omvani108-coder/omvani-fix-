@@ -200,6 +200,8 @@ export function useChat(): UseChatReturn {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? supabaseKey;
 
       // Build history from ref (excludes the streaming placeholder)
       const history = messagesRef.current
@@ -218,7 +220,7 @@ export function useChat(): UseChatReturn {
         signal: abortRef.current.signal,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseKey}`,
+          "Authorization": `Bearer ${token}`,
           "apikey": supabaseKey,
         },
         body: JSON.stringify({

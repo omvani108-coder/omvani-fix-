@@ -16,6 +16,7 @@ const IDENTIFY_LIMITS: Record<string, number> = {
 
 const ALLOWED_ORIGINS = [
   "https://omvani.app",
+  "https://dharma-companion.vercel.app",
   "http://localhost:8080",
 ];
 
@@ -100,8 +101,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!anthropicKey) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const systemPrompt = `You are an expert in Hindu deities, temples, sacred art, rituals, and iconography with deep knowledge of Sanatana Dharma.
 
@@ -124,33 +125,34 @@ You must respond with ONLY a valid JSON object (no markdown, no code blocks) in 
 
 If you cannot identify the image as anything Hindu/spiritual, set type to "Unknown" and provide a polite explanation in the description field.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Please identify the deity, temple, ritual, or sacred element in this image and provide detailed information in the requested JSON format.",
+        model: "claude-3-5-haiku-latest",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mimeType || "image/jpeg",
+                data: imageBase64,
               },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}`,
-                },
-              },
-            ],
-          },
-        ],
-        stream: false,
+            },
+            {
+              type: "text",
+              text: "Please identify the deity, temple, ritual, or sacred element in this image and provide detailed information in the requested JSON format.",
+            },
+          ],
+        }],
       }),
     });
 
@@ -161,14 +163,8 @@ If you cannot identify the image as anything Hindu/spiritual, set type to "Unkno
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached. Please add credits to continue." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
+      console.error("Anthropic API error:", response.status, errText);
       return new Response(JSON.stringify({ error: "AI service error" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -176,7 +172,7 @@ If you cannot identify the image as anything Hindu/spiritual, set type to "Unkno
     }
 
     const data = await response.json();
-    const rawContent = data.choices?.[0]?.message?.content ?? "";
+    const rawContent = data.content?.[0]?.text ?? "";
 
     // Try to parse JSON from response
     let result;

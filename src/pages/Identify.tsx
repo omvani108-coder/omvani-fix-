@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -105,7 +106,7 @@ const Identify = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ imageBase64, mimeType: imageMime }),

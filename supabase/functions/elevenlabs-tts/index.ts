@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ALLOWED_ORIGINS = [
   "https://omvani.app",
+  "https://dharma-companion.vercel.app",
   "http://localhost:8080",
 ];
 

@@ -16,6 +16,7 @@ const CHAT_LIMITS: Record<string, number> = {
 
 const ALLOWED_ORIGINS = [
   "https://omvani.app",
+  "https://dharma-companion.vercel.app",
   "http://localhost:8080",
 ];
 
