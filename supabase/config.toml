@@ -4,10 +4,10 @@ project_id = "yxlnvwjwdkylfmzdzavn"
 verify_jwt = false
 
 [functions.elevenlabs-tts]
-verify_jwt = false
+verify_jwt = true
 
 [functions.elevenlabs-stt]
-verify_jwt = false
+verify_jwt = true
 
 [functions.identify-deity]
 verify_jwt = false

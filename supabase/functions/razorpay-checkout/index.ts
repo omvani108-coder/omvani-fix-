@@ -1,11 +1,20 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://omvani.app",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") ?? "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 // ── Plan configuration ──────────────────────────────────────────────────────
 // razorpay_plan_id is the ID you create in the Razorpay dashboard for
@@ -53,10 +62,10 @@ const VALID_PLAN_IDS = Object.keys(PLANS);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function jsonResponse(body: Record<string, unknown>, status = 200) {
+function jsonResponse(body: Record<string, unknown>, cors: Record<string, string>, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...cors, "Content-Type": "application/json" },
   });
 }
 
@@ -89,6 +98,7 @@ async function razorpayRequest(
 // ── Main handler ────────────────────────────────────────────────────────────
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -97,7 +107,7 @@ serve(async (req) => {
     // Step 1 — Verify JWT
     const authHeader = req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Missing authorization token" }, 401);
+      return jsonResponse({ error: "Missing authorization token" }, corsHeaders, 401);
     }
     const token = authHeader.replace("Bearer ", "");
 
@@ -111,7 +121,7 @@ serve(async (req) => {
     } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return jsonResponse({ error: "Invalid or expired token" }, 401);
+      return jsonResponse({ error: "Invalid or expired token" }, corsHeaders, 401);
     }
 
     // Step 2 — Parse and validate body
@@ -120,6 +130,7 @@ serve(async (req) => {
     if (!plan || !VALID_PLAN_IDS.includes(plan)) {
       return jsonResponse(
         { error: `Invalid plan. Must be one of: ${VALID_PLAN_IDS.join(", ")}` },
+        corsHeaders,
         400,
       );
     }
@@ -132,6 +143,7 @@ serve(async (req) => {
       if (!planConfig.razorpay_plan_id) {
         return jsonResponse(
           { error: `Razorpay plan ID not configured for "${plan}"` },
+          corsHeaders,
           500,
         );
       }
@@ -157,7 +169,7 @@ serve(async (req) => {
         key_id: keyId,
         plan_name: planConfig.name,
         subscription_id: data.id,
-      });
+      }, corsHeaders);
     }
 
     // One-time order (annual plans)
@@ -179,11 +191,12 @@ serve(async (req) => {
       order_id: data.id,
       amount: planConfig.amount,
       currency: planConfig.currency,
-    });
+    }, corsHeaders);
   } catch (err) {
     console.error("razorpay-checkout error:", err);
     return jsonResponse(
       { error: err instanceof Error ? err.message : "Unknown error" },
+      corsHeaders,
       500,
     );
   }

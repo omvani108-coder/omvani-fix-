@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -9,24 +9,47 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Mail } from "lucide-react";
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 1 minute lockout
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const attemptsRef = useRef(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { getPostLoginPath } = useAuth();
 
+  const isLockedOut = lockoutUntil !== null && Date.now() < lockoutUntil;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLockedOut) {
+      const secsLeft = Math.ceil(((lockoutUntil ?? 0) - Date.now()) / 1000);
+      toast({ title: "Too many attempts", description: `Please wait ${secsLeft}s before trying again.`, variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      attemptsRef.current += 1;
+      if (attemptsRef.current >= MAX_ATTEMPTS) {
+        setLockoutUntil(Date.now() + LOCKOUT_MS);
+        attemptsRef.current = 0;
+        toast({ title: "Account locked", description: "Too many failed attempts. Please wait 1 minute.", variant: "destructive" });
+      } else {
+        toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      }
     } else if (data.user) {
+      attemptsRef.current = 0;
+      setLockoutUntil(null);
       navigate(getPostLoginPath(data.user));
     }
     setLoading(false);
@@ -88,8 +111,8 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading || isLockedOut}>
+              {loading ? "Signing in..." : isLockedOut ? "Locked — try again shortly" : "Sign In"}
             </Button>
           </form>
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseShlokaAudioOptions {
   text: string;
@@ -55,12 +56,16 @@ export function useShlokaAudio({ text }: UseShlokaAudioOptions): UseShlokaAudioR
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
+      // Use the user's session JWT for authenticated TTS calls
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? supabaseKey;
+
       const res = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
         method: "POST",
         signal: abortRef.current.signal,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseKey}`,
+          "Authorization": `Bearer ${token}`,
           "apikey": supabaseKey,
         },
         body: JSON.stringify({ text, voiceId: ELEVENLABS_VOICE_ID }),

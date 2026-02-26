@@ -14,12 +14,22 @@ const CHAT_LIMITS: Record<string, number> = {
   // pro, pro_annual, family → unlimited (not in this map)
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://omvani.app",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") ?? "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 serve(async (req) => {
+  const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
 
   try {
@@ -180,18 +190,13 @@ serve(async (req) => {
             }
           }
         } finally {
-          // ── Step 5: Increment usage after successful stream ────────────
+          // ── Step 5: Atomically increment usage after successful stream ──
           if (limit !== undefined) {
-            await supabase.from("usage_logs").upsert(
-              {
-                user_id:    user.id,
-                feature:    "chat",
-                date_ist:   todayIST,
-                count:      currentCount + 1,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "user_id,feature,date_ist" },
-            ).then(({ error }) => {
+            await supabase.rpc("increment_usage", {
+              p_user_id: user.id,
+              p_feature: "chat",
+              p_date_ist: todayIST,
+            }).then(({ error }) => {
               if (error) console.error("Failed to increment chat usage:", error);
             });
           }
