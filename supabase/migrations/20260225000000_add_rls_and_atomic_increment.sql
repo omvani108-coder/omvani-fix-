@@ -1,7 +1,56 @@
 -- ============================================================================
--- Migration: Add RLS to unprotected tables + atomic usage increment function
--- Safe to re-run: drops existing policies before recreating
+-- Migration: Create missing tables, add RLS, atomic usage increment function
+-- Safe to re-run: uses IF NOT EXISTS / DROP POLICY IF EXISTS throughout
 -- ============================================================================
+
+-- ── 0. Create tables that may not exist yet ─────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan TEXT NOT NULL DEFAULT 'free',
+  status TEXT NOT NULL DEFAULT 'active',
+  razorpay_subscription_id TEXT,
+  razorpay_payment_id TEXT,
+  current_period_end TIMESTAMPTZ,
+  trial_ends_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.usage_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  feature TEXT NOT NULL,
+  date_ist TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, feature, date_ist)
+);
+
+CREATE TABLE IF NOT EXISTS public.reminder_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  enabled BOOLEAN NOT NULL DEFAULT false,
+  channel TEXT NOT NULL DEFAULT 'email',
+  reminder_time TEXT NOT NULL DEFAULT '06:00:00',
+  timezone TEXT NOT NULL DEFAULT 'Asia/Kolkata',
+  language TEXT NOT NULL DEFAULT 'en',
+  include_shloka BOOLEAN NOT NULL DEFAULT true,
+  include_festivals BOOLEAN NOT NULL DEFAULT true,
+  whatsapp_number TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.reminder_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  channel TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'sent',
+  content_type TEXT NOT NULL DEFAULT 'shloka',
+  sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 -- ── 1. Enable RLS on subscriptions ──────────────────────────────────────────
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
