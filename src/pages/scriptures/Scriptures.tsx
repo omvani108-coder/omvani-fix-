@@ -11,6 +11,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { SeoHead } from "@/components/SeoHead";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import { streamAI } from "@/lib/streamAI";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -414,17 +415,13 @@ function PageCard({ accentClass, ornament, footerText, children }: {
 }
 
 // ─── Gita Verse Card ──────────────────────────────────────────────────────────
-function GitaPage({ shloka, onAsk }: { shloka: Shloka; onAsk: (s: Shloka) => void }) {
+function GitaPage({ shloka, onAsk, onShare }: { shloka: Shloka; onAsk: (s: Shloka) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
   const { t } = useTranslations();
   const [bookmarked, setBookmarked] = useState(() => isBookmarked(shloka.id));
   const [showWords, setShowWords]   = useState(false);
 
   const handleBookmark = () => { const a = toggleBookmark(shloka.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
-  const handleShare = async () => {
-    const text = `Bhagavad Gita ${shloka.id}\n\n${shloka.sanskrit}\n\n${shloka.meaning}\n\n— OmVani`;
-    if (navigator.share) await navigator.share({ title: `Gita ${shloka.id}`, text });
-    else { await navigator.clipboard.writeText(text); toast.success(t.scriptures.copied); }
-  };
+  const handleShare = () => onShare({ title: `Bhagavad Gita ${shloka.id}`, sanskrit: shloka.sanskrit, meaning: shloka.meaning, deity: "Krishna" });
 
   return (
     <PageCard accentClass="via-saffron/30" ornament="❧" footerText={`Bhagavad Gita · ${shloka.id}`}>
@@ -476,17 +473,13 @@ function GitaPage({ shloka, onAsk }: { shloka: Shloka; onAsk: (s: Shloka) => voi
 }
 
 // ─── Upanishad Verse Card ─────────────────────────────────────────────────────
-function UpanishadPage({ verse, onAsk }: { verse: Verse; onAsk: (v: Verse) => void }) {
+function UpanishadPage({ verse, onAsk, onShare }: { verse: Verse; onAsk: (v: Verse) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
   const { t } = useTranslations();
   const [bookmarked, setBookmarked] = useState(() => isUpanishadBookmarked(verse.id));
   const [showWords, setShowWords]   = useState(false);
 
   const handleBookmark = () => { const a = toggleUpanishadBookmark(verse.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
-  const handleShare = async () => {
-    const text = `${verse.upanishad} Upanishad · ${verse.section}\n\n${verse.sanskrit}\n\n${verse.meaning}\n\n— OmVani`;
-    if (navigator.share) await navigator.share({ title: `${verse.upanishad} Upanishad`, text });
-    else { await navigator.clipboard.writeText(text); toast.success(t.scriptures.copied); }
-  };
+  const handleShare = () => onShare({ title: `${verse.upanishad} Upanishad · ${verse.section}`, sanskrit: verse.sanskrit, meaning: verse.meaning, deity: "Krishna" });
 
   return (
     <PageCard accentClass="via-gold/30" ornament="✦" footerText={`${verse.upanishad} Upanishad · ${verse.section}`}>
@@ -537,17 +530,13 @@ function UpanishadPage({ verse, onAsk }: { verse: Verse; onAsk: (v: Verse) => vo
 }
 
 // ─── Yoga Sutra Card ──────────────────────────────────────────────────────────
-function SutraPage({ sutra, onAsk }: { sutra: Sutra; onAsk: (s: Sutra) => void }) {
+function SutraPage({ sutra, onAsk, onShare }: { sutra: Sutra; onAsk: (s: Sutra) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
   const { t } = useTranslations();
   const [bookmarked, setBookmarked] = useState(() => isSutraBookmarked(sutra.id));
   const [showWords, setShowWords]   = useState(false);
 
   const handleBookmark = () => { const a = toggleSutraBookmark(sutra.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
-  const handleShare = async () => {
-    const text = `Yoga Sutras · ${sutra.section}\n\n${sutra.sanskrit}\n\n${sutra.meaning}\n\n— OmVani`;
-    if (navigator.share) await navigator.share({ title: `Yoga Sutras ${sutra.id}`, text });
-    else { await navigator.clipboard.writeText(text); toast.success(t.scriptures.copied); }
-  };
+  const handleShare = () => onShare({ title: `Yoga Sutras · ${sutra.section}`, sanskrit: sutra.sanskrit, meaning: sutra.meaning, deity: "Krishna" });
 
   // Lotus-pink / maroon accent for Sutras
   return (
@@ -692,6 +681,13 @@ export default function Scriptures() {
   const { t } = useTranslations();
   const { canAccessAllScriptures, scripturePageLimit } = useSubscription();
   const [upgradeOpen, setUpgradeOpen]       = useState(false);
+  const [divyaOpen,   setDivyaOpen]         = useState(false);
+  const [divyaData,   setDivyaData]         = useState<{ title: string; sanskrit: string; meaning: string; deity: string } | null>(null);
+
+  const handleShare = (data: { title: string; sanskrit: string; meaning: string; deity: string }) => {
+    setDivyaData(data);
+    setDivyaOpen(true);
+  };
   const [scripture, setScripture]           = useState<Scripture>("gita");
   const [currentChapter, setCurrentChapter] = useState(1);
   const [currentUpanishad, setCurrentUpanishad] = useState("isha");
@@ -883,7 +879,7 @@ export default function Scriptures() {
                 )}
                 <div className="space-y-6">
                   {gitaShlokas.length > 0 ? gitaShlokas.map(s => (
-                    <GitaPage key={s.id} shloka={s} onAsk={x => setAskData({ title: `Gita ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} />
+                    <GitaPage key={s.id} shloka={s} onAsk={x => setAskData({ title: `Gita ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />
                   )) : (
                     <div className="text-center py-16"><div className="text-4xl mb-3">{showBookmarks ? "🔖" : "📖"}</div>
                       <p className="text-muted-foreground text-sm">{showBookmarks ? t.scriptures.noBookmarks : t.scriptures.noResults}</p>
@@ -940,13 +936,13 @@ export default function Scriptures() {
                       <p className="text-xs font-sans text-muted-foreground/60 mt-3 max-w-lg mx-auto leading-relaxed">{ch.summary}</p>
                     </div>
                     <div className="space-y-6">
-                      {ch.verses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} />)}
+                      {ch.verses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)}
                     </div>
                   </div>
                 ))}
                 {searchQuery && (
                   <div className="space-y-6">
-                    {upanishadVerses.length > 0 ? upanishadVerses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} />)
+                    {upanishadVerses.length > 0 ? upanishadVerses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)
                       : <div className="text-center py-16"><div className="text-4xl mb-3">📖</div><p className="text-muted-foreground text-sm">{t.scriptures.noResults}</p></div>}
                   </div>
                 )}
@@ -978,7 +974,7 @@ export default function Scriptures() {
                 )}
                 {searchQuery && <p className="text-sm text-muted-foreground mb-6">{isSearching ? t.scriptures.searching : `${sutras.length} results for "${searchQuery}"`}</p>}
                 <div className="space-y-6">
-                  {sutras.length > 0 ? sutras.map(s => <SutraPage key={s.id} sutra={s} onAsk={x => setAskData({ title: `Yoga Sutras ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} />)
+                  {sutras.length > 0 ? sutras.map(s => <SutraPage key={s.id} sutra={s} onAsk={x => setAskData({ title: `Yoga Sutras ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)
                     : <div className="text-center py-16"><div className="text-4xl mb-3">📖</div><p className="text-muted-foreground text-sm">{t.scriptures.noResults}</p></div>}
                 </div>
                 {!searchQuery && sutras.length > 0 && (
@@ -1006,6 +1002,19 @@ export default function Scriptures() {
         onClose={() => setUpgradeOpen(false)}
         trigger="scriptures"
       />
+
+      {/* ── Divya Sandesh sharing modal ──────────────────────────────────── */}
+      {divyaData && (
+        <DivyaSandeshModal
+          open={divyaOpen}
+          onClose={() => { setDivyaOpen(false); setDivyaData(null); }}
+          type="shloka"
+          title={divyaData.title}
+          sanskrit={divyaData.sanskrit}
+          translation={divyaData.meaning}
+          deity={divyaData.deity}
+        />
+      )}
 
       {/* ── OM Floating Voice Button ─────────────────────────────────────── */}
       <OmVoiceButton scripture={scripture} currentContext={voiceContext} />
