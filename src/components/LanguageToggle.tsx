@@ -1,14 +1,15 @@
 /**
  * LanguageToggle.tsx
  *
- * Both mobile & desktop → tall vertical "tic-tac" pill
- * • Click any language to select
- * • Drag/swipe up-down to slide between options
- * • Animated saffron indicator slides to active option
+ * A tall tic-tac shaped button showing the active language.
+ * Click → dropdown slides down with 3 options.
+ * Select → dropdown closes, button updates.
+ *
+ * Desktop & Mobile identical behaviour.
  */
 
-import { useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LanguageToggleProps {
@@ -16,93 +17,110 @@ interface LanguageToggleProps {
 }
 
 const OPTIONS = [
-  { lang: "en" as const, label: "EN" },
-  { lang: "hi" as const, label: "हि" },
-  { lang: "ta" as const, label: "த"  },
+  { lang: "en" as const, label: "EN", full: "English" },
+  { lang: "hi" as const, label: "हि", full: "हिंदी"  },
+  { lang: "ta" as const, label: "த",  full: "தமிழ்"  },
 ];
-
-const ITEM_H = 28; // px height of each slot
 
 export function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
   const { language, setLanguage } = useLanguage();
-  const activeIndex = OPTIONS.findIndex((o) => o.lang === language);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const isLight = variant === "light";
+  const current = OPTIONS.find((o) => o.lang === language)!;
 
-  // ── Drag support ────────────────────────────────────────────────────────────
-  const dragStartY = useRef<number>(0);
-  const dragStartIdx = useRef<number>(0);
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-  const onDragStart = (_: unknown, info: { point: { y: number } }) => {
-    dragStartY.current = info.point.y;
-    dragStartIdx.current = activeIndex;
+  const handleSelect = (lang: typeof OPTIONS[number]["lang"]) => {
+    setLanguage(lang);
+    setOpen(false);
   };
 
-  const onDrag = (_: unknown, info: { point: { y: number } }) => {
-    const delta = info.point.y - dragStartY.current;
-    const steps = Math.round(delta / ITEM_H);
-    const next = Math.min(Math.max(dragStartIdx.current + steps, 0), OPTIONS.length - 1);
-    if (next !== activeIndex) setLanguage(OPTIONS[next].lang);
-  };
+  // Tic-tac pill button styles
+  const pillBase = `
+    relative flex items-center justify-center
+    w-8 rounded-full border
+    text-[11px] font-sans font-bold
+    transition-all duration-200 cursor-pointer
+    focus-visible:ring-2 focus-visible:ring-saffron outline-none
+    select-none
+  `;
 
-  const containerBg = isLight
-    ? "bg-black/30 backdrop-blur-md border-white/20"
-    : "bg-secondary border-border";
+  const pillClosed = isLight
+    ? "bg-black/35 backdrop-blur-md border-white/25 text-white shadow-md"
+    : "bg-secondary border-border text-foreground";
 
-  const totalH = OPTIONS.length * ITEM_H; // 84px
+  const pillOpen = "bg-sacred-gradient border-transparent text-white shadow-sacred";
 
   return (
-    <div
-      role="group"
-      aria-label="Select language"
-      className={`relative flex flex-col items-center rounded-full border p-[3px] select-none ${containerBg}`}
-      style={{ width: 32, height: totalH + 6 }}
-    >
-      {/* Sliding saffron pill */}
-      <motion.div
-        animate={{ y: activeIndex * ITEM_H }}
-        transition={{ type: "spring", stiffness: 500, damping: 36 }}
-        className="absolute left-[3px] right-[3px] rounded-full bg-sacred-gradient shadow-sm pointer-events-none"
-        style={{ height: ITEM_H - 2, top: 3 }}
-      />
+    <div ref={ref} className="relative z-[100]">
 
-      {/* Drag capture layer — invisible, sits on top of the pill */}
-      <motion.div
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0}
-        onDragStart={onDragStart}
-        onDrag={onDrag}
-        className="absolute inset-0 rounded-full z-20 cursor-grab active:cursor-grabbing"
-        style={{ touchAction: "none" }}
-      />
+      {/* ── The tic-tac button ─────────────────────────────────────────── */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Select language"
+        aria-expanded={open}
+        className={`${pillBase} ${open ? pillOpen : pillClosed}`}
+        style={{ height: 44, paddingTop: 2, paddingBottom: 2 }}
+      >
+        {current.label}
+      </button>
 
-      {/* Language buttons */}
-      {OPTIONS.map(({ lang, label }, i) => {
-        const isActive = language === lang;
-        return (
-          <button
-            key={lang}
-            onClick={() => setLanguage(lang)}
-            aria-label={`Switch to ${lang}`}
-            aria-pressed={isActive}
+      {/* ── Dropdown ──────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scaleY: 0.85 }}
+            animate={{ opacity: 1, y: 0,  scaleY: 1    }}
+            exit={{   opacity: 0, y: -6,  scaleY: 0.85 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            style={{ transformOrigin: "top center" }}
             className={`
-              relative z-30 flex items-center justify-center
-              text-[11px] font-sans font-bold rounded-full
-              transition-colors duration-200
-              focus-visible:ring-2 focus-visible:ring-saffron outline-none
-              ${isActive
-                ? "text-white"
-                : isLight
-                  ? "text-white/55 hover:text-white/90"
-                  : "text-muted-foreground hover:text-foreground"
+              absolute top-[calc(100%+6px)] right-0
+              flex flex-col overflow-hidden
+              rounded-2xl border shadow-xl min-w-[110px]
+              ${isLight
+                ? "bg-black/60 backdrop-blur-xl border-white/15"
+                : "bg-card border-border"
               }
             `}
-            style={{ width: 26, height: ITEM_H }}
           >
-            {label}
-          </button>
-        );
-      })}
+            {OPTIONS.map(({ lang, label, full }) => {
+              const isActive = language === lang;
+              return (
+                <button
+                  key={lang}
+                  onClick={() => handleSelect(lang)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3
+                    text-sm font-sans font-semibold text-left
+                    transition-colors duration-150 w-full
+                    ${isActive
+                      ? "bg-sacred-gradient text-white"
+                      : isLight
+                        ? "text-white/80 hover:bg-white/10 hover:text-white"
+                        : "text-foreground hover:bg-muted"
+                    }
+                  `}
+                >
+                  <span className="text-base w-5 text-center leading-none">{label}</span>
+                  <span className="text-xs opacity-75">{full}</span>
+                  {isActive && <span className="ml-auto text-[10px]">✓</span>}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
