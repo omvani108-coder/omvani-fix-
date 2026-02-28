@@ -110,6 +110,14 @@ serve(async (req) => {
       );
     }
 
+    // ── Build system prompt with prompt caching ──────────────────────────
+    // The system prompt is identical across requests, so we cache it.
+    // Anthropic caches the marked block for 5 min; repeat calls within that
+    // window read from cache at ~90 % input-token discount.
+    const systemBlocks = system
+      ? [{ type: "text", text: system, cache_control: { type: "ephemeral" } }]
+      : undefined;
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -118,9 +126,9 @@ serve(async (req) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-5-haiku-latest",
+        model: "claude-haiku-4-5",
         max_tokens: 1024,
-        ...(system ? { system } : {}),
+        ...(systemBlocks ? { system: systemBlocks } : {}),
         stream: true,
         messages: messages.slice(-10),
       }),

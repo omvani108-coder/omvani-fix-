@@ -126,6 +126,14 @@ You must respond with ONLY a valid JSON object (no markdown, no code blocks) in 
 
 If you cannot identify the image as anything Hindu/spiritual, set type to "Unknown" and provide a polite explanation in the description field.`;
 
+    // ── System prompt with prompt caching ────────────────────────────────
+    // The system prompt is identical across requests, so we cache it.
+    // Anthropic caches the marked block for 5 min; repeat calls within that
+    // window read from cache at ~90 % input-token discount.
+    const systemBlocks = [
+      { type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
+    ];
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -134,9 +142,9 @@ If you cannot identify the image as anything Hindu/spiritual, set type to "Unkno
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-5-haiku-latest",
+        model: "claude-haiku-4-5",
         max_tokens: 1024,
-        system: systemPrompt,
+        system: systemBlocks,
         messages: [{
           role: "user",
           content: [
