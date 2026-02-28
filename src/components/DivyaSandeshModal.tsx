@@ -47,30 +47,200 @@ export interface DivyaSandeshProps {
   youtubeId?:  string;
 }
 
-// ── Mock AI image generation ─────────────────────────────────────────────────
-// Replace this stub with your real AI image-gen API (e.g., Stability AI / DALL-E).
-// It must resolve to a fully-formed image URL or a base64 data URL.
+// ── Deity sacred art palettes ─────────────────────────────────────────────────
+// Each deity has a curated sacred colour palette used to generate
+// a beautiful mandala/yantra canvas background — no external images needed.
 
-const DEITY_IMAGE_MAP: Record<string, string> = {
-  Krishna:   "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Krishna_with_flute.jpg/480px-Krishna_with_flute.jpg",
-  Shiva:     "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Lord_Shiva_statue.jpg/480px-Lord_Shiva_statue.jpg",
-  Ganesha:   "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Ganesha_Painted_by_Manaku_c1740.jpg/480px-Ganesha_Painted_by_Manaku_c1740.jpg",
-  Durga:     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Goddess_Durga_by_Raja_Ravi_Varma.jpg/480px-Goddess_Durga_by_Raja_Ravi_Varma.jpg",
-  Rama:      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Rama_Ravana_war.jpg/480px-Rama_Ravana_war.jpg",
-  Hanuman:   "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Panchamukhi_Hanuman.jpg/480px-Panchamukhi_Hanuman.jpg",
-  Lakshmi:   "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Lakshmi_by_Raja_Ravi_Varma.jpg/480px-Lakshmi_by_Raja_Ravi_Varma.jpg",
-  Saraswati: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Saraswati_by_Raja_Ravi_Varma.jpg/480px-Saraswati_by_Raja_Ravi_Varma.jpg",
-  Vishnu:    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Vishnu_with_Lakshmi.jpg/480px-Vishnu_with_Lakshmi.jpg",
+interface DeityPalette {
+  primary:    string;
+  secondary:  string;
+  accent:     string;
+  symbol:     string;
+  glow:       string;
+  petals:     number;
+}
+
+const DEITY_PALETTES: Record<string, DeityPalette> = {
+  Krishna:   { primary: "#1B3A8A", secondary: "#F97316", accent: "#FFD700", symbol: "ॐ", glow: "rgba(99,165,255,0.45)",  petals: 16 },
+  Shiva:     { primary: "#2D1040", secondary: "#C084FC", accent: "#E2E8F0", symbol: "ॐ", glow: "rgba(192,132,252,0.4)", petals: 12 },
+  Ganesha:   { primary: "#7C2D12", secondary: "#F97316", accent: "#FCD34D", symbol: "ॐ", glow: "rgba(251,191,36,0.4)",  petals: 8  },
+  Durga:     { primary: "#7F1D1D", secondary: "#F43F5E", accent: "#FCD34D", symbol: "ॐ", glow: "rgba(244,63,94,0.4)",   petals: 10 },
+  Rama:      { primary: "#14532D", secondary: "#4ADE80", accent: "#FCD34D", symbol: "ॐ", glow: "rgba(74,222,128,0.35)", petals: 12 },
+  Hanuman:   { primary: "#7C2D12", secondary: "#F97316", accent: "#EF4444", symbol: "ॐ", glow: "rgba(249,115,22,0.4)",  petals: 8  },
+  Lakshmi:   { primary: "#701A75", secondary: "#E879F9", accent: "#FCD34D", symbol: "ॐ", glow: "rgba(232,121,249,0.4)", petals: 16 },
+  Saraswati: { primary: "#0C4A6E", secondary: "#38BDF8", accent: "#FFFFFF", symbol: "ॐ", glow: "rgba(56,189,248,0.4)",  petals: 12 },
+  Vishnu:    { primary: "#0F172A", secondary: "#6366F1", accent: "#FCD34D", symbol: "ॐ", glow: "rgba(99,102,241,0.4)",  petals: 16 },
 };
 
-const DEFAULT_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Om_symbol.svg/480px-Om_symbol.svg.png";
+const DEFAULT_PALETTE: DeityPalette = {
+  primary: "#1A0A00", secondary: "#F97316", accent: "#FCD34D",
+  symbol: "ॐ", glow: "rgba(249,115,22,0.4)", petals: 12,
+};
+
+// ── AI-generated sacred canvas background ────────────────────────────────────
+// Generates a stunning mandala/yantra art canvas using the deity's palette.
+// No external image dependencies — works offline, loads instantly.
+
+function generateSacredCanvas(deity: string, size: number = 1080): string {
+  const palette = DEITY_PALETTES[deity] ?? DEFAULT_PALETTE;
+  const canvas  = document.createElement("canvas");
+  canvas.width  = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  // ── Deep background gradient ──────────────────────────────────────────────
+  const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.75);
+  bgGrad.addColorStop(0,   shadeHex(palette.primary, 40));
+  bgGrad.addColorStop(0.5, palette.primary);
+  bgGrad.addColorStop(1,   shadeHex(palette.primary, -30));
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, size, size);
+
+  // ── Outer glow halo ───────────────────────────────────────────────────────
+  const halo = ctx.createRadialGradient(cx, cy, size * 0.1, cx, cy, size * 0.55);
+  halo.addColorStop(0,   palette.glow);
+  halo.addColorStop(0.6, palette.glow.replace("0.4", "0.12").replace("0.35", "0.08").replace("0.45", "0.15"));
+  halo.addColorStop(1,   "transparent");
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, size, size);
+
+  // ── Lotus petals (outer ring) ──────────────────────────────────────────────
+  const outerR  = size * 0.38;
+  const petalW  = (Math.PI * 2) / palette.petals;
+  ctx.save();
+  for (let i = 0; i < palette.petals; i++) {
+    const angle = i * petalW - Math.PI / 2;
+    const px = cx + outerR * Math.cos(angle);
+    const py = cy + outerR * Math.sin(angle);
+    ctx.beginPath();
+    ctx.ellipse(px, py, outerR * 0.18, outerR * 0.32, angle + Math.PI / 2, 0, Math.PI * 2);
+    const petalGrad = ctx.createRadialGradient(px, py, 0, px, py, outerR * 0.3);
+    petalGrad.addColorStop(0, hexToRgba(palette.secondary, 0.55));
+    petalGrad.addColorStop(1, hexToRgba(palette.secondary, 0.08));
+    ctx.fillStyle = petalGrad;
+    ctx.fill();
+    ctx.strokeStyle = hexToRgba(palette.accent, 0.3);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── Inner lotus petals ────────────────────────────────────────────────────
+  const innerR = size * 0.21;
+  const innerPetals = Math.max(8, Math.floor(palette.petals / 2));
+  for (let i = 0; i < innerPetals; i++) {
+    const angle = i * (Math.PI * 2 / innerPetals) - Math.PI / 2;
+    const px = cx + innerR * Math.cos(angle);
+    const py = cy + innerR * Math.sin(angle);
+    ctx.beginPath();
+    ctx.ellipse(px, py, innerR * 0.2, innerR * 0.38, angle + Math.PI / 2, 0, Math.PI * 2);
+    const ipGrad = ctx.createRadialGradient(px, py, 0, px, py, innerR * 0.35);
+    ipGrad.addColorStop(0, hexToRgba(palette.accent, 0.45));
+    ipGrad.addColorStop(1, hexToRgba(palette.accent, 0.05));
+    ctx.fillStyle = ipGrad;
+    ctx.fill();
+  }
+
+  // ── Geometric rings ───────────────────────────────────────────────────────
+  [0.42, 0.32, 0.22, 0.13].forEach((r, i) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, size * r, 0, Math.PI * 2);
+    ctx.strokeStyle = hexToRgba(palette.accent, [0.35, 0.25, 0.4, 0.2][i]);
+    ctx.lineWidth   = [2.5, 1.5, 2, 1][i];
+    ctx.stroke();
+  });
+
+  // ── Star of triangles (yantra) ────────────────────────────────────────────
+  const triR = size * 0.16;
+  ctx.save();
+  for (let t = 0; t < 2; t++) {
+    ctx.beginPath();
+    for (let j = 0; j < 3; j++) {
+      const a = (j * Math.PI * 2) / 3 + (t === 0 ? -Math.PI / 2 : Math.PI / 6);
+      const tx = cx + triR * Math.cos(a);
+      const ty = cy + triR * Math.sin(a);
+      j === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = hexToRgba(palette.accent, 0.5);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = hexToRgba(t === 0 ? palette.secondary : palette.accent, 0.08);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // ── Dot mandala ring ──────────────────────────────────────────────────────
+  const dotRing = size * 0.36;
+  const dotCount = palette.petals * 2;
+  for (let d = 0; d < dotCount; d++) {
+    const a = (d / dotCount) * Math.PI * 2;
+    const dx = cx + dotRing * Math.cos(a);
+    const dy = cy + dotRing * Math.sin(a);
+    ctx.beginPath();
+    ctx.arc(dx, dy, d % 2 === 0 ? 5 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = hexToRgba(palette.accent, d % 2 === 0 ? 0.7 : 0.4);
+    ctx.fill();
+  }
+
+  // ── Central OM symbol ─────────────────────────────────────────────────────
+  const centerGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.1);
+  centerGlow.addColorStop(0, hexToRgba(palette.accent, 0.4));
+  centerGlow.addColorStop(1, "transparent");
+  ctx.fillStyle = centerGlow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font      = `bold ${size * 0.11}px serif`;
+  ctx.fillStyle = palette.accent;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor  = palette.glow;
+  ctx.shadowBlur   = size * 0.04;
+  ctx.fillText("ॐ", cx, cy);
+  ctx.shadowBlur   = 0;
+
+  // ── Subtle noise texture overlay ──────────────────────────────────────────
+  ctx.globalAlpha = 0.04;
+  for (let y = 0; y < size; y += 4) {
+    for (let x = 0; x < size; x += 4) {
+      if (Math.random() > 0.5) {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  return canvas.toDataURL("image/jpeg", 0.94);
+}
+
+// ── Colour helpers ────────────────────────────────────────────────────────────
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function shadeHex(hex: string, amount: number): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
+  const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
+
+// ── Image generation entry point ──────────────────────────────────────────────
 
 async function generateDeityImage(deity: string, _youtubeId?: string): Promise<string> {
-  // Simulate a 1-2 second "AI generation" delay
-  await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800));
-  // In production: call your image-gen edge function here
-  return DEITY_IMAGE_MAP[deity] ?? DEFAULT_IMAGE;
+  // Tiny artificial delay so the "Generating…" state shows briefly
+  await new Promise((r) => setTimeout(r, 300 + Math.random() * 200));
+  return generateSacredCanvas(deity);
 }
 
 // ── Card preview canvas helper ────────────────────────────────────────────────
@@ -219,45 +389,71 @@ interface ShareCardProps {
 
 function ShareCard({ imageUrl, title, sanskrit, translation, isLoading }: ShareCardProps) {
   return (
-    <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-border shadow-sacred">
-      {/* Background image */}
-      {imageUrl && (
+    <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-border shadow-sacred bg-[#0D0A07]">
+      {/* Sacred mandala background art */}
+      {imageUrl && !isLoading && (
         <img
           src={imageUrl}
-          alt="Deity background"
+          alt={`Sacred art for ${title}`}
           className="absolute inset-0 w-full h-full object-cover"
         />
       )}
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/55" />
 
-      {/* Saffron top + bottom bars */}
+      {/* Vignette overlay for text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+
+      {/* Saffron gold border bars */}
       <div
-        className="absolute top-0 left-0 right-0 h-1.5"
-        style={{ background: "linear-gradient(90deg,#FF8C00,#FFD700)" }}
+        className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg, #FF6B00, #FFD700, #FF6B00)" }}
       />
       <div
-        className="absolute bottom-0 left-0 right-0 h-1.5"
-        style={{ background: "linear-gradient(90deg,#FF8C00,#FFD700)" }}
+        className="absolute bottom-0 left-0 right-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg, #FF6B00, #FFD700, #FF6B00)" }}
       />
 
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center gap-3">
-        <span className="text-4xl font-serif font-bold text-saffron/30 leading-none select-none">ॐ</span>
-        <p className="text-gold font-sans text-xs font-semibold tracking-widest uppercase">{title}</p>
+      {/* Text content — sits over the mandala art */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center gap-2.5">
+        <p
+          className="font-sans text-[10px] font-bold tracking-[0.22em] uppercase"
+          style={{ color: "#FFD700", textShadow: "0 1px 8px rgba(0,0,0,0.8)" }}
+        >
+          {title}
+        </p>
         {sanskrit && (
-          <p className="text-white/95 font-serif text-sm leading-relaxed">{sanskrit}</p>
+          <p
+            className="font-serif text-sm leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.96)", textShadow: "0 1px 10px rgba(0,0,0,0.9)" }}
+          >
+            {sanskrit}
+          </p>
         )}
-        {sanskrit && <div className="w-10 h-px bg-saffron/40" />}
-        <p className="text-white/85 font-sans text-xs leading-relaxed max-w-xs">{translation}</p>
-        <p className="text-saffron/60 font-serif text-[10px] mt-2">ॐVani · Your Spiritual Companion</p>
+        {sanskrit && (
+          <div className="w-12 h-px" style={{ background: "linear-gradient(90deg,transparent,#FFD700,transparent)" }} />
+        )}
+        <p
+          className="font-sans text-xs leading-relaxed max-w-[200px]"
+          style={{ color: "rgba(255,255,255,0.88)", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+        >
+          {translation}
+        </p>
+        <p
+          className="font-serif text-[9px] mt-1"
+          style={{ color: "rgba(255,200,80,0.75)", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}
+        >
+          ॐVani · Your Spiritual Companion
+        </p>
       </div>
 
       {/* Loading overlay */}
       {isLoading && (
-        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3">
-          <Sparkles className="w-8 h-8 text-saffron animate-pulse" />
-          <p className="text-white font-sans text-xs">Generating divine image…</p>
+        <div className="absolute inset-0 bg-[#0D0A07] flex flex-col items-center justify-center gap-4">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-16 h-16 rounded-full border-2 border-saffron/30 animate-ping" />
+            <div className="absolute w-12 h-12 rounded-full border border-saffron/50 animate-pulse" />
+            <span className="text-3xl font-serif text-saffron animate-pulse">ॐ</span>
+          </div>
+          <p className="text-white/70 font-sans text-[11px] tracking-[0.2em] uppercase">Crafting Sacred Art…</p>
         </div>
       )}
     </div>
