@@ -286,23 +286,23 @@ export default function UpgradeModal({
   return (
     <AnimatePresence>
       {open && (
-        <>
-          {/* Backdrop */}
+        /* Single fixed container covers viewport — backdrop + centered modal */
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)" }}
+          onClick={onClose}
+        >
+          {/* Modal — stopPropagation prevents backdrop click closing when clicking inside */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 24 }}
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 24 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-[720px] bg-card rounded-2xl border border-border shadow-2xl z-50 overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-[720px] bg-card rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* ── Header ────────────────────────────────────────────────── */}
             <div className="relative px-6 pt-7 pb-5 text-center border-b border-border bg-gradient-to-b from-secondary/50 to-card">
@@ -447,7 +447,7 @@ export default function UpgradeModal({
               </p>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
