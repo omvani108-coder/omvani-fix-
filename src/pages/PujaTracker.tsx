@@ -470,6 +470,11 @@ export default function PujaTracker() {
           </div>
         </motion.div>
 
+        {/* ── Local storage notice ─────────────────────────────────────── */}
+        <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg px-3 py-2 text-center font-sans">
+          Your puja data is saved on this device only. It won't sync across devices or survive a browser data clear.
+        </p>
+
         {/* ── Calendar ───────────────────────────────────────────────────── */}
         <motion.div
           initial="hidden"
