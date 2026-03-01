@@ -1,15 +1,11 @@
 /**
  * LanguageToggle.tsx
- *
- * A tall tic-tac shaped button showing the active language.
- * Click → dropdown slides down with 3 options.
- * Select → dropdown closes, button updates.
- *
- * Desktop & Mobile identical behaviour.
+ * A vertical pill-shaped 3-way toggle: EN / हि / த
+ * Slides a highlight indicator to the active option.
+ * Vertical layout prevents overlap with logo on mobile.
  */
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LanguageToggleProps {
@@ -24,103 +20,57 @@ const OPTIONS = [
 
 export function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
   const { language, setLanguage } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const isLight = variant === "light";
-  const current = OPTIONS.find((o) => o.lang === language)!;
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const handleSelect = (lang: typeof OPTIONS[number]["lang"]) => {
-    setLanguage(lang);
-    setOpen(false);
-  };
-
-  // Tic-tac pill button styles
-  const pillBase = `
-    relative flex items-center justify-center
-    w-8 rounded-full border
-    text-[11px] font-sans font-bold
-    transition-all duration-200 cursor-pointer
-    focus-visible:ring-2 focus-visible:ring-saffron outline-none
-    select-none
-  `;
-
-  const pillClosed = isLight
-    ? "bg-black/35 backdrop-blur-md border-white/25 text-white shadow-md"
-    : "bg-secondary border-border text-foreground";
-
-  const pillOpen = "bg-sacred-gradient border-transparent text-white shadow-sacred";
+  const activeIndex = OPTIONS.findIndex((o) => o.lang === language);
 
   return (
-    <div ref={ref} className="relative z-[100]">
+    <div
+      role="group"
+      aria-label="Select language"
+      className={`
+        relative flex flex-col items-center rounded-full p-0.5
+        ${variant === "light"
+          ? "bg-white/15 border border-white/20"
+          : "bg-secondary border border-border"
+        }
+      `}
+    >
+      {/* Sliding pill indicator — moves vertically */}
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+        className="absolute left-0.5 right-0.5 rounded-full bg-sacred-gradient shadow-sm pointer-events-none"
+        style={{
+          top: `calc(${activeIndex} * (100% / 3) + 2px)`,
+          height: "calc(100% / 3 - 4px)",
+        }}
+      />
 
-      {/* ── The tic-tac button ─────────────────────────────────────────── */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Select language"
-        aria-expanded={open}
-        className={`${pillBase} ${open ? pillOpen : pillClosed}`}
-        style={{ height: 44, paddingTop: 2, paddingBottom: 2 }}
-      >
-        {current.label}
-      </button>
-
-      {/* ── Dropdown ──────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scaleY: 0.85 }}
-            animate={{ opacity: 1, y: 0,  scaleY: 1    }}
-            exit={{   opacity: 0, y: -6,  scaleY: 0.85 }}
-            transition={{ type: "spring", stiffness: 420, damping: 30 }}
-            style={{ transformOrigin: "top center" }}
+      {OPTIONS.map(({ lang, label }) => {
+        const isActive = language === lang;
+        const ariaLabel = lang === "en" ? "Switch to English"
+                        : lang === "hi" ? "हिंदी में बदलें"
+                        : "தமிழில் மாற்றுக";
+        return (
+          <button
+            key={lang}
+            onClick={() => setLanguage(lang)}
+            aria-label={ariaLabel}
             className={`
-              absolute top-[calc(100%+6px)] right-0
-              flex flex-col overflow-hidden
-              rounded-2xl border shadow-xl min-w-[110px]
-              ${isLight
-                ? "bg-black/60 backdrop-blur-xl border-white/15"
-                : "bg-card border-border"
+              relative z-10 w-8 py-0.5 text-xs font-sans font-semibold
+              transition-colors duration-200 rounded-full text-center
+              focus-visible:ring-2 focus-visible:ring-saffron outline-none
+              ${isActive
+                ? "text-white"
+                : variant === "light"
+                  ? "text-white/60 hover:text-white/90"
+                  : "text-muted-foreground hover:text-foreground"
               }
             `}
           >
-            {OPTIONS.map(({ lang, label, full }) => {
-              const isActive = language === lang;
-              return (
-                <button
-                  key={lang}
-                  onClick={() => handleSelect(lang)}
-                  className={`
-                    flex items-center gap-3 px-4 py-3
-                    text-sm font-sans font-semibold text-left
-                    transition-colors duration-150 w-full
-                    ${isActive
-                      ? "bg-sacred-gradient text-white"
-                      : isLight
-                        ? "text-white/80 hover:bg-white/10 hover:text-white"
-                        : "text-foreground hover:bg-muted"
-                    }
-                  `}
-                >
-                  <span className="text-base w-5 text-center leading-none">{label}</span>
-                  <span className="text-xs opacity-75">{full}</span>
-                  {isActive && <span className="ml-auto text-[10px]">✓</span>}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }

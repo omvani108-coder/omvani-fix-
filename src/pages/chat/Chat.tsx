@@ -138,6 +138,7 @@ function MessageBubble({ message }: { message: Message }) {
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
+  const { t } = useTranslations();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -156,10 +157,10 @@ function EmptyState({ onSelect }: { onSelect: (q: string) => void }) {
       </motion.div>
 
       <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
-        Ask the Guru
+        {t.chat.askTitle}
       </h2>
       <p className="text-muted-foreground font-sans text-sm max-w-sm mb-10 leading-relaxed">
-        Seek wisdom from the Bhagavad Gita, Vedas & Puranas. Every answer is rooted in authentic scripture.
+        {t.chat.askSubtitle}
       </p>
 
       {/* Suggested questions */}
@@ -258,13 +259,13 @@ export default function Chat() {
       textareaRef.current?.focus();
     },
     onError: () => {
-      toast.error("Microphone access denied or an error occurred.");
+      toast.error(t.chat.micDenied);
     },
   });
 
   const handleVoiceClick = () => {
     if (!voiceSupported) {
-      toast.error("Voice input not supported on this browser");
+      toast.error(t.chat.voiceNotSupported);
       return;
     }
     toggleVoice();
@@ -298,7 +299,7 @@ export default function Chat() {
       setHistoricalMessages(rows ? rows.map(dbRowToMessage) : []);
     } catch (err) {
       console.error("Failed to load conversation:", err);
-      toast.error("Could not load conversation");
+      toast.error(t.chat.loadError);
       setViewingConvId(null);
     } finally {
       setLoadingHistorical(false);
@@ -395,7 +396,7 @@ export default function Chat() {
 
           <div className="flex items-center gap-1 text-center">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-            <span className="text-xs font-sans text-muted-foreground ml-1.5">Guru is present</span>
+            <span className="text-xs font-sans text-muted-foreground ml-1.5">{t.chat.guruPresent}</span>
           </div>
 
           <button
@@ -405,7 +406,7 @@ export default function Chat() {
             className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
           >
             <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-            New
+            {t.common.newChat}
           </button>
         </header>
 
@@ -440,7 +441,7 @@ export default function Chat() {
                       />
                     ))}
                   </div>
-                  <p className="text-xs font-sans text-muted-foreground">Restoring your conversation…</p>
+                  <p className="text-xs font-sans text-muted-foreground">{t.common.restoring}</p>
                 </motion.div>
               ) : displayMessages.length === 0 ? (
                 <motion.div
@@ -462,7 +463,7 @@ export default function Chat() {
                   {isViewingHistory && (
                     <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-saffron/5 border border-saffron/20 text-xs font-sans text-saffron">
                       <BookOpen className="w-3.5 h-3.5" />
-                      Viewing past conversation
+                      {t.common.viewingPast}
                     </div>
                   )}
 
@@ -514,14 +515,14 @@ export default function Chat() {
               >
                 <span className="text-xs font-sans text-amber-700 dark:text-amber-400">
                   {chatRemaining === 1
-                    ? "1 free chat remaining today"
-                    : `${chatRemaining} free chats remaining today`}
+                    ? `1 ${t.chat.freeChatsRemaining}`
+                    : `${chatRemaining} ${t.chat.freeChatsRemainingPlural}`}
                 </span>
                 <button
                   onClick={() => setUpgradeOpen(true)}
                   className="text-xs font-sans font-semibold text-amber-700 dark:text-amber-400 underline ml-3"
                 >
-                  Upgrade
+                  {t.common.upgrade}
                 </button>
               </motion.div>
             )}
@@ -535,14 +536,14 @@ export default function Chat() {
                 className="flex items-center justify-center gap-2 mb-2"
               >
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
-                <span className="text-xs font-sans text-red-500 font-medium">Listening…</span>
+                <span className="text-xs font-sans text-red-500 font-medium">{t.common.listening}</span>
               </motion.div>
             )}
 
             {/* Disclaimer */}
             {!isListening && (
               <p className="text-[10px] text-muted-foreground/50 font-sans text-center mb-3">
-                ॐVani draws from authentic scriptures. Not a substitute for a living guru.
+                {t.chat.disclaimer}
               </p>
             )}
 
@@ -583,7 +584,7 @@ export default function Chat() {
             </div>
 
             <p className="text-[10px] text-muted-foreground/40 font-sans text-center mt-2">
-              Press Enter to send · Shift+Enter for new line
+              {t.chat.hint}
             </p>
           </div>
         </footer>

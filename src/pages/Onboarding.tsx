@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronRight, ChevronLeft, User, Calendar, Globe, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslations } from "@/hooks/useTranslations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -37,26 +38,7 @@ const LANGUAGES: {
 
 // ── Step definitions ──────────────────────────────────────────────────────────
 
-const STEPS = [
-  {
-    id: 1,
-    icon: User,
-    title: "What's your name?",
-    subtitle: "Let the Guru know what to call you",
-  },
-  {
-    id: 2,
-    icon: Calendar,
-    title: "Your age & birthday",
-    subtitle: "Help us personalise your spiritual journey",
-  },
-  {
-    id: 3,
-    icon: Globe,
-    title: "Preferred language",
-    subtitle: "Choose how the Guru speaks to you",
-  },
-] as const;
+const STEP_ICONS = [User, Calendar, Globe] as const;
 
 // ── Slide animation ───────────────────────────────────────────────────────────
 
@@ -94,6 +76,7 @@ function clearSession() {
 export default function Onboarding() {
   const navigate = useNavigate();
   const { setLanguage } = useLanguage();
+  const { t } = useTranslations();
 
   const [dir,    setDir]    = useState(1);
   const [saving, setSaving] = useState(false);
@@ -127,6 +110,12 @@ export default function Onboarding() {
   useEffect(() => {
     try { sessionStorage.setItem(SS_STEP, String(step)); } catch {}
   }, [step]);
+
+  const STEPS = [
+    { id: 1, icon: STEP_ICONS[0], title: t.onboarding.step1Title, subtitle: t.onboarding.step1Subtitle },
+    { id: 2, icon: STEP_ICONS[1], title: t.onboarding.step2Title, subtitle: t.onboarding.step2Subtitle },
+    { id: 3, icon: STEP_ICONS[2], title: t.onboarding.step3Title, subtitle: t.onboarding.step3Subtitle },
+  ];
 
   const totalSteps = STEPS.length;
   const pct        = Math.round((step / totalSteps) * 100);
@@ -216,12 +205,12 @@ export default function Onboarding() {
           <div className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="firstName" className="font-sans text-sm font-medium text-foreground">
-                First Name
+                {t.onboarding.firstName}
               </Label>
               <Input
                 id="firstName"
                 type="text"
-                placeholder="e.g. Arjun"
+                placeholder={t.onboarding.firstNamePlaceholder}
                 value={data.firstName}
                 autoFocus
                 onChange={e => setData(d => ({ ...d, firstName: e.target.value }))}
@@ -231,12 +220,12 @@ export default function Onboarding() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName" className="font-sans text-sm font-medium text-foreground">
-                Last Name
+                {t.onboarding.lastName}
               </Label>
               <Input
                 id="lastName"
                 type="text"
-                placeholder="e.g. Sharma"
+                placeholder={t.onboarding.lastNamePlaceholder}
                 value={data.lastName}
                 onChange={e => setData(d => ({ ...d, lastName: e.target.value }))}
                 onKeyDown={e => e.key === "Enter" && goNext()}
@@ -252,12 +241,12 @@ export default function Onboarding() {
           <div className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="age" className="font-sans text-sm font-medium text-foreground">
-                Age
+                {t.onboarding.age}
               </Label>
               <Input
                 id="age"
                 type="number"
-                placeholder="e.g. 28"
+                placeholder={t.onboarding.agePlaceholder}
                 min={14}
                 max={120}
                 value={data.age}
@@ -268,7 +257,7 @@ export default function Onboarding() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="dob" className="font-sans text-sm font-medium text-foreground">
-                Date of Birth
+                {t.onboarding.dateOfBirth}
               </Label>
               <Input
                 id="dob"
@@ -281,7 +270,7 @@ export default function Onboarding() {
               {/* Fix 1: Inline error when age and DOB don't match */}
               {ageMismatch && dobAge !== null && (
                 <p className="text-xs text-destructive font-sans mt-1">
-                  Age doesn't match your date of birth (expected ~{dobAge})
+                  {t.onboarding.ageMismatch} (~{dobAge})
                 </p>
               )}
             </div>
@@ -344,7 +333,7 @@ export default function Onboarding() {
           <span>ॐ</span>Vani
         </h1>
         <p className="text-muted-foreground font-sans text-xs tracking-[0.25em] uppercase">
-          ॐ Your Spiritual Companion
+          {t.onboarding.tagline}
         </p>
       </motion.div>
 
@@ -360,10 +349,10 @@ export default function Onboarding() {
           {/* Bar */}
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-sans text-muted-foreground">
-              Step {step} of {totalSteps}
+              {t.onboarding.stepOf} {step} {t.onboarding.ofTotal} {totalSteps}
             </span>
             <span className="text-xs font-sans text-saffron font-semibold">
-              {pct}% complete
+              {pct}% {t.onboarding.percentComplete}
             </span>
           </div>
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -454,7 +443,7 @@ export default function Onboarding() {
                 className="flex-1 font-sans gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Back
+                {t.common.back}
               </Button>
             )}
 
@@ -466,7 +455,7 @@ export default function Onboarding() {
                 disabled={!canProceed()}
                 className="flex-1 font-sans gap-2"
               >
-                Continue
+                {t.common.continue}
                 <ChevronRight className="w-4 h-4" />
               </Button>
             ) : (
@@ -477,7 +466,7 @@ export default function Onboarding() {
                 disabled={!canProceed() || saving}
                 className="flex-1 font-sans gap-2"
               >
-                {saving ? "Saving…" : "Enter ॐVani 🙏"}
+                {saving ? t.onboarding.saving : t.onboarding.enterOmvani}
               </Button>
             )}
           </div>
@@ -493,7 +482,7 @@ export default function Onboarding() {
             }}
             className="text-xs font-sans text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
           >
-            Skip for now
+            {t.onboarding.skipForNow}
           </button>
         </p>
 

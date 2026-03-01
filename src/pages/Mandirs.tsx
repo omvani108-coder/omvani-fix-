@@ -64,17 +64,18 @@ interface MandirsEmptyStateProps {
 }
 
 function MandirsEmptyState({ search, category, state, onReset }: MandirsEmptyStateProps) {
+  const { t } = useTranslations();
   const hasFilter = search || category !== "All" || state !== "All States";
   return (
     <div className="text-center py-20 px-4">
       <div className="text-6xl mb-4 select-none">🛕</div>
       <h3 className="font-serif font-bold text-xl text-foreground mb-2">
-        {hasFilter ? "No temples match your filters" : "No temples found"}
+        {hasFilter ? t.mandirs.noResultsFiltered : t.mandirs.noResults}
       </h3>
       <p className="text-muted-foreground font-sans text-sm max-w-sm mx-auto mb-6">
         {hasFilter
-          ? "Try broadening your search — clear the filters or use a shorter keyword."
-          : "We couldn't find any temples right now. Please try again."}
+          ? t.mandirs.noResultsSubFiltered
+          : t.mandirs.noResultsError}
       </p>
       {hasFilter && (
         <Button
@@ -83,7 +84,7 @@ function MandirsEmptyState({ search, category, state, onReset }: MandirsEmptySta
           className="gap-2 font-sans"
         >
           <XCircle className="w-4 h-4" />
-          Clear all filters
+          {t.common.clearAllFilters}
         </Button>
       )}
     </div>
@@ -146,7 +147,7 @@ const Mandirs = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-saffron font-sans text-sm tracking-[0.25em] uppercase mb-3"
           >
-            🛕 Sacred Shrines of India
+            {t.mandirs.eyebrow}
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -162,7 +163,7 @@ const Mandirs = () => {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground font-sans max-w-xl mx-auto mb-6"
           >
-            Explore {mandirs.length} sacred temples across India — timings, history, and directions.
+            {t.mandirs.subtitle}
           </motion.p>
 
           {/* Mandirs Nearby Button */}
@@ -179,10 +180,10 @@ const Mandirs = () => {
             >
               <Button variant="hero" className="gap-2 text-sm px-6">
                 <Navigation className="w-4 h-4" />
-                Find Mandirs Near Me
+                {t.mandirs.findNearMe}
               </Button>
             </a>
-            <p className="text-xs text-muted-foreground font-sans mt-2">Opens Google Maps with temples near your location</p>
+            <p className="text-xs text-muted-foreground font-sans mt-2">{t.mandirs.findNearMeDesc}</p>
           </motion.div>
 
           {/* Stats */}
@@ -247,7 +248,7 @@ const Mandirs = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {ready && (
           <p className="text-xs text-muted-foreground font-sans mb-6">
-            Showing {filtered.length} of {mandirs.length} temples
+            {t.mandirs.showingTemplesCount} {filtered.length} {t.common.of} {mandirs.length}
           </p>
         )}
 
@@ -299,7 +300,7 @@ const Mandirs = () => {
                   <div className="flex items-start gap-2 bg-secondary/50 rounded-lg p-3 mb-4">
                     <Clock className="w-4 h-4 text-saffron shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-sans font-semibold text-foreground mb-0.5">Timings</p>
+                      <p className="text-xs font-sans font-semibold text-foreground mb-0.5">{t.mandirs.timings}</p>
                       <p className="text-xs font-sans text-muted-foreground">{mandir.timings}</p>
                     </div>
                   </div>
@@ -308,7 +309,7 @@ const Mandirs = () => {
                   <div className="flex items-start gap-2">
                     <Star className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-sans font-semibold text-foreground mb-0.5">Famous For</p>
+                      <p className="text-xs font-sans font-semibold text-foreground mb-0.5">{t.mandirs.famousFor}</p>
                       <p className="text-xs font-sans text-muted-foreground">{mandir.famous_for}</p>
                     </div>
                   </div>
@@ -321,15 +322,15 @@ const Mandirs = () => {
                       className="mt-4 pt-4 border-t border-border space-y-3"
                     >
                       <div>
-                        <p className="text-xs font-sans font-semibold text-foreground mb-1">📍 Address</p>
+                        <p className="text-xs font-sans font-semibold text-foreground mb-1">📍 {t.mandirs.address}</p>
                         <p className="text-xs font-sans text-muted-foreground">{mandir.address}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-sans font-semibold text-foreground mb-1">🏛️ Established</p>
+                        <p className="text-xs font-sans font-semibold text-foreground mb-1">🏛️ {t.mandirs.established}</p>
                         <p className="text-xs font-sans text-muted-foreground">{mandir.established}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-sans font-semibold text-foreground mb-1">🌤️ Best Time to Visit</p>
+                        <p className="text-xs font-sans font-semibold text-foreground mb-1">🌤️ {t.mandirs.bestTime}</p>
                         <p className="text-xs font-sans text-muted-foreground">{mandir.bestTime}</p>
                       </div>
                     </motion.div>
@@ -343,9 +344,9 @@ const Mandirs = () => {
                     className="flex items-center gap-1 text-xs font-sans text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {expanded === mandir.id ? (
-                      <><ChevronUp className="w-3.5 h-3.5" /> Less info</>
+                      <><ChevronUp className="w-3.5 h-3.5" /> {t.common.lessInfo}</>
                     ) : (
-                      <><ChevronDown className="w-3.5 h-3.5" /> More info</>
+                      <><ChevronDown className="w-3.5 h-3.5" /> {t.common.moreInfo}</>
                     )}
                   </button>
                   <div className="flex-1" />
@@ -356,7 +357,7 @@ const Mandirs = () => {
                     className="flex items-center gap-1.5 bg-sacred-gradient text-accent-foreground rounded-lg px-3 py-2 text-xs font-sans font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                   >
                     <MapPin className="w-3.5 h-3.5" />
-                    Get Directions
+                    {t.mandirs.getDirections}
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>

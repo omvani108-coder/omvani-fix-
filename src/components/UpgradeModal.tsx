@@ -19,6 +19,7 @@ import { X, Check, Loader2, Zap, Crown, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslations } from "@/hooks/useTranslations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -121,44 +122,44 @@ const PLANS: PlanDef[] = [
 // ── Trigger messages ──────────────────────────────────────────────────────────
 // These show at the top of the modal explaining WHY it appeared.
 
-function getTriggerMessage(trigger: UpgradeTrigger, remaining: number): {
+function getTriggerMessage(trigger: UpgradeTrigger, remaining: number, t: any): {
   title: string;
   subtitle: string;
 } {
   const messages: Record<UpgradeTrigger, { title: string; subtitle: string }> = {
     chat: remaining === 0
       ? {
-          title:    "You've used all your free chats today",
-          subtitle: "Upgrade to keep talking to the Guru — resets at midnight IST 🌙",
+          title:    t.upgrade.chatLimitTitle,
+          subtitle: t.upgrade.chatLimitSubtitle,
         }
       : {
-          title:    `Only ${remaining} free chat${remaining === 1 ? "" : "s"} left today`,
-          subtitle: "Upgrade now for unlimited conversations with the Guru",
+          title:    `${remaining} ${remaining === 1 ? t.upgrade.chatWarningTitle : t.upgrade.chatWarningTitlePlural}`,
+          subtitle: t.upgrade.chatWarningSubtitle,
         },
     identify: remaining === 0
       ? {
-          title:    "Free deity identification used",
-          subtitle: "Upgrade to identify more deities, temples & sacred objects",
+          title:    t.upgrade.identifyLimitTitle,
+          subtitle: t.upgrade.identifyLimitSubtitle,
         }
       : {
-          title:    `${remaining} identification${remaining === 1 ? "" : "s"} remaining today`,
-          subtitle: "Upgrade for unlimited AI-powered deity identification",
+          title:    `${remaining} ${remaining === 1 ? t.upgrade.identifyWarningTitle : t.upgrade.identifyWarningTitlePlural}`,
+          subtitle: t.upgrade.identifyWarningSubtitle,
         },
     bhajans: {
-      title:    "Unlock the full Bhajans library",
-      subtitle: "Access all bhajans, mantras, aartis and stotras",
+      title:    t.upgrade.bhajansTitle,
+      subtitle: t.upgrade.bhajansSubtitle,
     },
     scriptures: {
-      title:    "Unlock all sacred scriptures",
-      subtitle: "Read Upanishads, Yoga Sutras and the full Bhagavad Gita without limits",
+      title:    t.upgrade.scripturesTitle,
+      subtitle: t.upgrade.scripturesSubtitle,
     },
     puja: {
-      title:    "Your 7-day Puja Tracker history is full",
-      subtitle: "Upgrade to track your spiritual practice across all time",
+      title:    t.upgrade.pujaTitle,
+      subtitle: t.upgrade.pujaSubtitle,
     },
     general: {
-      title:    "Upgrade your spiritual journey",
-      subtitle: "Start your 7-day free trial — cancel anytime",
+      title:    t.upgrade.generalTitle,
+      subtitle: t.upgrade.generalSubtitle,
     },
   };
 
@@ -191,11 +192,12 @@ export default function UpgradeModal({
   onSuccess,
   remaining  = 0,
 }: UpgradeModalProps) {
+  const { t } = useTranslations();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [isAnnual,    setIsAnnual]    = useState(false);
   // isAnnual = true → show annual prices with savings badge
 
-  const message = getTriggerMessage(trigger, remaining);
+  const message = getTriggerMessage(trigger, remaining, t);
 
   const handleUpgrade = async (planDef: PlanDef) => {
     const planId = isAnnual && planDef.annualId !== planDef.id
@@ -328,14 +330,14 @@ export default function UpgradeModal({
               {/* 7-day trial badge */}
               <div className="inline-flex items-center gap-1.5 mt-3 bg-saffron/10 text-saffron border border-saffron/20 rounded-full px-3 py-1 text-xs font-sans font-semibold">
                 <Sparkles className="w-3 h-3" />
-                7-day free trial · Cancel anytime
+                {t.upgrade.trialBadge}
               </div>
             </div>
 
             {/* ── Monthly / Annual toggle ────────────────────────────────── */}
             <div className="flex items-center justify-center gap-3 pt-5 pb-1 px-6">
               <span className={`text-sm font-sans font-medium transition-colors ${!isAnnual ? "text-foreground" : "text-muted-foreground"}`}>
-                Monthly
+                {t.common.monthly}
               </span>
               <button
                 onClick={() => setIsAnnual(v => !v)}
@@ -349,7 +351,7 @@ export default function UpgradeModal({
                 />
               </button>
               <span className={`text-sm font-sans font-medium transition-colors ${isAnnual ? "text-foreground" : "text-muted-foreground"}`}>
-                Annual
+                {t.common.annual}
               </span>
               {isAnnual && (
                 <motion.span
@@ -357,7 +359,7 @@ export default function UpgradeModal({
                   animate={{ opacity: 1, x: 0 }}
                   className="text-xs font-sans font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5"
                 >
-                  Save up to 37%
+                  {t.upgrade.saveUpTo}
                 </motion.span>
               )}
             </div>
@@ -398,7 +400,7 @@ export default function UpgradeModal({
                         {price}
                       </span>
                       <span className="text-muted-foreground text-xs font-sans ml-1">
-                        {isAnnual ? "/year" : "/month"}
+                        {isAnnual ? t.upgrade.perYear : t.upgrade.perMonth}
                       </span>
                     </div>
 
@@ -427,9 +429,9 @@ export default function UpgradeModal({
                       className="w-full bg-sacred-gradient text-white hover:opacity-90 font-sans font-semibold text-sm mt-auto"
                     >
                       {isLoading ? (
-                        <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Processing…</>
+                        <><Loader2 className="w-4 h-4 animate-spin mr-2" /> {t.upgrade.processing}</>
                       ) : (
-                        <>Start Free Trial</>
+                        <>{t.upgrade.startFreeTrial}</>
                       )}
                     </Button>
                   </div>
@@ -440,10 +442,10 @@ export default function UpgradeModal({
             {/* ── Footer note ────────────────────────────────────────────── */}
             <div className="px-6 pb-6 text-center space-y-1">
               <p className="text-xs font-sans text-muted-foreground">
-                7-day free trial included · No charge until trial ends · Cancel anytime
+                {t.upgrade.trialNote}
               </p>
               <p className="text-xs font-sans text-muted-foreground/50">
-                Free plan continues: 3 chats/day · Gita only · 7-day Puja history
+                {t.upgrade.freePlanNote}
               </p>
             </div>
           </motion.div>
