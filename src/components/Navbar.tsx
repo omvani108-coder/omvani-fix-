@@ -154,7 +154,7 @@ const Navbar = () => {
                          text-foreground hover:bg-muted transition-colors text-left"
             >
               <span className="text-base font-serif text-saffron leading-none" aria-hidden="true">ॐ</span>
-              Talk to Guru
+              {t.nav.talkToGuru}
             </button>
             <button
               onClick={() => { setProfileOpen(false); navigate("/profile"); }}
@@ -162,7 +162,7 @@ const Navbar = () => {
                          text-foreground hover:bg-muted transition-colors text-left"
             >
               <User className="w-4 h-4 text-saffron" aria-hidden="true" />
-              View Profile
+              {t.nav.viewProfile}
             </button>
             <button
               onClick={() => { setProfileOpen(false); navigate("/profile"); }}
@@ -170,7 +170,7 @@ const Navbar = () => {
                          text-foreground hover:bg-muted transition-colors text-left"
             >
               <Settings className="w-4 h-4 text-saffron" aria-hidden="true" />
-              Settings
+              {t.nav.settings}
             </button>
           </div>
 
@@ -182,7 +182,7 @@ const Navbar = () => {
                          text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-left"
             >
               <LogOut className="w-4 h-4" aria-hidden="true" />
-              Sign Out
+              {t.nav.signOut}
             </button>
           </div>
         </motion.div>

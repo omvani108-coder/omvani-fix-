@@ -159,7 +159,7 @@ const Identify = () => {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4"
           >
-            Deity Identifier
+            {t.identify.title}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -200,10 +200,10 @@ const Identify = () => {
                   <p className="text-muted-foreground font-sans text-sm">{t.identify.dropSubtitle}</p>
                 </div>
                 <div className="flex gap-3 text-xs text-muted-foreground font-sans">
-                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Deities</span>
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Temples</span>
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3" /> Rituals</span>
-                  <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> Sacred Objects</span>
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {t.identify.exampleDeities}</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {t.identify.exampleTemples}</span>
+                  <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {t.identify.exampleRituals}</span>
+                  <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> {t.identify.exampleObjects}</span>
                 </div>
               </div>
               <input
@@ -308,7 +308,7 @@ const Identify = () => {
                   {/* Description */}
                   <div>
                     <h3 className="flex items-center gap-2 font-sans font-semibold text-foreground text-sm mb-2">
-                      <Info className="w-4 h-4 text-saffron" /> About
+                      <Info className="w-4 h-4 text-saffron" /> {t.identify.about}
                     </h3>
                     <p className="text-muted-foreground font-sans text-sm leading-relaxed">{result.description}</p>
                   </div>
@@ -317,7 +317,7 @@ const Identify = () => {
                   {result.significance && (
                     <div>
                       <h3 className="flex items-center gap-2 font-sans font-semibold text-foreground text-sm mb-2">
-                        <Star className="w-4 h-4 text-gold" /> Spiritual Significance
+                        <Star className="w-4 h-4 text-gold" /> {t.identify.significance}
                       </h3>
                       <p className="text-muted-foreground font-sans text-sm leading-relaxed">{result.significance}</p>
                     </div>
@@ -341,7 +341,7 @@ const Identify = () => {
                     {/* Associated With */}
                     {result.associated_with?.length > 0 && (
                       <div className="bg-secondary/40 rounded-xl p-4">
-                        <h3 className="font-sans font-semibold text-foreground text-xs mb-2 uppercase tracking-wide">Associated With</h3>
+                        <h3 className="font-sans font-semibold text-foreground text-xs mb-2 uppercase tracking-wide">{t.identify.associatedWith}</h3>
                         <ul className="space-y-1">
                           {result.associated_with.map((item, i) => (
                             <li key={i} className="text-xs text-muted-foreground font-sans flex items-center gap-1.5">
@@ -356,7 +356,7 @@ const Identify = () => {
                     {/* Mantras */}
                     {result.mantras?.length > 0 && result.mantras[0] && (
                       <div className="bg-secondary/40 rounded-xl p-4">
-                        <h3 className="font-sans font-semibold text-foreground text-xs mb-2 uppercase tracking-wide">Sacred Mantra</h3>
+                        <h3 className="font-sans font-semibold text-foreground text-xs mb-2 uppercase tracking-wide">{t.identify.sacredMantra}</h3>
                         {result.mantras.map((mantra, i) => (
                           <p key={i} className="text-xs text-muted-foreground font-sans italic leading-relaxed">{mantra}</p>
                         ))}
@@ -370,7 +370,7 @@ const Identify = () => {
                       <div className="flex items-start gap-3 bg-saffron/5 border border-saffron/20 rounded-xl p-4">
                         <Clock className="w-4 h-4 text-saffron shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-sans font-semibold text-foreground mb-0.5">Best Time to Worship</p>
+                          <p className="text-xs font-sans font-semibold text-foreground mb-0.5">{t.identify.bestTimeToWorship}</p>
                           <p className="text-xs text-muted-foreground font-sans">{result.best_time_to_worship}</p>
                         </div>
                       </div>
@@ -379,7 +379,7 @@ const Identify = () => {
                       <div className="flex items-start gap-3 bg-gold/5 border border-gold/20 rounded-xl p-4">
                         <Zap className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-sans font-semibold text-foreground mb-0.5">Interesting Fact</p>
+                          <p className="text-xs font-sans font-semibold text-foreground mb-0.5">{t.identify.interestingFact}</p>
                           <p className="text-xs text-muted-foreground font-sans">{result.interesting_fact}</p>
                         </div>
                       </div>
@@ -391,7 +391,7 @@ const Identify = () => {
               {/* Try Another */}
               <div className="text-center">
                 <Button variant="outline" onClick={reset} className="font-sans">
-                  Identify Another Image
+                  {t.identify.identifyAnother}
                 </Button>
               </div>
             </motion.div>

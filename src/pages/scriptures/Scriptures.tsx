@@ -35,6 +35,7 @@ type Scripture = "gita" | "upanishad" | "sutras";
 // ─── OM Voice Button ──────────────────────────────────────────────────────────
 function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; currentContext: string }) {
   const { language } = useLanguage();
+  const { t } = useTranslations();
   const [open, setOpen]           = useState(false);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -151,9 +152,9 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                     ॐ
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-foreground text-sm">Voice Guru</p>
+                    <p className="font-serif font-bold text-foreground text-sm">{t.scriptures.voiceGuru}</p>
                     <p className="text-[10px] font-sans text-muted-foreground">
-                      Ask anything about {scripture === "gita" ? "the Gita" : scripture === "upanishad" ? "the Upanishads" : "the Yoga Sutras"}
+                      {t.scriptures.askAnything}
                     </p>
                   </div>
                 </div>
@@ -166,7 +167,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
               {/* Context pill */}
               <div className="mx-6 mb-4">
                 <div className="bg-secondary/80 rounded-xl px-4 py-2.5 border border-border">
-                  <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-0.5">Currently reading</p>
+                  <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-0.5">{t.scriptures.currentlyReading}</p>
                   <p className="text-xs font-sans text-foreground/80 font-medium truncate">{currentContext}</p>
                 </div>
               </div>
@@ -178,7 +179,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                 {phase === "idle" && (
                   <div className="flex flex-col items-center py-6">
                     <p className="text-sm font-sans text-muted-foreground mb-8 text-center">
-                      Tap the mic and ask your question aloud
+                      {t.scriptures.tapMicInstruction}
                     </p>
                     <button
                       onClick={startListening}
@@ -187,7 +188,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                     >
                       <Mic className="w-10 h-10 text-white" />
                     </button>
-                    <p className="text-xs font-sans text-muted-foreground/50 mt-6">or type your question below</p>
+                    <p className="text-xs font-sans text-muted-foreground/50 mt-6">{t.common.orTypeBelow}</p>
                     <TypeQuestion onAsk={askAI} loading={loading} />
                   </div>
                 )}
@@ -196,7 +197,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                 {phase === "listening" && (
                   <div className="flex flex-col items-center py-6">
                     <p className="text-sm font-sans text-saffron font-semibold mb-8 animate-pulse">
-                      Listening…
+                      {t.common.listening}
                     </p>
                     <div className="relative flex items-center justify-center">
                       {rings.map((delay, i) => (
@@ -215,7 +216,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                         <MicOff className="w-10 h-10 text-white" />
                       </button>
                     </div>
-                    <p className="text-xs font-sans text-muted-foreground/50 mt-10">Tap to stop</p>
+                    <p className="text-xs font-sans text-muted-foreground/50 mt-10">{t.scriptures.tapToStop}</p>
                   </div>
                 )}
 
@@ -224,7 +225,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                   <div className="flex flex-col items-center py-8">
                     {transcript && (
                       <div className="w-full bg-secondary/60 rounded-xl px-4 py-3 border border-border mb-6">
-                        <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-1">You asked</p>
+                        <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-1">{t.scriptures.youAsked}</p>
                         <p className="text-sm font-sans text-foreground italic">"{transcript}"</p>
                       </div>
                     )}
@@ -237,7 +238,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                             className="w-2 h-2 rounded-full bg-saffron/70" />
                         ))}
                       </div>
-                      <span className="text-sm font-sans text-muted-foreground">Guru is thinking…</span>
+                      <span className="text-sm font-sans text-muted-foreground">{t.scriptures.guruThinking}</span>
                     </div>
                   </div>
                 )}
@@ -247,7 +248,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                   <div className="space-y-4">
                     {transcript && (
                       <div className="bg-secondary/60 rounded-xl px-4 py-3 border border-border">
-                        <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-1">You asked</p>
+                        <p className="text-[10px] font-sans text-muted-foreground/60 uppercase tracking-widest mb-1">{t.scriptures.youAsked}</p>
                         <p className="text-sm font-sans text-foreground/80 italic">"{transcript}"</p>
                       </div>
                     )}
@@ -266,11 +267,11 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
                     <div className="flex gap-2 pt-2 border-t border-border">
                       <button onClick={() => { setPhase("idle"); setTranscript(""); setAnswer(""); }}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-xs font-sans text-muted-foreground hover:text-foreground hover:border-saffron/30 transition-all">
-                        <Mic className="w-3.5 h-3.5" /> Ask again
+                        <Mic className="w-3.5 h-3.5" /> {t.common.askAgain}
                       </button>
                       <button onClick={startListening}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-sacred-gradient text-white text-xs font-sans font-semibold shadow hover:opacity-90 transition-opacity">
-                        <Mic className="w-3.5 h-3.5" /> New question
+                        <Mic className="w-3.5 h-3.5" /> {t.common.newQuestion}
                       </button>
                     </div>
                   </div>
@@ -286,13 +287,14 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
 
 // ─── Inline type-question fallback ───────────────────────────────────────────
 function TypeQuestion({ onAsk, loading }: { onAsk: (q: string) => void; loading: boolean }) {
+  const { t } = useTranslations();
   const [val, setVal] = useState("");
   return (
     <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-2.5 mt-2 w-full focus-within:ring-2 focus-within:ring-saffron/30 transition-all">
       <input
         type="text" value={val} onChange={e => setVal(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter" && val.trim()) { onAsk(val); setVal(""); } }}
-        placeholder="Type your question…"
+        placeholder={t.scriptures.typeYourQuestion}
         className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
       />
       <button onClick={() => { if (val.trim()) { onAsk(val); setVal(""); } }}
@@ -332,7 +334,7 @@ function AskPanel({ title, sanskrit, meaning, onClose }: { title: string; sanskr
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div>
-          <p className="text-sm font-serif font-bold text-foreground">Ask the Guru</p>
+          <p className="text-sm font-serif font-bold text-foreground">{t.scriptures.askTheGuru}</p>
           <p className="text-xs text-muted-foreground font-sans">{title}</p>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground transition-colors">
@@ -347,7 +349,7 @@ function AskPanel({ title, sanskrit, meaning, onClose }: { title: string; sanskr
         {!answer && !loading && (
           <div className="text-center py-8">
             <div className="text-3xl mb-3">🙏</div>
-            <p className="text-sm text-muted-foreground font-sans">Ask anything about this verse — its meaning, application, or related teachings.</p>
+            <p className="text-sm text-muted-foreground font-sans">{t.scriptures.askAboutVerse}</p>
           </div>
         )}
         {loading && answer === "" && (
@@ -442,7 +444,7 @@ function GitaPage({ shloka, onAsk }: { shloka: Shloka; onAsk: (s: Shloka) => voi
             <Share2 className="w-4 h-4" />
           </button>
           <button onClick={() => onAsk(shloka)} className="flex items-center gap-1.5 text-xs font-sans px-3 py-1.5 rounded-lg bg-saffron/10 hover:bg-saffron/20 text-saffron transition-colors">
-            <MessageSquare className="w-3.5 h-3.5" /> Ask Guru
+            <MessageSquare className="w-3.5 h-3.5" /> {t.scriptures.askTheGuru}
           </button>
         </div>
       </div>
@@ -503,7 +505,7 @@ function UpanishadPage({ verse, onAsk }: { verse: Verse; onAsk: (v: Verse) => vo
             <Share2 className="w-4 h-4" />
           </button>
           <button onClick={() => onAsk(verse)} className="flex items-center gap-1.5 text-xs font-sans px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 text-gold transition-colors">
-            <MessageSquare className="w-3.5 h-3.5" /> Ask Guru
+            <MessageSquare className="w-3.5 h-3.5" /> {t.scriptures.askTheGuru}
           </button>
         </div>
       </div>
@@ -571,7 +573,7 @@ function SutraPage({ sutra, onAsk }: { sutra: Sutra; onAsk: (s: Sutra) => void }
               <Share2 className="w-4 h-4" />
             </button>
             <button onClick={() => onAsk(sutra)} className="flex items-center gap-1.5 text-xs font-sans px-3 py-1.5 rounded-lg transition-colors" style={{ background: "hsl(340,60%,65%,0.12)", color: "hsl(340,60%,48%)" }}>
-              <MessageSquare className="w-3.5 h-3.5" /> Ask Guru
+              <MessageSquare className="w-3.5 h-3.5" /> {t.scriptures.askTheGuru}
             </button>
           </div>
         </div>
@@ -802,7 +804,7 @@ export default function Scriptures() {
                 <motion.div initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} transition={{ type: "spring", damping: 25 }}
                   className="fixed left-0 top-0 bottom-0 w-64 bg-background border-r border-border z-50 p-5 overflow-y-auto lg:hidden">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="font-serif font-bold text-foreground">Scriptures</p>
+                    <p className="font-serif font-bold text-foreground">{t.nav.scriptures}</p>
                     <button onClick={() => setSidebarOpen(false)}><X className="w-4 h-4 text-muted-foreground" /></button>
                   </div>
                   <div className="mb-4 space-y-1">
@@ -866,12 +868,12 @@ export default function Scriptures() {
                     <div className="flex items-center justify-between">
                       <button onClick={() => goToChapter(Math.max(1, currentChapter - 1))} disabled={currentChapter === 1}
                         className="flex items-center gap-1.5 text-xs font-sans px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all">
-                        <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                        <ChevronLeft className="w-3.5 h-3.5" /> {t.common.previous}
                       </button>
-                      <span className="text-xs font-sans text-muted-foreground/50">{currentChapter} of 18</span>
+                      <span className="text-xs font-sans text-muted-foreground/50">{currentChapter} {t.common.of} 18</span>
                       <button onClick={() => goToChapter(Math.min(18, currentChapter + 1))} disabled={currentChapter === 18}
                         className="flex items-center gap-1.5 text-xs font-sans px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all">
-                        Next <ChevronRight className="w-3.5 h-3.5" />
+                        {t.common.next} <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </motion.div>
@@ -894,11 +896,11 @@ export default function Scriptures() {
                   <div className="flex justify-between mt-10 pt-8 border-t border-border">
                     <button onClick={() => goToChapter(Math.max(1, currentChapter - 1))} disabled={currentChapter === 1}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground disabled:opacity-30 transition-all">
-                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                      <ChevronLeft className="w-3.5 h-3.5" /> {t.common.previous}
                     </button>
                     <button onClick={() => goToChapter(Math.min(18, currentChapter + 1))} disabled={currentChapter === 18}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-saffron/30 text-muted-foreground disabled:opacity-30 transition-all">
-                      Next <ChevronRight className="w-3.5 h-3.5" />
+                      {t.common.next} <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
@@ -918,12 +920,12 @@ export default function Scriptures() {
                         return (<>
                           <button onClick={() => { if(prev) { setCurrentUpanishad(prev.id); scrollTop(); } }} disabled={!prev}
                             className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-gold/30 text-muted-foreground disabled:opacity-30 transition-all">
-                            <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                            <ChevronLeft className="w-3.5 h-3.5" /> {t.common.previous}
                           </button>
-                          <span className="text-xs text-muted-foreground/50">{idx + 1} of {upanishads.length}</span>
+                          <span className="text-xs text-muted-foreground/50">{idx + 1} {t.common.of} {upanishads.length}</span>
                           <button onClick={() => { if(next) { setCurrentUpanishad(next.id); scrollTop(); } }} disabled={!next}
                             className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border hover:border-gold/30 text-muted-foreground disabled:opacity-30 transition-all">
-                            Next <ChevronRight className="w-3.5 h-3.5" />
+                            {t.common.next} <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </>);
                       })()}
@@ -966,12 +968,12 @@ export default function Scriptures() {
                     <div className="flex items-center justify-between">
                       <button onClick={() => { setCurrentPada(Math.max(1, currentPada - 1)); scrollTop(); }} disabled={currentPada === 1}
                         className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border text-muted-foreground disabled:opacity-30 transition-all hover:border-[hsl(340,60%,55%)]/30">
-                        <ChevronLeft className="w-3.5 h-3.5" /> Previous Pada
+                        <ChevronLeft className="w-3.5 h-3.5" /> {t.common.previous}
                       </button>
-                      <span className="text-xs text-muted-foreground/50">Pada {currentPada} of 4</span>
+                      <span className="text-xs text-muted-foreground/50">Pada {currentPada} {t.common.of} 4</span>
                       <button onClick={() => { setCurrentPada(Math.min(4, currentPada + 1)); scrollTop(); }} disabled={currentPada === 4}
                         className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border text-muted-foreground disabled:opacity-30 transition-all hover:border-[hsl(340,60%,55%)]/30">
-                        Next Pada <ChevronRight className="w-3.5 h-3.5" />
+                        {t.common.next} <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </motion.div>
@@ -985,11 +987,11 @@ export default function Scriptures() {
                   <div className="flex justify-between mt-10 pt-8 border-t border-border">
                     <button onClick={() => { setCurrentPada(Math.max(1, currentPada - 1)); scrollTop(); }} disabled={currentPada === 1}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border text-muted-foreground disabled:opacity-30 transition-all">
-                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                      <ChevronLeft className="w-3.5 h-3.5" /> {t.common.previous}
                     </button>
                     <button onClick={() => { setCurrentPada(Math.min(4, currentPada + 1)); scrollTop(); }} disabled={currentPada === 4}
                       className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-lg border border-border text-muted-foreground disabled:opacity-30 transition-all">
-                      Next <ChevronRight className="w-3.5 h-3.5" />
+                      {t.common.next} <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}

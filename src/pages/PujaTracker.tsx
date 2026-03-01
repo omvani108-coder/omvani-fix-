@@ -51,15 +51,15 @@ const MONTH_NAMES = [
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Motivational messages based on streak
-const streakMessage = (streak: number) => {
-  if (streak === 0) return "Begin your journey today 🙏";
-  if (streak === 1) return "First step taken. Keep going!";
-  if (streak < 7)  return `${streak} days of devotion 🪔`;
-  if (streak < 14) return `One week strong! You are blessed 🌸`;
-  if (streak < 21) return `${streak} days! Your discipline shines ✨`;
-  if (streak < 30) return `Incredible! ${streak} days of sadhana 📿`;
-  return "A full month of divine devotion! 🕉️";
+// Motivational messages based on streak — uses translation keys
+const streakMessage = (streak: number, t: any) => {
+  if (streak === 0) return t.puja.streakStart;
+  if (streak === 1) return t.puja.streakFirst;
+  if (streak < 7)  return `${streak} ${t.puja.days} 🪔`;
+  if (streak < 14) return t.puja.streakWeek;
+  if (streak < 21) return `${streak} ${t.puja.days}! ${t.puja.streakShine}`;
+  if (streak < 30) return `${t.puja.streakIncredible} ${streak} ${t.puja.days}`;
+  return t.puja.streakMonth;
 };
 
 // ── Storage (localStorage) ────────────────────────────────────────────────────
@@ -190,6 +190,7 @@ interface TaskRowProps {
 }
 
 function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
+  const { t } = useTranslations();
   return (
     <motion.button
       layout
@@ -260,7 +261,7 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
           animate={{ opacity: 1, x: 0 }}
           className="shrink-0 text-[10px] font-sans font-semibold text-gold bg-gold/15 px-2 py-0.5 rounded-full"
         >
-          Done ✓
+          {t.puja.done}
         </motion.span>
       )}
     </motion.button>
@@ -408,7 +409,7 @@ export default function PujaTracker() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-3"
           >
-            Puja Tracker
+            {t.puja.title}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -449,14 +450,14 @@ export default function PujaTracker() {
                   {streak === 1 ? t.puja.day : t.puja.days}
                 </span>
               </div>
-              <p className="text-white/70 font-sans text-xs mt-2">{streakMessage(streak)}</p>
+              <p className="text-white/70 font-sans text-xs mt-2">{streakMessage(streak, t)}</p>
             </div>
 
             {/* Month summary pills */}
             <div className="flex flex-col gap-2 text-right">
               <div className="bg-white/15 rounded-xl px-3 py-2">
                 <p className="text-white font-sans font-bold text-lg leading-none">{monthStats.completeDays}</p>
-                <p className="text-white/70 font-sans text-[10px] mt-0.5">Full days</p>
+                <p className="text-white/70 font-sans text-[10px] mt-0.5">{t.puja.fullDays}</p>
               </div>
               <div className="bg-white/15 rounded-xl px-3 py-2">
                 <p className="text-white font-sans font-bold text-lg leading-none">
@@ -464,7 +465,7 @@ export default function PujaTracker() {
                     ? Math.round((monthStats.checkedItems / monthStats.totalItems) * 100)
                     : 0}%
                 </p>
-                <p className="text-white/70 font-sans text-[10px] mt-0.5">This month</p>
+                <p className="text-white/70 font-sans text-[10px] mt-0.5">{t.puja.thisMonth}</p>
               </div>
             </div>
           </div>
@@ -472,7 +473,7 @@ export default function PujaTracker() {
 
         {/* ── Local storage notice ─────────────────────────────────────── */}
         <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg px-3 py-2 text-center font-sans">
-          Your puja data is saved on this device only. It won't sync across devices or survive a browser data clear.
+          {t.puja.localStorageNotice}
         </p>
 
         {/* ── Calendar ───────────────────────────────────────────────────── */}
@@ -494,7 +495,7 @@ export default function PujaTracker() {
             </button>
 
             <h2 className="font-serif font-bold text-lg text-foreground">
-              {MONTH_NAMES[viewMonth]} {viewYear}
+              {t.puja.monthNames[viewMonth]} {viewYear}
             </h2>
 
             <button
@@ -510,7 +511,7 @@ export default function PujaTracker() {
           <div className="p-4">
             {/* Day-of-week headers */}
             <div className="grid grid-cols-7 mb-2">
-              {DAY_LABELS.map((d) => (
+              {t.puja.dayLabels.map((d: string) => (
                 <p
                   key={d}
                   className="text-center text-[10px] font-sans font-semibold text-muted-foreground tracking-wide py-1"
@@ -581,15 +582,15 @@ export default function PujaTracker() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-serif font-bold text-xl text-foreground">
-                {selectedDay} {MONTH_NAMES[viewMonth]}
+                {selectedDay} {t.puja.monthNames[viewMonth]}
                 {isTodaySelected && (
                   <span className="ml-2 text-xs font-sans font-semibold text-saffron bg-saffron/10 px-2 py-0.5 rounded-full align-middle">
-                    Today
+                    {t.puja.today}
                   </span>
                 )}
               </h3>
               <p className="text-muted-foreground font-sans text-xs mt-0.5">
-                {selectedChecked} of {PUJA_ITEMS.length} {t.puja.ritualsCompleted}
+                {selectedChecked} {t.puja.of} {PUJA_ITEMS.length} {t.puja.ritualsCompleted}
               </p>
             </div>
 
@@ -695,7 +696,7 @@ export default function PujaTracker() {
               className="overflow-hidden"
             >
               <div className="bg-secondary/50 rounded-2xl border border-border p-5">
-                <p className="font-serif font-semibold text-foreground mb-3">About These Rituals</p>
+                <p className="font-serif font-semibold text-foreground mb-3">{t.puja.aboutTitle}</p>
                 <div className="space-y-3">
                   {PUJA_ITEMS.map((item) => (
                     <div key={item.id} className="flex gap-3">

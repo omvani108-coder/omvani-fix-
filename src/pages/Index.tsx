@@ -68,7 +68,7 @@ function ShlokaCarousel() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-accent-foreground/70 font-sans text-xs tracking-[0.25em] uppercase">
-              ✦ Shloka of the Day
+              {t.shloka.label}
             </p>
             <p className="text-accent-foreground/50 font-sans text-xs mt-0.5">
               {shloka.ref}
@@ -236,6 +236,7 @@ function streamAI(
 }
 
 function HomeVoiceButton() {
+  const { t } = useTranslations();
   const [open, setOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -378,9 +379,9 @@ function HomeVoiceButton() {
                     ॐ
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-foreground text-sm">Voice Guru</p>
+                    <p className="font-serif font-bold text-foreground text-sm">{t.scriptures.voiceGuru}</p>
                     <p className="text-[10px] font-sans text-muted-foreground">
-                      Ask anything about dharma, karma & spiritual life
+                      {t.chat.placeholder}
                     </p>
                   </div>
                 </div>
@@ -399,7 +400,7 @@ function HomeVoiceButton() {
                 {phase === "idle" && (
                   <div className="flex flex-col items-center py-6">
                     <p className="text-sm font-sans text-muted-foreground mb-8 text-center">
-                      Tap the mic and ask your spiritual question aloud
+                      {t.home.tapMicInstruction}
                     </p>
                     <button
                       onClick={startListening}
@@ -422,7 +423,7 @@ function HomeVoiceButton() {
                             setTypeInput("");
                           }
                         }}
-                        placeholder="Type your question…"
+                        placeholder={t.home.typeQuestion}
                         className="flex-1 bg-transparent text-sm font-sans text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
                       />
                       <button
@@ -450,7 +451,7 @@ function HomeVoiceButton() {
                 {phase === "listening" && (
                   <div className="flex flex-col items-center py-6">
                     <p className="text-sm font-sans text-saffron font-semibold mb-8 animate-pulse">
-                      Listening…
+                      {t.common.listening}
                     </p>
                     <div className="relative flex items-center justify-center">
                       {rings.map((delay, i) => (
@@ -469,7 +470,7 @@ function HomeVoiceButton() {
                         <MicOff className="w-10 h-10 text-white" />
                       </button>
                     </div>
-                    <p className="text-xs font-sans text-muted-foreground/50 mt-10">Tap to stop</p>
+                    <p className="text-xs font-sans text-muted-foreground/50 mt-10">{t.home.tapToStop}</p>
                   </div>
                 )}
 
@@ -494,7 +495,7 @@ function HomeVoiceButton() {
                           />
                         ))}
                       </div>
-                      <span className="text-sm font-sans text-muted-foreground">Guru is thinking…</span>
+                      <span className="text-sm font-sans text-muted-foreground">{t.chat.thinking}</span>
                     </div>
                   </div>
                 )}
@@ -527,13 +528,13 @@ function HomeVoiceButton() {
                         onClick={() => { setPhase("idle"); setTranscript(""); setAnswer(""); }}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-xs font-sans text-muted-foreground hover:text-foreground hover:border-saffron/30 transition-all"
                       >
-                        <Mic className="w-3.5 h-3.5" /> Ask again
+                        <Mic className="w-3.5 h-3.5" /> {t.common.askAgain}
                       </button>
                       <button
                         onClick={startListening}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-sacred-gradient text-white text-xs font-sans font-semibold shadow hover:opacity-90 transition-opacity"
                       >
-                        <Mic className="w-3.5 h-3.5" /> New question
+                        <Mic className="w-3.5 h-3.5" /> {t.common.newQuestion}
                       </button>
                     </div>
                   </div>
@@ -576,7 +577,7 @@ const Index = () => {
             transition={{ duration: 0.6 }}
             className="text-gold-light font-sans text-sm tracking-[0.3em] uppercase mb-4"
           >
-            ॐ &nbsp; Your Spiritual Companion
+            ॐ &nbsp; {t.home.eyebrow}
           </motion.p>
 
           <motion.h1
@@ -617,7 +618,7 @@ const Index = () => {
                 size="lg"
                 className="text-base px-10 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300"
               >
-                ॐ Talk to Guru
+                {t.home.talkButton}
               </Button>
             </Link>
           </motion.div>
@@ -654,10 +655,10 @@ const Index = () => {
             className="text-center mb-16"
           >
             <motion.p variants={fadeUp} custom={0} className="text-saffron font-sans text-sm tracking-[0.2em] uppercase mb-3">
-              What OmVani Offers
+              {t.home.featuresEyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-5xl font-serif font-bold text-foreground">
-              Ancient Wisdom, Modern Access
+              {t.home.featuresTitle}
             </motion.h2>
           </motion.div>
 
@@ -701,10 +702,10 @@ const Index = () => {
             className="text-center mb-16"
           >
             <motion.p variants={fadeUp} custom={0} className="text-saffron font-sans text-sm tracking-[0.2em] uppercase mb-3">
-              Our Sources
+              {t.home.scripturesEyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">
-              Rooted in Sacred Scriptures
+              {t.home.scripturesTitle}
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-muted-foreground font-sans max-w-xl mx-auto">
               {t.home.scripturesSubtitle}
@@ -761,10 +762,10 @@ const Index = () => {
             className="text-center mb-16"
           >
             <motion.p variants={fadeUp} custom={0} className="text-saffron font-sans text-sm tracking-[0.2em] uppercase mb-3">
-              Simple Pricing
+              {t.home.pricingEyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-4">
-              Begin Your Spiritual Journey
+              {t.home.pricingTitle}
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-muted-foreground font-sans">
               {t.home.pricingSubtitle}
@@ -797,7 +798,7 @@ const Index = () => {
                     aria-label="Most popular plan"
                     className="absolute -top-3 left-1/2 -translate-x-1/2 bg-sacred-gradient text-accent-foreground text-xs font-sans font-semibold px-4 py-1 rounded-full"
                   >
-                    Most Popular
+                    {t.home.mostPopular}
                   </span>
                 )}
 
@@ -859,17 +860,17 @@ const Index = () => {
           className="max-w-2xl mx-auto text-center"
         >
           <p className="text-accent-foreground/80 font-sans text-sm tracking-widest uppercase mb-3">
-            <span aria-hidden="true">🙏</span> Begin Today
+            <span aria-hidden="true">🙏</span> {t.home.ctaEyebrow}
           </p>
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-accent-foreground mb-5">
-            Your Spiritual Journey Awaits
+            {t.home.ctaTitle}
           </h2>
           <p className="text-accent-foreground/80 font-sans mb-8 text-sm">
             {t.home.ctaSubtitle}
           </p>
           <Link to="/signup">
             <Button size="lg" className="bg-accent-foreground text-accent font-sans font-semibold px-10 hover:bg-accent-foreground/90 transition-colors">
-              Start Free Trial — No Card Needed
+              {t.home.ctaButton}
             </Button>
           </Link>
         </motion.div>
@@ -881,9 +882,7 @@ const Index = () => {
           <p className="font-serif text-2xl font-bold text-gradient-sacred mb-2">ॐVani</p>
           <p className="text-saffron font-sans text-xs mb-4" aria-label="Om Tat Sat">ॐ तत् सत्</p>
           <p className="text-xs text-muted-foreground font-sans max-w-lg mx-auto mb-6 leading-relaxed">
-            Disclaimer: ॐVani is an AI-powered tool designed to assist with spiritual learning. It is
-            not a replacement for a living guru or personal spiritual practice. All answers are sourced
-            from authentic scriptures but should be used for guidance only.
+            {t.home.footerDisclaimer}
           </p>
           <p className="text-xs text-muted-foreground/60 font-sans">
             {t.home.footerRights}

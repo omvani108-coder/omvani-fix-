@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "@/hooks/useTranslations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,7 @@ export default function ConversationSidebar({
   activeConversationId,
 }: ConversationSidebarProps) {
   const { user } = useAuth();
+  const { t } = useTranslations();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +95,7 @@ export default function ConversationSidebar({
     <div className="flex flex-col h-full bg-card border-r border-border">
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between px-4 h-16 border-b border-border">
-        <span className="font-serif font-bold text-sm text-foreground">History</span>
+        <span className="font-serif font-bold text-sm text-foreground">{t.sidebar.history}</span>
         <button
           onClick={onClose}
           className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground transition-colors"
@@ -115,7 +117,7 @@ export default function ConversationSidebar({
           }}
         >
           <Plus className="w-4 h-4" />
-          New Chat
+          {t.common.newChat}
         </Button>
       </div>
 
@@ -134,7 +136,7 @@ export default function ConversationSidebar({
           <div className="flex flex-col items-center justify-center h-40 text-center px-4">
             <span className="text-3xl mb-2 opacity-30" aria-hidden="true">ॐ</span>
             <p className="text-xs font-sans text-muted-foreground">
-              No past conversations yet
+              {t.sidebar.noPastConversations}
             </p>
           </div>
         ) : (
