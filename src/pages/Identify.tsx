@@ -115,8 +115,8 @@ const Identify = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 429) toast.error("Rate limit reached. Please wait a moment.");
-        else if (response.status === 402) toast.error("AI usage limit reached.");
+        if (response.status === 429) toast.error("Daily limit reached. Upgrade for unlimited access.");
+        else if (response.status === 402) toast.error("Daily limit reached. Upgrade for unlimited access.");
         else toast.error(data.error || "Identification failed.");
         return;
       }
