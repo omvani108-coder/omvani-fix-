@@ -49,7 +49,7 @@ const Sadhana = () => {
       />
       <Navbar />
 
-      <div className="min-h-screen bg-background pt-20 pb-28">
+      <div className="min-h-screen bg-background pt-20 pb-[calc(7rem+env(safe-area-inset-bottom))]">
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="text-center px-4 mb-6">
           <h1 className="font-serif font-bold text-2xl text-foreground">

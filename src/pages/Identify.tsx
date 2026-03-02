@@ -43,7 +43,7 @@ const typeEmojis: Record<string, string> = {
 
 const Identify = ({ embedded = false }: { embedded?: boolean }) => {
   const { t } = useTranslations();
-  const { canIdentify, incrementUsage } = useSubscription();
+  const { canIdentify, incrementUsage, refreshSubscription } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -140,7 +140,7 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="identify" />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="identify" refreshSubscription={refreshSubscription} />
       {!embedded && <Navbar />}
 
       {/* Header */}

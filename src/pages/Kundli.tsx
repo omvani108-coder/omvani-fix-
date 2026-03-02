@@ -237,7 +237,7 @@ const Kundli = () => {
       />
       <Navbar />
 
-      <div className="min-h-screen bg-background pt-20 pb-28">
+      <div className="min-h-screen bg-background pt-20 pb-[calc(7rem+env(safe-area-inset-bottom))]">
         <AnimatePresence mode="wait">
           {/* ══════════════════════════════════════════════════════════════ */}
           {/* PHASE 1 — Form                                               */}

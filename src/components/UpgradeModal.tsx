@@ -13,9 +13,10 @@
 //   (e.g., "You have 0 AI chats left today" vs "Bhajans are for paid users")
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Loader2, Zap, Crown, Users, Sparkles } from "lucide-react";
+import { X, Check, Loader2, Zap, Crown, Users, Sparkles, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ interface UpgradeModalProps {
   onClose:    () => void;
   trigger?:   UpgradeTrigger;
   onSuccess?: () => void;
+  refreshSubscription?: () => void;
   // Pass remaining count for soft-limit messages (e.g., 0 chats left)
   remaining?: number;
 }
@@ -190,14 +192,24 @@ export default function UpgradeModal({
   onClose,
   trigger    = "general",
   onSuccess,
+  refreshSubscription,
   remaining  = 0,
 }: UpgradeModalProps) {
   const { t } = useTranslations();
+  const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [isAnnual,    setIsAnnual]    = useState(false);
-  // isAnnual = true → show annual prices with savings badge
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [activatedPlan, setActivatedPlan]   = useState("");
 
   const message = getTriggerMessage(trigger, remaining, t);
+
+  const handleClose = useCallback(() => {
+    setPaymentSuccess(false);
+    setActivatedPlan("");
+    setLoadingPlan(null);
+    onClose();
+  }, [onClose]);
 
   const handleUpgrade = async (planDef: PlanDef) => {
     const planId = isAnnual && planDef.annualId !== planDef.id
@@ -252,11 +264,14 @@ export default function UpgradeModal({
         handler: () => {
           // Called when payment is successful
           // The webhook will actually upgrade the user in DB
-          toast.success("🙏 Payment successful! Your plan is being activated...");
+          setActivatedPlan(planDef.name);
+          setPaymentSuccess(true);
+          setLoadingPlan(null);
           onSuccess?.();
-          onClose();
-          // Reload after 2 seconds to refresh subscription state
-          setTimeout(() => window.location.reload(), 2000);
+          // Refresh subscription state without page reload
+          if (refreshSubscription) {
+            setTimeout(() => refreshSubscription(), 1500);
+          }
         },
         modal: {
           ondismiss: () => {
@@ -295,7 +310,7 @@ export default function UpgradeModal({
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[999] flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)" }}
-          onClick={onClose}
+          onClick={handleClose}
         >
           {/* Modal — stopPropagation prevents backdrop click closing when clicking inside */}
           <motion.div
@@ -306,10 +321,73 @@ export default function UpgradeModal({
             className="relative w-full max-w-[720px] bg-card rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* ── Payment Success View ─────────────────────────────────── */}
+            {paymentSuccess ? (
+              <div className="px-6 py-12 text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+                  className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-5"
+                >
+                  <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                </motion.div>
+
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                  className="font-serif font-bold text-2xl text-foreground mb-2"
+                >
+                  Welcome to {activatedPlan}!
+                </motion.h2>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  className="text-sm font-sans text-muted-foreground mb-2"
+                >
+                  Your plan is being activated. Enjoy your spiritual journey!
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45 }}
+                  className="inline-flex items-center gap-1.5 bg-saffron/10 text-saffron border border-saffron/20 rounded-full px-3 py-1 text-xs font-sans font-semibold mb-8"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  {t.upgrade.trialBadge}
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.55 }}
+                  className="flex gap-3 justify-center"
+                >
+                  <Button
+                    onClick={() => { handleClose(); navigate("/chat"); }}
+                    className="bg-sacred-gradient text-white hover:opacity-90 font-sans font-semibold"
+                  >
+                    Talk to Guru
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleClose}
+                    className="font-sans"
+                  >
+                    Close
+                  </Button>
+                </motion.div>
+              </div>
+            ) : (
+            <>
             {/* ── Header ────────────────────────────────────────────────── */}
             <div className="relative px-6 pt-7 pb-5 text-center border-b border-border bg-gradient-to-b from-secondary/50 to-card">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 aria-label="Close"
                 className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground transition-colors"
               >
@@ -448,6 +526,8 @@ export default function UpgradeModal({
                 {t.upgrade.freePlanNote}
               </p>
             </div>
+            </>
+            )}
           </motion.div>
         </motion.div>
       )}

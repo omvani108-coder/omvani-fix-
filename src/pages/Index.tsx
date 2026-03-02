@@ -560,7 +560,7 @@ const Index = () => {
       <Navbar />
 
       {/* ── Hero ──────────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden" style={{ backgroundColor: "#1a0a00" }}>
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-[hsl(var(--temple-shadow))]">
         <img
           src={heroBg}
           alt="Sacred temple at golden hour"

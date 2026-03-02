@@ -200,6 +200,7 @@ export const translations = {
       ageConfirm: "I confirm that I am 14 years of age or older",
       creatingAccount: "Creating account…",
       haveAccount: "Already have an account?",
+      signIn: "Sign in",
     },
     onboarding: {
       step1Title: "What's your name?", step1Subtitle: "Let the Guru know what to call you",
@@ -515,6 +516,7 @@ export const translations = {
       ageConfirm: "मैं पुष्टि करता/करती हूँ कि मेरी उम्र 14 वर्ष या अधिक है",
       creatingAccount: "खाता बन रहा है…",
       haveAccount: "पहले से खाता है?",
+      signIn: "साइन इन",
     },
     onboarding: {
       step1Title: "आपका नाम क्या है?", step1Subtitle: "गुरु को बताएं कि आपको क्या कहें",
@@ -830,6 +832,7 @@ export const translations = {
       ageConfirm: "நான் 14 வயது அல்லது அதற்கு மேற்பட்டவர் என்பதை உறுதிப்படுத்துகிறேன்",
       creatingAccount: "கணக்கு உருவாக்குகிறோம்…",
       haveAccount: "ஏற்கனவே கணக்கு உள்ளதா?",
+      signIn: "உள்நுழை",
     },
     onboarding: {
       step1Title: "உங்கள் பெயர் என்ன?", step1Subtitle: "குரு உங்களை எப்படி அழைக்க வேண்டும் என்று சொல்லுங்கள்",

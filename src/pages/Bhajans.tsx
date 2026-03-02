@@ -69,7 +69,7 @@ function BhajanEmptyState({ search, activeCategory, activeLanguage, onReset }: B
 
 const Bhajans = () => {
   const { t } = useTranslations();
-  const { bhajanLimit } = useSubscription();
+  const { bhajanLimit, refreshSubscription } = useSubscription();
   const [search, setSearch] = useState("");
   const [selectedBhajan, setSelectedBhajan] = useState<Bhajan | null>(null);
   const [expandedLyrics,  setExpandedLyrics]  = useState<string | null>(null);
@@ -326,6 +326,7 @@ const Bhajans = () => {
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
         trigger="bhajans"
+        refreshSubscription={refreshSubscription}
       />
 
       {/* YouTube Player Modal */}

@@ -115,7 +115,7 @@ export function BottomNav() {
   return (
     <>
       {/* Spacer so page content doesn't hide behind the bar */}
-      <div className="h-24 md:hidden" aria-hidden="true" />
+      <div className="h-24 md:hidden" style={{ marginBottom: "env(safe-area-inset-bottom)" }} aria-hidden="true" />
 
       <nav
         aria-label="Main navigation"

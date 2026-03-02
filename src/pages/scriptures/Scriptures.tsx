@@ -681,7 +681,7 @@ function TitleBlock({ eyebrow, title, subtitle, summary, stat, accentColor, orna
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Scriptures() {
   const { t } = useTranslations();
-  const { canAccessAllScriptures, scripturePageLimit } = useSubscription();
+  const { canAccessAllScriptures, scripturePageLimit, refreshSubscription } = useSubscription();
   const [upgradeOpen, setUpgradeOpen]       = useState(false);
   const [divyaOpen,   setDivyaOpen]         = useState(false);
   const [divyaData,   setDivyaData]         = useState<{ title: string; sanskrit: string; meaning: string; deity: string } | null>(null);
@@ -1003,6 +1003,7 @@ export default function Scriptures() {
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
         trigger="scriptures"
+        refreshSubscription={refreshSubscription}
       />
 
       {/* ── Divya Sandesh sharing modal ──────────────────────────────────── */}

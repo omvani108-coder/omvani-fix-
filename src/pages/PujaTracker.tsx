@@ -272,7 +272,7 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 
 export default function PujaTracker({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslations();
-  const { pujaHistoryDays } = useSubscription();
+  const { pujaHistoryDays, refreshSubscription } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   // Memoize so `today` stays stable across re-renders within the same session.
   // Note: won't auto-update at midnight — user must refresh the page.
@@ -426,7 +426,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
         </div>
       </section>
 
-      <div className="max-w-2xl mx-auto px-4 pb-32 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 pb-[calc(8rem+env(safe-area-inset-bottom))] space-y-6">
 
         {/* ── Streak banner ──────────────────────────────────────────────── */}
         <motion.div
@@ -726,6 +726,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
         trigger="puja"
+        refreshSubscription={refreshSubscription}
       />
     </div>
   );

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/hooks/useTranslations";
 import { Eye, EyeOff, Mail, User } from "lucide-react";
 
 const Signup = () => {
@@ -18,15 +19,16 @@ const Signup = () => {
   const [loading, setLoading]           = useState(false);
   const navigate                        = useNavigate();
   const { toast }                       = useToast();
+  const { t }                           = useTranslations();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ageConfirmed) {
-      toast({ title: "Age confirmation required", description: "You must be 14+ to use OmVani.", variant: "destructive" });
+      toast({ title: t.auth.ageConfirm, variant: "destructive" });
       return;
     }
     if (password.length < 6) {
-      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+      toast({ title: t.auth.passwordPlaceholder, variant: "destructive" });
       return;
     }
 
@@ -44,12 +46,10 @@ const Signup = () => {
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else if (data.session) {
-      // Email confirmation disabled — user is logged in, go to onboarding
       navigate("/onboarding");
     } else {
-      // Email confirmation required — tell user to verify
       toast({
-        title: "Check your email ✉️",
+        title: "Check your email",
         description: "We sent a confirmation link to " + email + ". Please verify to continue.",
       });
     }
@@ -64,7 +64,7 @@ const Signup = () => {
             <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-2">ॐVani</h1>
           </Link>
           <p className="text-muted-foreground font-sans text-sm">
-            Start your 7-day free trial — full access, no card required
+            {t.auth.signupSubtitle}
           </p>
         </div>
 
@@ -72,13 +72,13 @@ const Signup = () => {
           <form onSubmit={handleSignup} className="space-y-5">
 
             <div className="space-y-2">
-              <Label htmlFor="name" className="font-sans text-sm">Full Name</Label>
+              <Label htmlFor="name" className="font-sans text-sm">{t.auth.fullName}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Your name"
+                  placeholder={t.auth.namePlaceholder}
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   className="pl-10"
@@ -88,13 +88,13 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-sans text-sm">Email</Label>
+              <Label htmlFor="email" className="font-sans text-sm">{t.auth.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="pl-10"
@@ -104,12 +104,12 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-sans text-sm">Password</Label>
+              <Label htmlFor="password" className="font-sans text-sm">{t.auth.password}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="At least 6 characters"
+                  placeholder={t.auth.passwordPlaceholder}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
@@ -118,6 +118,7 @@ const Signup = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -131,7 +132,7 @@ const Signup = () => {
                 onCheckedChange={checked => setAgeConfirmed(checked === true)}
               />
               <Label htmlFor="age" className="font-sans text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                I confirm that I am 14 years of age or older
+                {t.auth.ageConfirm}
               </Label>
             </div>
 
@@ -142,7 +143,7 @@ const Signup = () => {
               className="w-full"
               disabled={loading || !ageConfirmed}
             >
-              {loading ? "Creating account…" : "Start Free Trial"}
+              {loading ? t.auth.creatingAccount : t.auth.startTrial}
             </Button>
           </form>
 
@@ -151,7 +152,7 @@ const Signup = () => {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-card px-3 text-xs text-muted-foreground font-sans">or</span>
+              <span className="bg-card px-3 text-xs text-muted-foreground font-sans">{t.auth.or}</span>
             </div>
           </div>
 
@@ -172,13 +173,13 @@ const Signup = () => {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Continue with Google
+            {t.auth.continueWithGoogle}
           </Button>
 
           <p className="mt-6 text-center text-sm text-muted-foreground font-sans">
-            Already have an account?{" "}
+            {t.auth.haveAccount}{" "}
             <Link to="/login" className="text-saffron hover:underline font-semibold">
-              Sign in
+              {t.auth.signIn}
             </Link>
           </p>
         </div>

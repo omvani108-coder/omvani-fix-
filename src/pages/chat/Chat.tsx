@@ -232,10 +232,11 @@ export default function Chat() {
   const { user } = useAuth();
   const { t } = useTranslations();
   const { language } = useLanguage();
-  const { canChat, chatWarning, chatRemaining, incrementUsage } = useSubscription();
+  const { canChat, chatWarning, chatRemaining, incrementUsage, refreshSubscription } = useSubscription();
   const [input, setInput] = useState("");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sidebar state
@@ -271,10 +272,19 @@ export default function Chat() {
     toggleVoice();
   };
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages — only if user is near bottom
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return true; // default to auto-scroll if no container
+    const threshold = 150;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }, []);
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages]);
+    if (isNearBottom()) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [displayMessages, isNearBottom]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -344,7 +354,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-screen pb-24 md:pb-0 bg-background">
+    <div className="flex h-screen pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 bg-background">
       <SeoHead title="Chat with ॐVani" description="Ask your spiritual questions and receive scripture-based guidance from the Bhagavad Gita, Vedas and Puranas." canonicalPath="/chat" />
 
       {/* Upgrade Modal */}
@@ -353,6 +363,7 @@ export default function Chat() {
         onClose={() => setUpgradeOpen(false)}
         trigger="chat"
         remaining={chatRemaining}
+        refreshSubscription={refreshSubscription}
       />
 
       {/* ── Conversation Sidebar ──────────────────────────────────────────── */}
@@ -412,6 +423,7 @@ export default function Chat() {
 
         {/* ── Messages area ────────────────────────────────────────────────── */}
         <main
+          ref={scrollContainerRef}
           className="flex-1 overflow-y-auto px-4 md:px-6 py-6"
           aria-label="Conversation"
           aria-live="polite"
