@@ -32,7 +32,7 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -43,9 +43,15 @@ const Signup = () => {
 
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
-    } else {
-      // Send new users straight to onboarding to fill in their profile
+    } else if (data.session) {
+      // Email confirmation disabled — user is logged in, go to onboarding
       navigate("/onboarding");
+    } else {
+      // Email confirmation required — tell user to verify
+      toast({
+        title: "Check your email ✉️",
+        description: "We sent a confirmation link to " + email + ". Please verify to continue.",
+      });
     }
     setLoading(false);
   };

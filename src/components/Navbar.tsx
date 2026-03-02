@@ -97,12 +97,12 @@ const Navbar = () => {
   }, []);
 
   const navLinks: NavLink[] = [
-    { label: t.nav.features,   href: "#features" },
-    { label: t.nav.scriptures, href: "/scriptures", isPage: true },
-    { label: t.nav.bhajans,    href: "/bhajans",    isPage: true },
-    { label: t.nav.mandirs,    href: "/mandirs",    isPage: true },
-    { label: t.nav.identify,   href: "/identify",   isPage: true },
-    { label: t.nav.pricing,    href: "#pricing" },
+    { label: t.nav.scriptures,    href: "/scriptures", isPage: true },
+    { label: t.nav.bhajans,       href: "/bhajans",    isPage: true },
+    { label: t.nav.mandirs,       href: "/mandirs",    isPage: true },
+    { label: t.bottomNav.sadhana, href: "/sadhana",    isPage: true },
+    { label: t.bottomNav.kundli,  href: "/kundli",     isPage: true },
+    { label: t.nav.pricing,       href: "#pricing" },
   ];
 
   const handleAnchor = (link: NavLink) => {

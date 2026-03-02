@@ -127,7 +127,7 @@ const App = () => (
                   <Route path="/identify"        element={<Identify />} />
                   <Route path="/puja-tracker"    element={<PujaTracker />} />
                   <Route path="/sadhana"         element={<Sadhana />} />
-                  <Route path="/kundli"          element={<ProtectedRoute><Kundli /></ProtectedRoute>} />
+                  <Route path="/kundli"          element={<Kundli />} />
                   <Route path="*"                element={<NotFound />} />
                 </Routes>
               </Suspense>
