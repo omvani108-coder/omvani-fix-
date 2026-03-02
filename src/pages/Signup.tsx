@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import { Eye, EyeOff, Mail, User } from "lucide-react";
+import { SeoHead } from "@/components/SeoHead";
 
 const Signup = () => {
   const [fullName, setFullName]         = useState("");
@@ -58,6 +59,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <SeoHead title="Sign Up" description="Start your free trial of OmVani — AI-powered spiritual guidance from the Gita, Vedas & Puranas." canonicalPath="/signup" />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/">

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { SeoHead } from "@/components/SeoHead";
 
 type DeityResult = {
   name: string;
@@ -52,6 +53,7 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
   const [loading, setLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -136,10 +138,12 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
     setImageBase64(null);
     setResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <SeoHead title="Identify Deity" description="Point your camera at any Hindu deity, temple or sacred object — AI identifies it instantly with mantras and significance." canonicalPath="/identify" />
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="identify" refreshSubscription={refreshSubscription} />
       {!embedded && <Navbar />}
 
@@ -184,30 +188,59 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-300 ${
+              className={`relative rounded-2xl border-2 border-dashed p-8 md:p-12 text-center transition-all duration-300 ${
                 dragOver
                   ? "border-saffron bg-saffron/5 scale-[1.01]"
-                  : "border-border hover:border-saffron/60 hover:bg-secondary/30"
+                  : "border-border hover:border-saffron/60"
               }`}
             >
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-sacred-gradient flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-accent-foreground" />
+                  <Camera className="w-8 h-8 text-accent-foreground" />
                 </div>
                 <div>
                   <p className="font-serif font-bold text-foreground text-xl mb-1">{t.identify.dropTitle}</p>
                   <p className="text-muted-foreground font-sans text-sm">{t.identify.dropSubtitle}</p>
                 </div>
-                <div className="flex gap-3 text-xs text-muted-foreground font-sans">
+
+                {/* Camera + Upload buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+                  <Button
+                    variant="hero"
+                    className="flex-1 gap-2"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Camera className="w-4 h-4" /> Take Photo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2"
+                    onClick={() => galleryInputRef.current?.click()}
+                  >
+                    <Upload className="w-4 h-4" /> Upload
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-3 text-xs text-muted-foreground font-sans">
                   <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {t.identify.exampleDeities}</span>
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {t.identify.exampleTemples}</span>
                   <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {t.identify.exampleRituals}</span>
                   <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> {t.identify.exampleObjects}</span>
                 </div>
               </div>
+
+              {/* Camera input (opens camera on mobile) */}
               <input
                 ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {/* Gallery input (opens file picker / gallery) */}
+              <input
+                ref={galleryInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}

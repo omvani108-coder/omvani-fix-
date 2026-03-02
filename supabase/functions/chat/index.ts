@@ -160,6 +160,7 @@ serve(async (req) => {
         const decoder = new TextDecoder();
         const encoder = new TextEncoder();
         let buffer = "";
+        let receivedContent = false; // Track if AI actually sent content
 
         try {
           while (true) {
@@ -183,6 +184,7 @@ serve(async (req) => {
                   parsed.delta?.text
                 ) {
                   controller.enqueue(encoder.encode(parsed.delta.text));
+                  receivedContent = true;
                 }
               } catch {
                 // Skip malformed SSE lines
@@ -201,15 +203,17 @@ serve(async (req) => {
                   parsed.delta?.text
                 ) {
                   controller.enqueue(encoder.encode(parsed.delta.text));
+                  receivedContent = true;
                 }
               } catch {
                 // Skip malformed trailing line
               }
             }
           }
-        } finally {
-          // ── Step 5: Atomically increment usage after successful stream ──
-          if (limit !== undefined) {
+
+          // ── Step 5: Only increment usage if AI actually responded ──────
+          // This prevents counting failed/empty responses against the user's quota
+          if (limit !== undefined && receivedContent) {
             await supabase.rpc("increment_usage", {
               p_user_id: user.id,
               p_feature: "chat",
@@ -218,7 +222,10 @@ serve(async (req) => {
               if (error) console.error("Failed to increment chat usage:", error);
             });
           }
-
+        } catch (streamErr) {
+          console.error("Stream processing error:", streamErr);
+          // Don't increment usage — the user didn't get a valid response
+        } finally {
           reader.releaseLock();
           controller.close();
         }

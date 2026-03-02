@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ChevronRight, ChevronLeft, User, Calendar, Globe, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslations } from "@/hooks/useTranslations";
+import { SeoHead } from "@/components/SeoHead";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -321,6 +322,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
+      <SeoHead title="Welcome" description="Set up your OmVani profile to personalize your spiritual journey." canonicalPath="/onboarding" />
 
       {/* Logo */}
       <motion.div

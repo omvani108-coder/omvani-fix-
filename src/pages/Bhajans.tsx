@@ -10,6 +10,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { bhajans, type Bhajan } from "@/data/bhajans";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { SeoHead } from "@/components/SeoHead";
 
 const CATEGORIES = ["All", "Bhajan", "Mantra", "Aarti", "Chalisa", "Stotra"] as const;
 const LANGUAGES = ["All", "Hindi", "Sanskrit", "Both"] as const;
@@ -99,6 +100,7 @@ const Bhajans = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <SeoHead title="Bhajans & Mantras" description="Listen to sacred bhajans, mantras, aartis and chalisas. Search by deity, language and category." canonicalPath="/bhajans" />
       <Navbar />
 
       {/* Header */}

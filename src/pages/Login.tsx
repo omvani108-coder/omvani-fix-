@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import { Eye, EyeOff, Mail } from "lucide-react";
+import { SeoHead } from "@/components/SeoHead";
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 60_000; // 1 minute lockout
@@ -59,6 +60,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <SeoHead title="Sign In" description="Sign in to OmVani — your AI spiritual companion." canonicalPath="/login" />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/">

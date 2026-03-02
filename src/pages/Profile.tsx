@@ -17,6 +17,7 @@ import ReminderSettings from "@/components/ReminderSettings";
 import UpgradeModal from "@/components/UpgradeModal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTheme } from "next-themes";
+import { SeoHead } from "@/components/SeoHead";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -84,6 +85,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead title="Profile" description="Manage your OmVani account, subscription, and preferences." canonicalPath="/profile" />
       <Navbar />
 
       {/* Header */}

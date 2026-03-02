@@ -1,0 +1,35 @@
+{
+  "name": "OmVani — AI Spiritual Companion",
+  "short_name": "OmVani",
+  "description": "Talk to a spiritual guru anytime. 100% scripture-based answers from the Gita, Vedas & Puranas — powered by AI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ee",
+  "theme_color": "#6b1a1a",
+  "orientation": "portrait-primary",
+  "categories": ["lifestyle", "education"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

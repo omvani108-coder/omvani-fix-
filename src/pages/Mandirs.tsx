@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
 import { mandirs, type Mandir } from "@/data/mandirs";
+import { SeoHead } from "@/components/SeoHead";
 
 const CATEGORIES = ["All", "Jyotirlinga", "Shakti Peeth", "Char Dham", "Divya Desam", "Ashtavinayak", "Famous Temple"] as const;
 const STATES = ["All States", ...Array.from(new Set(mandirs.map((m) => m.state))).sort()];
@@ -137,6 +138,7 @@ const Mandirs = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <SeoHead title="Sacred Mandirs" description="Explore India's most sacred temples — Jyotirlingas, Shakti Peeths, Char Dham, Divya Desams and more." canonicalPath="/mandirs" />
       <Navbar />
 
       {/* Header */}
