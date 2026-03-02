@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(__NEW_LINE_2fba59d85cf58a71__ echo \"\")",
+      "Bash(git init:*)"
+    ]
+  }
+}
