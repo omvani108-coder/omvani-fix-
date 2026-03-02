@@ -8,9 +8,16 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8080",
 ];
 
+function isAllowedOrigin(origin: string): boolean {
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/dharma-companion[\w-]*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("origin") ?? "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers":
@@ -127,7 +134,35 @@ serve(async (req) => {
     }
 
     // Step 2 — Parse and validate body
-    const { plan, enable_trial } = await req.json();
+    const { plan, enable_trial, amount: kundliAmount } = await req.json();
+
+    // ── Special case: Kundli one-time analysis payment ──────────────────
+    if (plan === "kundli_analysis") {
+      const validAmounts = [2000, 6000]; // ₹20 (subscriber) or ₹60 (free plan)
+      const amt = typeof kundliAmount === "number" ? kundliAmount : 6000;
+      if (!validAmounts.includes(amt)) {
+        return jsonResponse({ error: "Invalid kundli amount" }, corsHeaders, 400);
+      }
+      const kundliKeyId = Deno.env.get("RAZORPAY_KEY_ID")!;
+      const priceTier = amt === 2000 ? "subscriber" : "standard";
+      const kundliData = await razorpayRequest("/orders", {
+        amount: amt,
+        currency: "INR",
+        notes: {
+          supabase_user_id: user.id,
+          plan_key: "kundli_analysis",
+          kundli_price_tier: priceTier,
+        },
+      });
+      return jsonResponse({
+        type: "order",
+        key_id: kundliKeyId,
+        plan_name: "Kundli Analysis",
+        order_id: kundliData.id,
+        amount: amt,
+        currency: "INR",
+      }, corsHeaders);
+    }
 
     if (!plan || !VALID_PLAN_IDS.includes(plan)) {
       return jsonResponse(

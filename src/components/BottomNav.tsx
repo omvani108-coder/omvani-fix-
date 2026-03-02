@@ -2,20 +2,20 @@
  * BottomNav — OmVani mobile bottom navigation
  *
  * Layout (5 slots):
- *   [Gita]  [Puja]  [AI Guru FAB]  [Bhajans]  [Divya Drishti]
+ *   [Gita]  [Sadhana]  [AI Guru FAB]  [Bhajans]  [Astro Kundli]
  *
- * Changes from original:
- *   • Profile slot → Divya Drishti (AI Image Identifier at /identify)
- *   • Center slot = "AI Guru" as a floating FAB — 20% larger, elevated,
- *     saffron-to-gold gradient, sacred glow + pulse ring on active
+ * Changes:
+ *   • "Puja" + "Drishti" merged into "Sadhana" (/sadhana)
+ *   • New "Astro Kundli" slot on the right (/kundli)
+ *   • Center slot = "AI Guru" FAB
  *   • Saffron/gold spiritual palette throughout
- *   • Top border styled with gradient accent for temple-wood feel
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslations } from "@/hooks/useTranslations";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Flame, Music, Eye } from "lucide-react";
+import { BookOpen, Music, Orbit } from "lucide-react";
+import { PadmasanaIcon } from "@/components/icons/PadmasanaIcon";
 
 // ─── Pages where the bottom nav is hidden ─────────────────────────────────────
 
@@ -95,17 +95,22 @@ export function BottomNav() {
 
   if (HIDDEN_ON.includes(location.pathname)) return null;
 
+  const path = location.pathname;
+
   const leftItems = [
-    { label: t.bottomNav.gita,   icon: BookOpen, href: "/scriptures"  },
-    { label: t.bottomNav.puja,   icon: Flame,    href: "/puja-tracker" },
+    { label: t.bottomNav.gita,    icon: BookOpen,       href: "/scriptures" },
+    { label: t.bottomNav.sadhana, icon: PadmasanaIcon,  href: "/sadhana"    },
   ] as const;
 
   const rightItems = [
-    { label: t.bottomNav.bhajans,      icon: Music, href: "/bhajans"  },
-    { label: t.bottomNav.divyaDrishti, icon: Eye,   href: "/identify" },
+    { label: t.bottomNav.bhajans, icon: Music, href: "/bhajans" },
+    { label: t.bottomNav.kundli,  icon: Orbit, href: "/kundli"  },
   ] as const;
 
-  const isChatActive = location.pathname === "/chat";
+  const isChatActive = path === "/chat";
+
+  // Sadhana is active on /sadhana, /puja-tracker, or /identify
+  const isSadhanaActive = path.startsWith("/sadhana") || path === "/puja-tracker" || path === "/identify";
 
   return (
     <>
@@ -130,15 +135,21 @@ export function BottomNav() {
         <div className="flex items-end justify-around px-1 h-16">
 
           {/* Left two icons */}
-          {leftItems.map((item) => (
-            <NavButton
-              key={item.href}
-              icon={item.icon}
-              label={item.label}
-              active={location.pathname === item.href}
-              onClick={() => navigate(item.href)}
-            />
-          ))}
+          {leftItems.map((item) => {
+            const isActive =
+              item.href === "/sadhana"
+                ? isSadhanaActive
+                : path === item.href;
+            return (
+              <NavButton
+                key={item.href}
+                icon={item.icon}
+                label={item.label}
+                active={isActive}
+                onClick={() => navigate(item.href)}
+              />
+            );
+          })}
 
           {/* ── Center FAB — AI Guru ─────────────────────────────────────────── */}
           <div className="flex flex-col items-center justify-end pb-1 flex-1">
@@ -202,7 +213,7 @@ export function BottomNav() {
               key={item.href}
               icon={item.icon}
               label={item.label}
-              active={location.pathname === item.href}
+              active={path === item.href}
               onClick={() => navigate(item.href)}
             />
           ))}

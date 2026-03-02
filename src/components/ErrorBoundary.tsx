@@ -90,7 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
-            onClick={this.reset}
+            onClick={() => window.location.reload()}
             className="gap-2 font-sans"
           >
             <RefreshCw className="w-4 h-4" />

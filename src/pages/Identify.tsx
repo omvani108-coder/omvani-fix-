@@ -41,7 +41,7 @@ const typeEmojis: Record<string, string> = {
   Unknown: "🔍",
 };
 
-const Identify = () => {
+const Identify = ({ embedded = false }: { embedded?: boolean }) => {
   const { t } = useTranslations();
   const { canIdentify, incrementUsage } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -139,12 +139,12 @@ const Identify = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="identify" />
-      <Navbar />
+      {!embedded && <Navbar />}
 
       {/* Header */}
-      <section className="pt-24 pb-12 px-4 bg-gradient-to-b from-secondary/60 to-background">
+      <section className={`${embedded ? "pt-4" : "pt-24"} pb-12 px-4 bg-gradient-to-b from-secondary/60 to-background`}>
         <div className="max-w-3xl mx-auto text-center">
           <motion.p
             initial={{ opacity: 0, y: -10 }}

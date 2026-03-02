@@ -270,7 +270,7 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function PujaTracker() {
+export default function PujaTracker({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslations();
   const { pujaHistoryDays } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -385,16 +385,20 @@ export default function PujaTracker() {
   const selectedPct = selectedChecked / PUJA_ITEMS.length;
 
   return (
-    <div className="min-h-screen bg-background">
-      <SeoHead
-        title="Puja Tracker — ॐVani"
-        description="Track your daily puja routine. Build a sacred habit and maintain your spiritual streak."
-        canonicalPath="/puja-tracker"
-      />
-      <Navbar />
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      {!embedded && (
+        <>
+          <SeoHead
+            title="Puja Tracker — ॐVani"
+            description="Track your daily puja routine. Build a sacred habit and maintain your spiritual streak."
+            canonicalPath="/puja-tracker"
+          />
+          <Navbar />
+        </>
+      )}
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
-      <section className="pt-24 pb-8 px-4 bg-gradient-to-b from-secondary/50 to-background">
+      <section className={`${embedded ? "pt-4" : "pt-24"} pb-8 px-4 bg-gradient-to-b from-secondary/50 to-background`}>
         <div className="max-w-2xl mx-auto text-center">
           <motion.p
             initial={{ opacity: 0, y: -10 }}

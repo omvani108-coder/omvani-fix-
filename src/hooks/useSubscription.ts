@@ -41,7 +41,7 @@ interface UsageToday {
 // ── Daily limits per plan ──────────────────────────────────────────────────────
 // Infinity means truly unlimited — no counter needed.
 const DAILY_LIMITS: Record<Plan, { chat: number; identify: number; bhajans: number }> = {
-  free:         { chat: 3,        identify: 1,        bhajans: 1         },
+  free:         { chat: 3,        identify: 1,        bhajans: 5         },
   basic:        { chat: 30,       identify: 3,        bhajans: 10        },
   basic_annual: { chat: 30,       identify: 3,        bhajans: 10        },
   pro:          { chat: Infinity, identify: Infinity, bhajans: Infinity  },
@@ -223,6 +223,10 @@ export function useSubscription() {
   // ── Puja tracker ──────────────────────────────────────────────────────────
   const pujaHistoryDays = PUJA_HISTORY_DAYS[plan];
 
+  // ── Kundli pricing ──────────────────────────────────────────────────────
+  // ₹20 (2000 paise) for paid users, ₹60 (6000 paise) for free users
+  const kundliPricePerAnalysis = isPaid ? 2000 : 6000;
+
   return {
     // Plan info
     plan,
@@ -255,6 +259,7 @@ export function useSubscription() {
     scripturePageLimit,
     canAccessAllScriptures,
     pujaHistoryDays,
+    kundliPricePerAnalysis,
 
     // Actions
     incrementUsage,

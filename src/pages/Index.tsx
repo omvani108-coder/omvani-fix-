@@ -555,7 +555,7 @@ const Index = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <SeoHead />
       <Navbar />
 
@@ -616,7 +616,7 @@ const Index = () => {
             <Link to="/chat">
               <Button
                 size="lg"
-                className="text-base px-10 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300"
+                className="text-base px-10 py-6 bg-saffron hover:bg-saffron/90 text-white font-semibold shadow-lg shadow-saffron/30 transition-all duration-300 whitespace-normal max-w-full"
               >
                 {t.home.talkButton}
               </Button>
@@ -869,7 +869,7 @@ const Index = () => {
             {t.home.ctaSubtitle}
           </p>
           <Link to="/signup">
-            <Button size="lg" className="bg-accent-foreground text-accent font-sans font-semibold px-10 hover:bg-accent-foreground/90 transition-colors">
+            <Button size="lg" className="bg-accent-foreground text-accent font-sans font-semibold px-10 hover:bg-accent-foreground/90 transition-colors whitespace-normal">
               {t.home.ctaButton}
             </Button>
           </Link>

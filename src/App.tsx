@@ -12,26 +12,52 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, ComponentType } from "react";
+
+// ── Retry wrapper for lazy imports ─────────────────────────────────────────────
+// After a new deploy Vite's hashed chunk filenames change. If a user's browser
+// has the old index.html cached, it will 404 on the old chunk URL. This wrapper
+// catches that and reloads the page once so the browser fetches the new HTML.
+
+function lazyWithRetry<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+) {
+  return lazy(() =>
+    factory().catch((err) => {
+      const key = "chunk_reload";
+      // Reload only once to avoid infinite loops
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+        // Return a never-resolving promise so React doesn't render stale state
+        return new Promise<{ default: T }>(() => {});
+      }
+      sessionStorage.removeItem(key);
+      throw err;
+    }),
+  );
+}
 
 // ── Lazy-loaded page chunks ────────────────────────────────────────────────────
 // Each page is loaded only when the user navigates to it, keeping the initial
 // bundle small and the landing page fast.
 
-const Index        = lazy(() => import("./pages/Index"));
-const Login        = lazy(() => import("./pages/Login"));
-const Signup       = lazy(() => import("./pages/Signup"));
-const Onboarding   = lazy(() => import("./pages/Onboarding"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword  = lazy(() => import("./pages/ResetPassword"));
-const Profile      = lazy(() => import("./pages/Profile"));
-const Chat         = lazy(() => import("@/pages/chat/Chat"));
-const Bhajans      = lazy(() => import("./pages/Bhajans"));
-const Mandirs      = lazy(() => import("./pages/Mandirs"));
-const Scriptures   = lazy(() => import("@/pages/scriptures/Scriptures"));
-const Identify     = lazy(() => import("./pages/Identify"));
-const PujaTracker  = lazy(() => import("./pages/PujaTracker"));
-const NotFound     = lazy(() => import("./pages/NotFound"));
+const Index        = lazyWithRetry(() => import("./pages/Index"));
+const Login        = lazyWithRetry(() => import("./pages/Login"));
+const Signup       = lazyWithRetry(() => import("./pages/Signup"));
+const Onboarding   = lazyWithRetry(() => import("./pages/Onboarding"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword  = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Profile      = lazyWithRetry(() => import("./pages/Profile"));
+const Chat         = lazyWithRetry(() => import("@/pages/chat/Chat"));
+const Bhajans      = lazyWithRetry(() => import("./pages/Bhajans"));
+const Mandirs      = lazyWithRetry(() => import("./pages/Mandirs"));
+const Scriptures   = lazyWithRetry(() => import("@/pages/scriptures/Scriptures"));
+const Identify     = lazyWithRetry(() => import("./pages/Identify"));
+const PujaTracker  = lazyWithRetry(() => import("./pages/PujaTracker"));
+const Sadhana      = lazyWithRetry(() => import("./pages/Sadhana"));
+const Kundli       = lazyWithRetry(() => import("./pages/Kundli"));
+const NotFound     = lazyWithRetry(() => import("./pages/NotFound"));
 
 // ── Shared loading fallback ────────────────────────────────────────────────────
 
@@ -100,6 +126,8 @@ const App = () => (
                   <Route path="/mandirs"         element={<Mandirs />} />
                   <Route path="/identify"        element={<Identify />} />
                   <Route path="/puja-tracker"    element={<PujaTracker />} />
+                  <Route path="/sadhana"         element={<Sadhana />} />
+                  <Route path="/kundli"          element={<ProtectedRoute><Kundli /></ProtectedRoute>} />
                   <Route path="*"                element={<NotFound />} />
                 </Routes>
               </Suspense>

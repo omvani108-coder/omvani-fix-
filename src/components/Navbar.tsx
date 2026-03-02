@@ -73,6 +73,7 @@ const Navbar = () => {
   const navigate                      = useNavigate();
   const { t }                         = useTranslations();
   const profileRef                    = useRef<HTMLDivElement>(null);
+  const mobileProfileRef              = useRef<HTMLDivElement>(null);
 
   /* scroll detection */
   useEffect(() => {
@@ -81,10 +82,13 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* close on outside click */
+  /* close on outside click — check both mobile + desktop profile wrappers */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const insideDesktop = profileRef.current?.contains(target);
+      const insideMobile  = mobileProfileRef.current?.contains(target);
+      if (!insideDesktop && !insideMobile) {
         setProfileOpen(false);
       }
     };
@@ -202,7 +206,7 @@ const Navbar = () => {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* ── Mobile left: Om circle (profile) or Om home link ──────────── */}
-        <div className="md:hidden" ref={profileRef}>
+        <div className="md:hidden" ref={mobileProfileRef}>
           {user ? (
             <div className="relative">
               <OmCircle

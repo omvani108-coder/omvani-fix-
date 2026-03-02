@@ -13,7 +13,6 @@ import UpgradeModal from "@/components/UpgradeModal";
 
 const CATEGORIES = ["All", "Bhajan", "Mantra", "Aarti", "Chalisa", "Stotra"] as const;
 const LANGUAGES = ["All", "Hindi", "Sanskrit", "Both"] as const;
-const DEITIES = ["All", "Shiva", "Vishnu", "Krishna", "Rama", "Ganesha", "Durga", "Lakshmi", "Saraswati", "Hanuman"];
 
 const categoryColors: Record<string, string> = {
   Bhajan: "bg-saffron/10 text-saffron",
@@ -30,17 +29,15 @@ const categoryColors: Record<string, string> = {
 interface BhajanEmptyStateProps {
   search:         string;
   activeCategory: string;
-  activeDeity:    string;
   activeLanguage: string;
   onReset:        () => void;
 }
 
-function BhajanEmptyState({ search, activeCategory, activeDeity, activeLanguage, onReset }: BhajanEmptyStateProps) {
+function BhajanEmptyState({ search, activeCategory, activeLanguage, onReset }: BhajanEmptyStateProps) {
   const { t } = useTranslations();
   const hasFilter =
     search ||
     activeCategory !== "All" ||
-    activeDeity !== "All" ||
     activeLanguage !== "All";
 
   return (
@@ -78,7 +75,6 @@ const Bhajans = () => {
   const [expandedLyrics,  setExpandedLyrics]  = useState<string | null>(null);
   const [expandedMeaning, setExpandedMeaning] = useState<string | null>(null);
   const [activeCategory,  setActiveCategory]  = useState<string>("All");
-  const [activeDeity,     setActiveDeity]     = useState<string>("All");
   const [activeLanguage,  setActiveLanguage]  = useState<string>("All");
   const [sandeshBhajan,   setSandeshBhajan]   = useState<Bhajan | null>(null);
   const [upgradeOpen,     setUpgradeOpen]     = useState(false);
@@ -86,7 +82,6 @@ const Bhajans = () => {
   const resetFilters = () => {
     setSearch("");
     setActiveCategory("All");
-    setActiveDeity("All");
     setActiveLanguage("All");
   };
 
@@ -98,13 +93,12 @@ const Bhajans = () => {
       b.deity.toLowerCase().includes(q) ||
       b.tags.some((t) => t.includes(q));
     const matchCategory = activeCategory === "All" || b.category === activeCategory;
-    const matchDeity = activeDeity === "All" || b.deity === activeDeity;
     const matchLanguage = activeLanguage === "All" || b.language === activeLanguage;
-    return matchSearch && matchCategory && matchDeity && matchLanguage;
+    return matchSearch && matchCategory && matchLanguage;
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {/* Header */}
@@ -167,22 +161,8 @@ const Bhajans = () => {
             ))}
           </div>
 
-          {/* Deity & Language filter row */}
+          {/* Language filter row */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {DEITIES.map((d) => (
-              <button
-                key={d}
-                onClick={() => setActiveDeity(d)}
-                className={`shrink-0 text-xs font-sans px-3 py-1 rounded-full border transition-colors ${
-                  activeDeity === d
-                    ? "bg-lotus-pink/90 text-white border-lotus-pink"
-                    : "bg-background text-muted-foreground border-border hover:border-lotus-pink/50"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-            <div className="w-px bg-border shrink-0 mx-1" />
             {LANGUAGES.map((lang) => (
               <button
                 key={lang}
@@ -211,7 +191,6 @@ const Bhajans = () => {
           <BhajanEmptyState
             search={search}
             activeCategory={activeCategory}
-            activeDeity={activeDeity}
             activeLanguage={activeLanguage}
             onReset={resetFilters}
           />

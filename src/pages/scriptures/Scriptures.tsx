@@ -761,7 +761,7 @@ export default function Scriptures() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <SeoHead title="Sacred Scriptures" description="Read the Bhagavad Gita, Upanishads and Yoga Sutras of Patanjali." canonicalPath="/scriptures" />
       <Navbar />
 
