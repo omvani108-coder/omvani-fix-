@@ -134,10 +134,15 @@ export function useSuprabhat(): SuprabhatReturn {
 
     const check = () => {
       const now   = new Date();
-      const hhmm  = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const today = getTodayKey();
 
-      if (hhmm === prefs.time && prefs.lastSentDate !== today) {
+      // Compare within a 2-minute window so polling every 60s can't miss the target
+      const [targetH, targetM] = prefs.time.split(":").map(Number);
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const targetMinutes  = targetH * 60 + targetM;
+      const withinWindow   = currentMinutes >= targetMinutes && currentMinutes <= targetMinutes + 1;
+
+      if (withinWindow && prefs.lastSentDate !== today) {
         const shloka = getDailyShloka();
         sendMorningNotification(shloka);
         updatePrefs({ lastSentDate: today });

@@ -28,8 +28,11 @@ export function useShlokaAudio({ text }: UseShlokaAudioOptions): UseShlokaAudioR
     abortRef.current?.abort();
     abortRef.current = null;
 
-    audioRef.current?.pause();
-    audioRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
 
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
@@ -53,8 +56,11 @@ export function useShlokaAudio({ text }: UseShlokaAudioOptions): UseShlokaAudioR
     abortRef.current = new AbortController();
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Missing Supabase environment variables");
+      }
 
       // Use the user's session JWT for authenticated TTS calls
       const { data: { session } } = await supabase.auth.getSession();

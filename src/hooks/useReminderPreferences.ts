@@ -33,12 +33,16 @@ export function useReminderPreferences() {
   useEffect(() => {
     if (!user) { setLoading(false); return; }
 
+    let cancelled = false;
+
     (async () => {
       const { data, error } = await supabase
         .from("reminder_preferences")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (cancelled) return;
 
       if (data && !error) {
         setPrefs({
@@ -54,6 +58,8 @@ export function useReminderPreferences() {
       }
       setLoading(false);
     })();
+
+    return () => { cancelled = true; };
   }, [user]);
 
   const savePrefs = useCallback(async (newPrefs: ReminderPreferences) => {

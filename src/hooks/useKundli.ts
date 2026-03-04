@@ -39,6 +39,21 @@ export interface RunAnalysisParams {
   kundli_image_base64?: string;
 }
 
+// ── Env vars (validated once at module level) ───────────────────────────────
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function getAuthHeaders(accessToken: string | undefined) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("Missing Supabase environment variables");
+  }
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken ?? SUPABASE_KEY}`,
+    apikey: SUPABASE_KEY,
+  };
+}
+
 // ── Hook ────────────────────────────────────────────────────────────────────
 
 export function useKundli() {
@@ -58,18 +73,12 @@ export function useKundli() {
     if (!user) return null;
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token ?? supabaseKey;
+      const headers = getAuthHeaders(session?.access_token);
 
-      const res = await fetch(`${supabaseUrl}/functions/v1/kundli-analysis`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/kundli-analysis`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          apikey: supabaseKey,
-        },
+        headers,
         body: JSON.stringify({ action: "check-eligibility" }),
       });
 
@@ -94,19 +103,13 @@ export function useKundli() {
     if (!user) return null;
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token ?? supabaseKey;
+      const headers = getAuthHeaders(session?.access_token);
 
       // Create Razorpay order via the checkout edge function
-      const res = await fetch(`${supabaseUrl}/functions/v1/razorpay-checkout`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/razorpay-checkout`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          apikey: supabaseKey,
-        },
+        headers,
         body: JSON.stringify({ plan: "kundli_analysis", amount }),
       });
 
@@ -170,19 +173,13 @@ export function useKundli() {
     abortRef.current = new AbortController();
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token ?? supabaseKey;
+      const headers = getAuthHeaders(session?.access_token);
 
-      const res = await fetch(`${supabaseUrl}/functions/v1/kundli-analysis`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/kundli-analysis`, {
         method: "POST",
         signal: abortRef.current.signal,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          apikey: supabaseKey,
-        },
+        headers,
         body: JSON.stringify({
           action: "analyse",
           ...params,

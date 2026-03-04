@@ -73,6 +73,7 @@ export function KundliHistory({ readings, onNewAnalysis }: KundliHistoryProps) {
           >
             <button
               onClick={() => setExpandedId(isExpanded ? null : reading.id)}
+              aria-expanded={isExpanded}
               className="w-full flex items-center justify-between px-4 py-3 text-left"
             >
               <div className="flex items-center gap-3 min-w-0">

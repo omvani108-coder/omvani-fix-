@@ -7,25 +7,10 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { getDailyShloka } from "@/data/landingData";
 
 const PREF_KEY = "omvani_notifications_enabled";
 const LAST_NOTIF_KEY = "omvani_last_notification_date";
-
-// Daily shlokas for notifications — rotates by day of year
-const DAILY_SHLOKAS = [
-  { verse: "Gita 2.47", text: "You have the right to perform your duties, but not to the fruits of your actions." },
-  { verse: "Gita 2.20", text: "The soul is never born nor dies at any time. It is unborn, eternal, ever-existing and primeval." },
-  { verse: "Gita 4.7",  text: "Whenever there is a decline in righteousness, I manifest Myself to restore it." },
-  { verse: "Gita 9.22", text: "To those who worship Me with devotion, I carry what they lack and preserve what they have." },
-  { verse: "Gita 18.66", text: "Abandon all varieties of religion and just surrender unto Me. I shall deliver you from all sins." },
-  { verse: "Gita 6.35", text: "The mind is restless — but it can be controlled by practice and detachment." },
-  { verse: "Gita 12.13", text: "One who is not envious but is a kind friend to all living entities is very dear to Me." },
-];
-
-function getTodayShloka() {
-  const day = Math.floor(Date.now() / 86_400_000);
-  return DAILY_SHLOKAS[day % DAILY_SHLOKAS.length];
-}
 
 function isSupported(): boolean {
   return "Notification" in window;
@@ -55,10 +40,10 @@ export function useNotifications() {
 
       // Send once per day, after 7am
       if (last !== today && hour >= 7) {
-        const shloka = getTodayShloka();
+        const shloka = getDailyShloka();
         sendNotification(
           "ॐ OmVani — Daily Shloka",
-          `${shloka.text} — ${shloka.verse}`,
+          `${shloka.meaning.slice(0, 120)}… — ${shloka.ref}`,
         );
         localStorage.setItem(LAST_NOTIF_KEY, today);
       }

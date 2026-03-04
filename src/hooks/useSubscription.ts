@@ -17,9 +17,10 @@
 //   and a user in New York at 13:30 — always aligned to India time.
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 // ── Plan types ─────────────────────────────────────────────────────────────────
 export type Plan =
@@ -116,7 +117,7 @@ export function useSubscription() {
         // Check if subscription has actually expired
         const now = new Date();
         const periodEnd = sub.current_period_end ? new Date(sub.current_period_end) : null;
-        const isExpired = periodEnd && periodEnd < now && sub.status === "active";
+        const isExpired = periodEnd && periodEnd < now && (sub.status === "active" || sub.status === "cancelled");
 
         if (isExpired) {
           setPlan("free");
@@ -183,85 +184,49 @@ export function useSubscription() {
       console.error("Failed to increment usage:", error);
       // Roll back using functional form to decrement from latest state
       setUsage(prev => ({ ...prev, [feature]: Math.max(0, (prev[feature] ?? 0) - 1) }));
+      toast.error("Could not save usage. Your limits may be out of sync.");
     }
   }, [user]);
 
-  // ── Derived plan info ─────────────────────────────────────────────────────
-  const limits       = DAILY_LIMITS[plan];
-  const isPaid       = plan !== "free";
-  const isFree       = plan === "free";
-  const isTrialing   = status === "trialing";
-  const isPro        = plan === "pro"   || plan === "pro_annual"   || plan === "family";
-  const isBasic      = plan === "basic" || plan === "basic_annual";
-  const isAnnual     = plan === "basic_annual" || plan === "pro_annual";
-  const isFamily     = plan === "family";
+  // ── Derived plan info (memoized to avoid recalculation on every render) ────
+  const derived = useMemo(() => {
+    const limits       = DAILY_LIMITS[plan];
+    const isPaid       = plan !== "free";
+    const isFree       = plan === "free";
+    const isTrialing   = status === "trialing";
+    const isPro        = plan === "pro"   || plan === "pro_annual"   || plan === "family";
+    const isBasic      = plan === "basic" || plan === "basic_annual";
+    const isAnnual     = plan === "basic_annual" || plan === "pro_annual";
+    const isFamily     = plan === "family";
 
-  // ── Remaining uses today ───────────────────────────────────────────────────
-  // These power the SOFT LIMIT warnings ("You have 1 chat left today")
-  const chatRemaining     = Math.max(0, limits.chat     - usage.chat);
-  const identifyRemaining = Math.max(0, limits.identify - usage.identify);
+    const chatRemaining     = Math.max(0, limits.chat     - usage.chat);
+    const identifyRemaining = Math.max(0, limits.identify - usage.identify);
+    const canChat     = chatRemaining     > 0;
+    const canIdentify = identifyRemaining > 0;
+    const chatWarning     = !isPro && chatRemaining     <= (isFree ? 1 : 3);
+    const identifyWarning = !isPro && identifyRemaining <= 1;
+    const bhajanLimit = limits.bhajans === Infinity ? 999 : limits.bhajans;
+    const scripturePageLimit  = SCRIPTURE_PAGES[plan];
+    const canAccessAllScriptures = isPaid;
+    const pujaHistoryDays = PUJA_HISTORY_DAYS[plan];
+    const kundliPricePerAnalysis = isPaid ? 2000 : 6000;
 
-  // ── Can use feature right now? ─────────────────────────────────────────────
-  // true = go ahead | false = show upgrade prompt
-  const canChat     = chatRemaining     > 0;
-  const canIdentify = identifyRemaining > 0;
-
-  // ── Warning thresholds (show soft warning when this many uses remain) ──────
-  // For free (3 chat limit): warn at 1 remaining
-  // For basic (30 chat limit): warn at 3 remaining
-  const chatWarning     = !isPro && chatRemaining     <= (isFree ? 1 : 3);
-  const identifyWarning = !isPro && identifyRemaining <= 1;
-
-  // ── Bhajan access ──────────────────────────────────────────────────────────
-  // Returns how many search results to show
-  const bhajanLimit = limits.bhajans === Infinity ? 999 : limits.bhajans;
-
-  // ── Scripture access ───────────────────────────────────────────────────────
-  const scripturePageLimit  = SCRIPTURE_PAGES[plan];
-  const canAccessAllScriptures = isPaid;
-
-  // ── Puja tracker ──────────────────────────────────────────────────────────
-  const pujaHistoryDays = PUJA_HISTORY_DAYS[plan];
-
-  // ── Kundli pricing ──────────────────────────────────────────────────────
-  // ₹20 (2000 paise) for paid users, ₹60 (6000 paise) for free users
-  const kundliPricePerAnalysis = isPaid ? 2000 : 6000;
+    return {
+      isPaid, isFree, isPro, isBasic, isAnnual, isFamily, isTrialing,
+      chatRemaining, identifyRemaining, canChat, canIdentify,
+      chatWarning, identifyWarning, bhajanLimit,
+      scripturePageLimit, canAccessAllScriptures, pujaHistoryDays,
+      kundliPricePerAnalysis,
+    };
+  }, [plan, status, usage.chat, usage.identify]);
 
   return {
-    // Plan info
     plan,
     status,
-    isPaid,
-    isFree,
-    isPro,
-    isBasic,
-    isAnnual,
-    isFamily,
-    isTrialing,
+    ...derived,
     trialEndsAt,
     loading,
-
-    // Usage counts
     usage,
-    chatRemaining,
-    identifyRemaining,
-
-    // Can use checks
-    canChat,
-    canIdentify,
-
-    // Soft warning flags
-    chatWarning,
-    identifyWarning,
-
-    // Feature-specific limits
-    bhajanLimit,
-    scripturePageLimit,
-    canAccessAllScriptures,
-    pujaHistoryDays,
-    kundliPricePerAnalysis,
-
-    // Actions
     incrementUsage,
     refreshSubscription: fetchData,
   };

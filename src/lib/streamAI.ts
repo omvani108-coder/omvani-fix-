@@ -9,11 +9,15 @@ export async function streamAI(
   onChunk: (text: string) => void,
   signal: AbortSignal,
 ): Promise<void> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
 
   // Use the user's session token if logged in, otherwise fall back to anon key
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string);
+  const token = session?.access_token ?? supabaseKey;
 
   const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
     method: "POST",
@@ -21,7 +25,7 @@ export async function streamAI(
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+      apikey: supabaseKey,
     },
     body: JSON.stringify({
       messages: [{ role: "user", content: prompt }],
@@ -30,7 +34,10 @@ export async function streamAI(
     }),
   });
 
-  if (!res.ok) throw new Error("Failed");
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Chat request failed (${res.status}): ${body || "Unknown error"}`);
+  }
 
   const reader = res.body?.getReader();
   const decoder = new TextDecoder();

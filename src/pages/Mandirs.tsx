@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin, Clock, Star, ExternalLink, ChevronDown, ChevronUp, Navigation, XCircle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,12 @@ import { SeoHead } from "@/components/SeoHead";
 
 const CATEGORIES = ["All", "Jyotirlinga", "Shakti Peeth", "Char Dham", "Divya Desam", "Ashtavinayak", "Famous Temple"] as const;
 const STATES = ["All States", ...Array.from(new Set(mandirs.map((m) => m.state))).sort()];
+const CATEGORY_COUNTS = {
+  Jyotirlinga: mandirs.filter((m) => m.category === "Jyotirlinga").length,
+  "Shakti Peeth": mandirs.filter((m) => m.category === "Shakti Peeth").length,
+  "Char Dham": mandirs.filter((m) => m.category === "Char Dham").length,
+  "Divya Desam": mandirs.filter((m) => m.category === "Divya Desam").length,
+};
 
 const categoryColors: Record<string, string> = {
   Jyotirlinga: "bg-saffron/15 text-saffron border-saffron/30",
@@ -129,12 +135,7 @@ const Mandirs = () => {
     return matchSearch && matchCategory && matchState;
   });
 
-  const counts = {
-    Jyotirlinga: mandirs.filter((m) => m.category === "Jyotirlinga").length,
-    "Shakti Peeth": mandirs.filter((m) => m.category === "Shakti Peeth").length,
-    "Char Dham": mandirs.filter((m) => m.category === "Char Dham").length,
-    "Divya Desam": mandirs.filter((m) => m.category === "Divya Desam").length,
-  };
+  const counts = CATEGORY_COUNTS;
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
