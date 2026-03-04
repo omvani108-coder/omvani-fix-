@@ -8,12 +8,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getDailyShloka } from "@/data/landingData";
+import { isNative, registerNativePush } from "@/lib/native";
 
 const PREF_KEY = "omvani_notifications_enabled";
 const LAST_NOTIF_KEY = "omvani_last_notification_date";
 
 function isSupported(): boolean {
-  return "Notification" in window;
+  return isNative || "Notification" in window;
 }
 
 export function useNotifications() {
@@ -74,6 +75,21 @@ export function useNotifications() {
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!supported) return false;
+
+    // Native push (Capacitor)
+    if (isNative) {
+      const token = await registerNativePush();
+      if (token) {
+        setPermission("granted");
+        // TODO: send token to your backend for server-side push
+        console.log("Native push token:", token);
+        return true;
+      }
+      setPermission("denied");
+      return false;
+    }
+
+    // Web push
     try {
       const result = await Notification.requestPermission();
       setPermission(result);

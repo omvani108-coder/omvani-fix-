@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Capacitor / iOS safe areas ─────────────────────────────────────────────── */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+body {
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+}
+/* When the native keyboard is open, remove bottom padding so content is visible */
+body.keyboard-visible {
+  padding-bottom: 0;
+}
+
 @layer base {
   :root {
     /* Warm ivory/cream base */

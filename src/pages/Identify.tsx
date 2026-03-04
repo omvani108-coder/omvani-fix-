@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SeoHead } from "@/components/SeoHead";
+import { isNative, nativeCamera } from "@/lib/native";
 
 type DeityResult = {
   name: string;
@@ -78,6 +79,20 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
       toast.error("Failed to read the image file. Please try again.");
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const handleNativeCamera = useCallback(async () => {
+    try {
+      const base64 = await nativeCamera();
+      if (base64) {
+        setImagePreview(`data:image/jpeg;base64,${base64}`);
+        setImageBase64(base64);
+        setImageMime("image/jpeg");
+        setResult(null);
+      }
+    } catch {
+      toast.error("Camera not available. Please use file upload.");
+    }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -208,7 +223,7 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
                   <Button
                     variant="hero"
                     className="flex-1 gap-2"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={isNative ? handleNativeCamera : () => fileInputRef.current?.click()}
                   >
                     <Camera className="w-4 h-4" /> Take Photo
                   </Button>
