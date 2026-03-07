@@ -1,11 +1,11 @@
 /**
  * LanguageToggle.tsx
- * A vertical pill-shaped 3-way toggle: EN / हि / த
- * Slides a highlight indicator to the active option.
- * Vertical layout prevents overlap with logo on mobile.
+ * A Globe icon button that opens a dropdown to select the app language.
  */
 
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { Globe } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LanguageToggleProps {
@@ -13,64 +13,80 @@ interface LanguageToggleProps {
 }
 
 const OPTIONS = [
-  { lang: "en" as const, label: "EN", full: "English" },
-  { lang: "hi" as const, label: "हि", full: "हिंदी"  },
-  { lang: "ta" as const, label: "த",  full: "தமிழ்"  },
+  { lang: "en" as const, label: "English",  short: "EN" },
+  { lang: "hi" as const, label: "हिंदी",    short: "हि" },
+  { lang: "ta" as const, label: "தமிழ்",    short: "த"  },
 ];
 
 export function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
   const { language, setLanguage } = useLanguage();
-  const activeIndex = OPTIONS.findIndex((o) => o.lang === language);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = OPTIONS.find((o) => o.lang === language)!;
 
   return (
-    <div
-      role="group"
-      aria-label="Select language"
-      className={`
-        relative flex flex-col items-center rounded-full p-0.5
-        ${variant === "light"
-          ? "bg-white/15 border border-white/20"
-          : "bg-secondary border border-border"
-        }
-      `}
-    >
-      {/* Sliding pill indicator — moves vertically */}
-      <motion.div
-        layout
-        transition={{ type: "spring", stiffness: 500, damping: 35 }}
-        className="absolute left-0.5 right-0.5 rounded-full bg-sacred-gradient shadow-sm pointer-events-none"
-        style={{
-          top: `calc(${activeIndex} * (100% / 3) + 2px)`,
-          height: "calc(100% / 3 - 4px)",
-        }}
-      />
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label="Change language"
+        aria-expanded={open}
+        className={`
+          flex items-center gap-1.5 rounded-full px-2.5 py-1.5
+          text-xs font-sans font-semibold transition-all duration-200
+          focus-visible:ring-2 focus-visible:ring-saffron outline-none
+          ${variant === "light"
+            ? "text-white/80 hover:text-white hover:bg-white/10"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }
+        `}
+      >
+        <Globe className="w-4 h-4" />
+        <span>{current.short}</span>
+      </button>
 
-      {OPTIONS.map(({ lang, label }) => {
-        const isActive = language === lang;
-        const ariaLabel = lang === "en" ? "Switch to English"
-                        : lang === "hi" ? "हिंदी में बदलें"
-                        : "தமிழில் மாற்றுக";
-        return (
-          <button
-            key={lang}
-            onClick={() => setLanguage(lang)}
-            aria-label={ariaLabel}
-            className={`
-              relative z-10 w-8 py-0.5 text-xs font-sans font-semibold
-              transition-colors duration-200 rounded-full text-center
-              focus-visible:ring-2 focus-visible:ring-saffron outline-none
-              ${isActive
-                ? "text-white"
-                : variant === "light"
-                  ? "text-white/60 hover:text-white/90"
-                  : "text-muted-foreground hover:text-foreground"
-              }
-            `}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.12 }}
+            className="absolute right-0 top-full mt-1.5 w-36 bg-card border border-border
+                       rounded-xl shadow-lg overflow-hidden z-50"
           >
-            {label}
-          </button>
-        );
-      })}
+            {OPTIONS.map(({ lang, label, short }) => {
+              const isActive = language === lang;
+              return (
+                <button
+                  key={lang}
+                  onClick={() => { setLanguage(lang); setOpen(false); }}
+                  className={`
+                    w-full flex items-center justify-between px-3.5 py-2.5
+                    text-sm font-sans transition-colors text-left
+                    ${isActive
+                      ? "bg-saffron/10 text-saffron font-semibold"
+                      : "text-foreground hover:bg-muted"
+                    }
+                  `}
+                >
+                  <span>{label}</span>
+                  <span className="text-xs text-muted-foreground">{short}</span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
