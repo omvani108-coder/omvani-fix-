@@ -15,12 +15,26 @@ const IDENTIFY_LIMITS: Record<string, number> = {
 };
 
 const ALLOWED_ORIGINS = [
+  "https://omvani.in",
+  "https://www.omvani.in",
   "https://omvani.app",
   "https://omvani.vercel.app",
   "https://dharma-companion.vercel.app",
   "http://localhost:8080",
 ];
+```
 
+### Step 3 — Do the Same for ALL Other Edge Functions
+
+You need to fix this in **all 7 edge functions** that have ALLOWED_ORIGINS. Go to each file and add the same 2 lines:
+```
+supabase/functions/chat/index.ts
+supabase/functions/razorpay-checkout/index.ts
+supabase/functions/identify-deity/index.ts
+supabase/functions/kundli-analysis/index.ts
+supabase/functions/elevenlabs-tts/index.ts
+supabase/functions/elevenlabs-stt/index.ts
+supabase/functions/send-reminders/index.ts
 function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
   if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
