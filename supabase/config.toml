@@ -15,5 +15,14 @@ verify_jwt = false
 [functions.send-reminders]
 verify_jwt = false
 
+[functions.razorpay-checkout]
+verify_jwt = false
+
+[functions.kundli-analysis]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
+
 [functions.razorpay-webhook]
-verify_jwt = false # Razorpay sends no JWT - we verify their HMAC signature instead 
+verify_jwt = false # Razorpay sends no JWT - we verify their HMAC signature instead
