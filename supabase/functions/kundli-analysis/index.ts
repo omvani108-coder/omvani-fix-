@@ -12,7 +12,6 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8080",
 ];
 
-
 function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
   if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;

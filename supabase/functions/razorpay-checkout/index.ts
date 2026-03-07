@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
   "https://www.omvani.in",
@@ -8,8 +9,6 @@ const ALLOWED_ORIGINS = [
   "https://dharma-companion.vercel.app",
   "http://localhost:8080",
 ];
-
-
 
 function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;

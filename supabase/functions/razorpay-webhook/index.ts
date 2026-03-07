@@ -2,8 +2,16 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  
 // Webhook is called by Razorpay servers (not browsers), but we restrict CORS anyway
+const ALLOWED_ORIGINS = [
+  "https://omvani.in",
+  "https://www.omvani.in",
+  "https://omvani.app",
+  "https://omvani.vercel.app",
+  "https://dharma-companion.vercel.app",
+];
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://omvani.vercel.app",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0],
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-razorpay-signature",
 };
  
