@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, BellOff, Globe, Eye, EyeOff, CheckCircle, Moon, Sun, Sunrise, Clock, Crown } from "lucide-react";
+import { User, Mail, Lock, LogOut, ChevronRight, Shield, Bell, BellOff, Globe, Eye, EyeOff, CheckCircle, Moon, Sun, Sunrise, Clock, Crown, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +41,9 @@ export default function Profile() {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Seeker";
   const email = user?.email || "";
@@ -81,6 +84,35 @@ export default function Profile() {
       setTimeout(() => setPasswordSuccess(false), 3000);
     }
     setPasswordLoading(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleteLoading(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete account");
+      }
+      await supabase.auth.signOut();
+      navigate("/");
+      toast.success(tx("Account deleted. We're sorry to see you go.", "खाता हटा दिया गया।", "கணக்கு நீக்கப்பட்டது."));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete account. Please try again.");
+    } finally {
+      setDeleteLoading(false);
+      setDeleteConfirmOpen(false);
+    }
   };
 
   return (
@@ -580,8 +612,21 @@ export default function Profile() {
           </div>
         </motion.div>
 
+        {/* Legal Links */}
+        <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}
+          className="flex justify-center gap-4 text-xs font-sans text-muted-foreground"
+        >
+          <Link to="/privacy" className="hover:text-saffron hover:underline">
+            {tx("Privacy Policy", "गोपनीयता नीति", "தனியுரிமைக் கொள்கை")}
+          </Link>
+          <span className="text-border">|</span>
+          <Link to="/terms" className="hover:text-saffron hover:underline">
+            {tx("Terms of Service", "सेवा की शर्तें", "சேவை விதிமுறைகள்")}
+          </Link>
+        </motion.div>
+
         {/* Sign Out */}
-        <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
+        <motion.div initial="hidden" animate="visible" custom={9} variants={fadeUp}>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border border-border bg-card text-muted-foreground hover:text-red-500 hover:border-red-200 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all duration-200 font-sans text-sm font-medium"
@@ -589,6 +634,68 @@ export default function Profile() {
             <LogOut className="w-4 h-4" />
             {tx("Sign Out", "साइन आउट करें", "வெளியேறு")}
           </button>
+        </motion.div>
+
+        {/* Delete Account */}
+        <motion.div initial="hidden" animate="visible" custom={10} variants={fadeUp}>
+          {!deleteConfirmOpen ? (
+            <button
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl border border-red-200 dark:border-red-900/40 bg-card text-red-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all duration-200 font-sans text-xs font-medium"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {tx("Delete Account", "खाता हटाएं", "கணக்கை நீக்கு")}
+            </button>
+          ) : (
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-2xl p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-sans font-semibold text-red-700 dark:text-red-400">
+                    {tx("This action cannot be undone", "यह क्रिया पूर्ववत नहीं हो सकती", "இந்த செயலை மீட்க முடியாது")}
+                  </p>
+                  <p className="text-xs font-sans text-red-600/70 dark:text-red-400/70 mt-1">
+                    {tx(
+                      "All your data including conversations, puja history, and subscription will be permanently deleted.",
+                      "आपकी सभी बातचीत, पूजा इतिहास और सदस्यता स्थायी रूप से हटा दी जाएगी।",
+                      "உரையாடல்கள், பூஜை வரலாறு மற்றும் சந்தா உள்ளிட்ட அனைத்து தரவும் நிரந்தரமாக நீக்கப்படும்."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <Label className="font-sans text-xs text-red-600 dark:text-red-400">
+                  {tx('Type "DELETE" to confirm', '"DELETE" टाइप करें', '"DELETE" என்று தட்டச்சு செய்யவும்')}
+                </Label>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="DELETE"
+                  className="mt-1 border-red-200 dark:border-red-800 focus:ring-red-400"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 font-sans text-xs"
+                  onClick={() => { setDeleteConfirmOpen(false); setDeleteConfirmText(""); }}
+                >
+                  {tx("Cancel", "रद्द करें", "ரத்து")}
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-sans text-xs"
+                  disabled={deleteConfirmText !== "DELETE" || deleteLoading}
+                  onClick={handleDeleteAccount}
+                >
+                  {deleteLoading
+                    ? tx("Deleting...", "हटा रहे हैं...", "நீக்குகிறோம்...")
+                    : tx("Permanently Delete", "स्थायी रूप से हटाएं", "நிரந்தரமாக நீக்கு")}
+                </Button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
       </div>

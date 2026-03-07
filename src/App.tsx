@@ -57,6 +57,7 @@ const Identify     = lazyWithRetry(() => import("./pages/Identify"));
 const PujaTracker  = lazyWithRetry(() => import("./pages/PujaTracker"));
 const Sadhana      = lazyWithRetry(() => import("./pages/Sadhana"));
 const Kundli       = lazyWithRetry(() => import("./pages/Kundli"));
+const Legal        = lazyWithRetry(() => import("./pages/Legal"));
 const NotFound     = lazyWithRetry(() => import("./pages/NotFound"));
 
 // ── Shared loading fallback ────────────────────────────────────────────────────
@@ -128,6 +129,8 @@ const App = () => (
                   <Route path="/puja-tracker"    element={<PujaTracker />} />
                   <Route path="/sadhana"         element={<Sadhana />} />
                   <Route path="/kundli"          element={<Kundli />} />
+                  <Route path="/privacy"         element={<Legal />} />
+                  <Route path="/terms"           element={<Legal />} />
                   <Route path="*"                element={<NotFound />} />
                 </Routes>
               </Suspense>
