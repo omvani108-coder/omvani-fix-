@@ -62,10 +62,10 @@ Note: OmVani uses AI to interpret Hindu scriptures. Responses are for spiritual 
 hindu,gita,spiritual,AI,mantra,bhajan,puja,temple,kundli,vedic,meditation,dharma,prayer,guru,yoga
 
 ## Support URL
-https://omvani.app/terms
+https://omvani.in/terms
 
 ## Privacy Policy URL
-https://omvani.app/privacy
+https://omvani.in/privacy
 
 ## Copyright
 © 2026 OmVani

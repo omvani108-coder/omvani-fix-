@@ -529,7 +529,7 @@ export function DivyaSandeshModal({
     if (!navigator.share) { toast.error("Sharing not supported on this browser"); return; }
     setSharing(true);
     try {
-      const shareData: ShareData = { title: `ॐVani — ${title}`, text: shareText, url: "https://omvani.app" };
+      const shareData: ShareData = { title: `ॐVani — ${title}`, text: shareText, url: "https://omvani.in" };
       // If we have a canvas URL, convert to Blob for richer sharing
       if (cardUrl) {
         const blob = await (await fetch(cardUrl)).blob();

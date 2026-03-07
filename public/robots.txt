@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://omvani.app/sitemap.xml
+Sitemap: https://omvani.in/sitemap.xml

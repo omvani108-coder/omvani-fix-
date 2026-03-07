@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://omvani.app/</loc>
+    <loc>https://omvani.in/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://omvani.app/chat</loc>
+    <loc>https://omvani.in/chat</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://omvani.app/scriptures</loc>
+    <loc>https://omvani.in/scriptures</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://omvani.app/bhajans</loc>
+    <loc>https://omvani.in/bhajans</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://omvani.app/sadhana</loc>
+    <loc>https://omvani.in/sadhana</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://omvani.app/identify</loc>
+    <loc>https://omvani.in/identify</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://omvani.app/kundli</loc>
+    <loc>https://omvani.in/kundli</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://omvani.app/mandirs</loc>
+    <loc>https://omvani.in/mandirs</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://omvani.app/login</loc>
+    <loc>https://omvani.in/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://omvani.app/signup</loc>
+    <loc>https://omvani.in/signup</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
