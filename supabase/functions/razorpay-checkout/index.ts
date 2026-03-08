@@ -139,13 +139,13 @@ serve(async (req) => {
 
     // ── Special case: Kundli one-time analysis payment ──────────────────
     if (plan === "kundli_analysis") {
-      const validAmounts = [2000, 6000]; // ₹20 (subscriber) or ₹60 (free plan)
-      const amt = typeof kundliAmount === "number" ? kundliAmount : 6000;
+      const validAmounts = [7900]; // ₹79 flat for all users
+      const amt = typeof kundliAmount === "number" ? kundliAmount : 7900;
       if (!validAmounts.includes(amt)) {
         return jsonResponse({ error: "Invalid kundli amount" }, corsHeaders, 400);
       }
       const kundliKeyId = Deno.env.get("RAZORPAY_KEY_ID")!;
-      const priceTier = amt === 2000 ? "subscriber" : "standard";
+      const priceTier = "standard";
       const kundliData = await razorpayRequest("/orders", {
         amount: amt,
         currency: "INR",

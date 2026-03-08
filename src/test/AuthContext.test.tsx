@@ -148,7 +148,7 @@ describe("AuthContext — initial state", () => {
 describe("AuthContext — getPostLoginPath", () => {
   beforeEach(() => { capturedListener = null; });
 
-  it("routes to /chat when onboarding_complete is true", async () => {
+  it("routes to /home when onboarding_complete is true", async () => {
     let capturedPath = "";
     function PathConsumer() {
       const { getPostLoginPath, user } = useAuth();

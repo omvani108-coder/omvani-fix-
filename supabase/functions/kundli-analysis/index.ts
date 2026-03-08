@@ -1,49 +1,13 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// ── CORS ────────────────────────────────────────────────────────────────────
-
-const ALLOWED_ORIGINS = [
-  "https://omvani.in",
-  "https://www.omvani.in",
-  "https://omvani.vercel.app",
-  "https://dharma-companion.vercel.app",
-  "http://localhost:8080",
-];
-
-function isAllowedOrigin(origin: string): boolean {
-  if (ALLOWED_ORIGINS.includes(origin)) return true;
-  if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/dharma-companion[\w-]*\.vercel\.app$/.test(origin)) return true;
-  return false;
-}
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") ?? "";
-  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  };
-}
-
-// ── Valid lenses ────────────────────────────────────────────────────────────
-
-const VALID_LENSES = [
-  "love", "career", "wealth", "health", "future", "spiritual", "marriage", "family",
-] as const;
-
-const LENS_LABELS: Record<string, string> = {
-  love: "Love & Relationships",
-  career: "Career & Success",
-  wealth: "Wealth & Prosperity",
-  health: "Health & Vitality",
-  future: "Future & Destiny",
-  spiritual: "Spiritual Path",
-  marriage: "Marriage & Partnership",
-  family: "Family & Children",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import {
+  VALID_LENSES,
+  LENS_LABELS,
+  KUNDLI_PRICE_PER_ANALYSIS,
+  MONTHLY_FREE,
+  buildSystemPrompt,
+} from "./logic.ts";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,50 +20,6 @@ function jsonResponse(
     status,
     headers: { ...cors, "Content-Type": "application/json" },
   });
-}
-
-// ── System prompt builder ───────────────────────────────────────────────────
-
-function buildSystemPrompt(
-  fullName: string,
-  dateOfBirth: string,
-  timeOfBirth: string | null,
-  placeOfBirth: string,
-  lens: string,
-): string {
-  const lensLabel = LENS_LABELS[lens] ?? lens;
-  const lensDescription = lensLabel;
-
-  return `You are Jyotish Guru, an expert in Vedic astrology (Jyotish Shastra) with deep knowledge of \
-Parashari and Jaimini systems, the Brihat Parashara Hora Shastra, nakshatras, dashas, and \
-divisional charts.
-
-A seeker has come to you for a kundli (birth chart) reading.
-
-Seeker's details:
-- Name: ${fullName}
-- Date of Birth: ${dateOfBirth}
-- Time of Birth: ${timeOfBirth || "unknown"}
-- Place of Birth: ${placeOfBirth}
-- Analysis requested: ${lensDescription}
-
-Provide a detailed, insightful Vedic astrology analysis focused specifically on ${lensDescription}.
-
-Structure your response as follows:
-1. **Lagna & Key Planetary Positions** — briefly describe the ascendant and the most significant planetary influences relevant to this lens
-2. **Core Reading** — the main detailed analysis for ${lensLabel} (3-5 paragraphs, specific and personal)
-3. **Favourable Periods** — upcoming dasha/antardasha periods that support this area of life
-4. **Remedies & Mantras** — 2-3 specific Vedic remedies (gemstones, fasting days, mantras, donations) tailored to strengthen the relevant planets
-5. **Closing Blessing** — a short uplifting closure in the spirit of Jyotish
-
-If birth time is unknown, clearly note that rising sign (lagna) cannot be determined, and base the reading on Chandra Lagna (Moon as ascendant) instead.
-
-Respond in the language of the user's request. Be warm, compassionate, and specific — not generic.
-
-Cite relevant Sanskrit shlokas from Brihat Parashara Hora Shastra or Phaladeepika where appropriate. Format using markdown-style bold headings (** **) that the frontend will render.
-
-IMPORTANT: Do not make specific date predictions. Frame insights as tendencies and energies, \
-not certainties. Include a brief note that Jyotish is a guide, not a deterministic system.`;
 }
 
 // ── Main handler ────────────────────────────────────────────────────────────
@@ -159,16 +79,7 @@ serve(async (req) => {
       const isPaidPlan =
         plan !== "free" &&
         ["basic", "basic_annual", "pro", "pro_annual", "family"].includes(plan);
-      const pricePerAnalysis = 7900; // ₹79 flat for all users
-
-      // Monthly free allowances per plan
-      const MONTHLY_FREE: Record<string, number> = {
-        basic: 1,
-        basic_annual: 1,
-        pro: 2,
-        pro_annual: 2,
-        family: 2,
-      };
+      const pricePerAnalysis = KUNDLI_PRICE_PER_ANALYSIS;
       const monthlyAllowance = MONTHLY_FREE[plan] ?? 0;
 
       // Count this month's readings (IST timezone)
@@ -186,14 +97,15 @@ serve(async (req) => {
           .from("kundli_analyses")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id)
+          .eq("is_free", true)
           .gte("created_at", monthStart)
           .lt("created_at", nextMonth);
 
         if (countErr) {
           console.error("Monthly kundli count error:", countErr);
         }
-        const monthlyReadings = count ?? 0;
-        monthlyFreeRemaining = Math.max(0, monthlyAllowance - monthlyReadings);
+        const monthlyFreeReadings = count ?? 0;
+        monthlyFreeRemaining = Math.max(0, monthlyAllowance - monthlyFreeReadings);
       }
 
       return jsonResponse(
@@ -257,10 +169,6 @@ serve(async (req) => {
           .maybeSingle();
         const checkPlan = (subCheck?.plan as string) ?? "free";
 
-        // Monthly free allowances
-        const MONTHLY_FREE: Record<string, number> = {
-          basic: 1, basic_annual: 1, pro: 2, pro_annual: 2, family: 2,
-        };
         const monthlyAllowance = MONTHLY_FREE[checkPlan] ?? 0;
 
         let monthlyFreeEligible = false;
@@ -277,6 +185,7 @@ serve(async (req) => {
             .from("kundli_analyses")
             .select("id", { count: "exact", head: true })
             .eq("user_id", user.id)
+            .eq("is_free", true)
             .gte("created_at", monthStart)
             .lt("created_at", nextMonth);
 
@@ -293,34 +202,12 @@ serve(async (req) => {
       }
 
       // Determine payment amount — ₹79 flat (7900 paise) for paid analyses
-      const paymentAmount = is_free ? 0 : 7900;
+      const paymentAmount = is_free ? 0 : KUNDLI_PRICE_PER_ANALYSIS;
 
-      // Create the analysis row
-      const { data: analysisRow, error: insertErr } = await supabase
-        .from("kundli_analyses")
-        .insert({
-          user_id: user.id,
-          full_name,
-          date_of_birth,
-          time_of_birth: time_of_birth || null,
-          place_of_birth,
-          lens,
-          is_free: is_free === true,
-          razorpay_payment_id: razorpay_payment_id || null,
-          payment_amount: paymentAmount,
-          payment_status: is_free ? "free" : "paid",
-        })
-        .select("id")
-        .single();
-
-      if (insertErr) {
-        console.error("Insert kundli_analyses error:", insertErr);
-        return jsonResponse({ error: "Failed to create analysis record" }, CORS, 500);
-      }
-
-      const analysisId = analysisRow.id;
-
-      // ── Call Anthropic API ────────────────────────────────────────────
+      // ── Call Anthropic API FIRST ──────────────────────────────────────
+      // We call the API before inserting the DB row so that if the API
+      // fails, we don't consume the user's free allowance with nothing
+      // to show for it.
       const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
       if (!anthropicKey) {
         return jsonResponse(
@@ -377,6 +264,31 @@ serve(async (req) => {
       if (!response.body) {
         throw new Error("Anthropic response did not include a stream body");
       }
+
+      // ── Anthropic responded OK — now safe to insert DB row ──────────
+      const { data: analysisRow, error: insertErr } = await supabase
+        .from("kundli_analyses")
+        .insert({
+          user_id: user.id,
+          full_name,
+          date_of_birth,
+          time_of_birth: time_of_birth || null,
+          place_of_birth,
+          lens,
+          is_free: is_free === true,
+          razorpay_payment_id: razorpay_payment_id || null,
+          payment_amount: paymentAmount,
+          payment_status: is_free ? "free" : "paid",
+        })
+        .select("id")
+        .single();
+
+      if (insertErr) {
+        console.error("Insert kundli_analyses error:", insertErr);
+        return jsonResponse({ error: "Failed to create analysis record" }, CORS, 500);
+      }
+
+      const analysisId = analysisRow.id;
 
       // ── Stream response (same pattern as chat edge function) ──────────
       let fullResult = "";

@@ -1,7 +1,7 @@
 /**
  * Unit tests for the kundli-analysis edge function logic.
  *
- * Run with: deno test supabase/functions/kundli-analysis/index.test.ts --allow-env
+ * Run with: deno test supabase/functions/kundli-analysis/index.test.ts --allow-env --allow-net
  *
  * These tests verify:
  *   1. CORS origin validation
@@ -17,62 +17,15 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-// ── Inline the functions/constants we're testing ────────────────────────────
-
-const ALLOWED_ORIGINS = [
-  "https://omvani.in",
-  "https://www.omvani.in",
-  "https://omvani.vercel.app",
-  "https://dharma-companion.vercel.app",
-  "http://localhost:8080",
-];
-
-function isAllowedOrigin(origin: string): boolean {
-  if (ALLOWED_ORIGINS.includes(origin)) return true;
-  if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/dharma-companion[\w-]*\.vercel\.app$/.test(origin)) return true;
-  return false;
-}
-
-const VALID_LENSES = [
-  "love", "career", "wealth", "health", "future", "spiritual", "marriage", "family",
-] as const;
-
-const LENS_LABELS: Record<string, string> = {
-  love: "Love & Relationships",
-  career: "Career & Success",
-  wealth: "Wealth & Prosperity",
-  health: "Health & Vitality",
-  future: "Future & Destiny",
-  spiritual: "Spiritual Path",
-  marriage: "Marriage & Partnership",
-  family: "Family & Children",
-};
-
-function buildSystemPrompt(
-  fullName: string,
-  dateOfBirth: string,
-  timeOfBirth: string | null,
-  placeOfBirth: string,
-  lens: string,
-): string {
-  const lensLabel = LENS_LABELS[lens] ?? lens;
-  return `You are Jyotish Guru, an expert in Vedic astrology.
-Seeker's details:
-- Name: ${fullName}
-- Date of Birth: ${dateOfBirth}
-- Time of Birth: ${timeOfBirth || "unknown"}
-- Place of Birth: ${placeOfBirth}
-- Analysis requested: ${lensLabel}`;
-}
-
-const MONTHLY_FREE: Record<string, number> = {
-  basic: 1,
-  basic_annual: 1,
-  pro: 2,
-  pro_annual: 2,
-  family: 2,
-};
+// ── Import directly from source — no copy-paste ─────────────────────────────
+import { isAllowedOrigin } from "../_shared/cors.ts";
+import {
+  VALID_LENSES,
+  LENS_LABELS,
+  KUNDLI_PRICE_PER_ANALYSIS,
+  MONTHLY_FREE,
+  buildSystemPrompt,
+} from "./logic.ts";
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
@@ -148,9 +101,10 @@ Deno.test("buildSystemPrompt — handles unknown lens gracefully", () => {
   assertStringIncludes(prompt, "nonexistent");
 });
 
+// This now tests the ACTUAL exported constant from the source code,
+// not a local copy. If the edge function price changes, this test catches it.
 Deno.test("Pricing — flat ₹79 (7900 paise) for all users", () => {
-  const pricePerAnalysis = 7900;
-  assertEquals(pricePerAnalysis, 7900);
+  assertEquals(KUNDLI_PRICE_PER_ANALYSIS, 7900);
 });
 
 Deno.test("Monthly free allowances — free plan gets 0", () => {

@@ -17,12 +17,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  test: {
-    // Use jsdom so React components and browser APIs work in tests
-    environment: "jsdom",
-    // Make vitest globals (describe, it, expect, vi) available without importing
-    globals: true,
-    // Run the jest-dom matchers setup before every test file
-    setupFiles: ["./src/test/setup.ts"],
-  },
 });

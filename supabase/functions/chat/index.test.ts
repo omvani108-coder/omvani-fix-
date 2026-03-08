@@ -1,7 +1,7 @@
 /**
  * Unit tests for the chat edge function logic.
  *
- * Run with: deno test supabase/functions/chat/index.test.ts --allow-env
+ * Run with: deno test supabase/functions/chat/index.test.ts --allow-env --allow-net
  *
  * These tests verify:
  *   1. CORS origin validation (allowlist + regex patterns)
@@ -16,47 +16,9 @@ import {
   assert,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-// ── Inline the functions we're testing (extracted from index.ts) ─────────────
-
-const ALLOWED_ORIGINS = [
-  "https://omvani.in",
-  "https://www.omvani.in",
-  "https://omvani.vercel.app",
-  "https://dharma-companion.vercel.app",
-  "http://localhost:8080",
-];
-
-function isAllowedOrigin(origin: string): boolean {
-  if (ALLOWED_ORIGINS.includes(origin)) return true;
-  if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/dharma-companion[\w-]*\.vercel\.app$/.test(origin)) return true;
-  return false;
-}
-
-const CHAT_LIMITS: Record<string, number> = {
-  free:         3,
-  basic:        10,
-  basic_annual: 10,
-  pro:          20,
-  pro_annual:   20,
-  family:       20,
-};
-
-function getTodayIST(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-}
-
-const SYSTEM_PROMPT = `You are OmVani, a deeply knowledgeable and compassionate AI spiritual guide rooted in Hindu scripture.`;
-
-function buildSystemPrompt(language: string): string {
-  const langInstruction =
-    language === "hi"
-      ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
-      : language === "ta"
-      ? "\n\nIMPORTANT: The user has selected Tamil. You MUST respond entirely in Tamil script (தமிழ்)."
-      : "";
-  return SYSTEM_PROMPT + langInstruction;
-}
+// ── Import directly from source — no copy-paste ─────────────────────────────
+import { ALLOWED_ORIGINS, isAllowedOrigin } from "../_shared/cors.ts";
+import { CHAT_LIMITS, getTodayIST, SYSTEM_PROMPT, buildSystemPrompt } from "./logic.ts";
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
@@ -127,5 +89,5 @@ Deno.test("buildSystemPrompt — Tamil adds Tamil instruction", () => {
   const prompt = buildSystemPrompt("ta");
   assert(prompt.includes("OmVani"));
   assert(prompt.includes("Tamil"));
-  assert(prompt.includes("தமிழ்"));
+  assert(prompt.includes("\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD"));
 });

@@ -1,70 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// ── IST date helper (same logic as useSubscription.ts) ──────────────────────
-function getTodayIST(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-}
-
-// ── Daily chat limits per plan ──────────────────────────────────────────────
-const CHAT_LIMITS: Record<string, number> = {
-  free:         3,
-  basic:        10,
-  basic_annual: 10,
-  pro:          20,
-  pro_annual:   20,
-  family:       20,
-};
-
-const ALLOWED_ORIGINS = [
-  "https://omvani.in",
-  "https://www.omvani.in",
-  "https://omvani.vercel.app",
-  "https://dharma-companion.vercel.app",
-  "http://localhost:8080",
-];
-
-function isAllowedOrigin(origin: string): boolean {
-  if (ALLOWED_ORIGINS.includes(origin)) return true;
-  // Allow Vercel preview deployments
-  if (/^https:\/\/[\w-]+-omvani[\w-]*\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/dharma-companion[\w-]*\.vercel\.app$/.test(origin)) return true;
-  return false;
-}
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") ?? "";
-  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  };
-}
-
-// ── Server-side system prompt (NEVER accept from client) ──────────────────
-const SYSTEM_PROMPT = `You are OmVani, a deeply knowledgeable and compassionate AI spiritual guide rooted in Hindu scripture. You speak with the warmth of a guru and the precision of a scholar.
-
-RULES:
-1. Every answer must be grounded in specific scriptures: Bhagavad Gita, Upanishads, Vedas, or Puranas.
-2. Always cite the exact source (e.g. "Bhagavad Gita 2.47") after any reference.
-3. Include the original Sanskrit shloka when directly quoting, followed by transliteration and meaning.
-4. Speak with compassion, never judgement. Meet the seeker where they are.
-5. Keep answers focused — deep but not overwhelming. 3-5 paragraphs maximum.
-6. End every response with a single actionable spiritual insight the seeker can apply today.
-7. Always respond in the same language the user writes in (Hindi or English).
-8. Format scripture references at the end of your response as: [REF: Scripture Name Chapter.Verse]
-
-You are not a replacement for a living guru. You are a bridge to the wisdom of the scriptures.`;
-
-function buildSystemPrompt(language: string): string {
-  const langInstruction =
-    language === "hi"
-      ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
-      : language === "ta"
-      ? "\n\nIMPORTANT: The user has selected Tamil. You MUST respond entirely in Tamil script (தமிழ்). Do not use English except for proper nouns like scripture names."
-      : "";
-  return SYSTEM_PROMPT + langInstruction;
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { CHAT_LIMITS, getTodayIST, buildSystemPrompt } from "./logic.ts";
 
 serve(async (req) => {
   const CORS = getCorsHeaders(req);

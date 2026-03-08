@@ -77,13 +77,9 @@ test.describe("Feature pages load", () => {
 });
 
 test.describe("404 handling", () => {
-  test("unknown route shows fallback", async ({ page }) => {
+  test("unknown route shows 404 page", async ({ page }) => {
     await page.goto("/this-page-does-not-exist");
-    // SPA should either show 404 or redirect to landing
-    await page.waitForTimeout(1000);
-    const url = page.url();
-    const body = await page.locator("body").textContent();
-    // Either we're on a known page (redirected) or see error content
-    expect(url || body).toBeTruthy();
+    // NotFound.tsx renders "Page Not Found"
+    await expect(page.locator("body")).toContainText("Page Not Found");
   });
 });
