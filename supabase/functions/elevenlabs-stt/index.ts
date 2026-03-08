@@ -56,6 +56,34 @@ serve(async (req) => {
       });
     }
 
+    // ── Check daily STT usage limit ──────────────────────────────────────
+    const STT_LIMITS: Record<string, number> = {
+      free: 5, basic: 20, basic_annual: 20,
+      // pro, pro_annual, family → unlimited (not in map)
+    };
+
+    const { data: sub } = await supabase
+      .from("subscriptions").select("plan")
+      .eq("user_id", user.id).maybeSingle();
+    const plan = (sub?.plan as string) ?? "free";
+
+    const todayIST = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const sttLimit = STT_LIMITS[plan];
+
+    if (sttLimit !== undefined) {
+      const { data: usageRow } = await supabase
+        .from("usage_logs").select("count")
+        .eq("user_id", user.id).eq("feature", "stt").eq("date_ist", todayIST)
+        .maybeSingle();
+
+      if ((usageRow?.count ?? 0) >= sttLimit) {
+        return new Response(JSON.stringify({ error: "Daily STT limit reached" }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const formData = await req.formData();
     const audioFile = formData.get("audio");
     const language = formData.get("language") as string || "en";
@@ -96,6 +124,15 @@ serve(async (req) => {
     }
 
     const transcription = await response.json();
+
+    // Increment STT usage after successful transcription
+    if (sttLimit !== undefined) {
+      await supabase.rpc("increment_usage", {
+        p_user_id: user.id, p_feature: "stt", p_date_ist: todayIST,
+      }).then(({ error: incErr }) => {
+        if (incErr) console.error("Failed to increment STT usage:", incErr);
+      });
+    }
 
     return new Response(JSON.stringify(transcription), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

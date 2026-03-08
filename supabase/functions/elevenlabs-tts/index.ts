@@ -56,6 +56,34 @@ serve(async (req) => {
       });
     }
 
+    // ── Check daily TTS usage limit ──────────────────────────────────────
+    const TTS_LIMITS: Record<string, number> = {
+      free: 5, basic: 20, basic_annual: 20,
+      // pro, pro_annual, family → unlimited (not in map)
+    };
+
+    const { data: sub } = await supabase
+      .from("subscriptions").select("plan")
+      .eq("user_id", user.id).maybeSingle();
+    const plan = (sub?.plan as string) ?? "free";
+
+    const todayIST = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const ttsLimit = TTS_LIMITS[plan];
+
+    if (ttsLimit !== undefined) {
+      const { data: usageRow } = await supabase
+        .from("usage_logs").select("count")
+        .eq("user_id", user.id).eq("feature", "tts").eq("date_ist", todayIST)
+        .maybeSingle();
+
+      if ((usageRow?.count ?? 0) >= ttsLimit) {
+        return new Response(JSON.stringify({ error: "Daily TTS limit reached" }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { text, voiceId } = await req.json();
 
     if (!text || typeof text !== "string" || !text.trim()) {
@@ -97,6 +125,15 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Text-to-speech failed" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Increment TTS usage after successful response
+    if (ttsLimit !== undefined) {
+      await supabase.rpc("increment_usage", {
+        p_user_id: user.id, p_feature: "tts", p_date_ist: todayIST,
+      }).then(({ error: incErr }) => {
+        if (incErr) console.error("Failed to increment TTS usage:", incErr);
       });
     }
 

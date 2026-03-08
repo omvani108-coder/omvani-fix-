@@ -110,6 +110,15 @@ serve(async (req) => {
       });
     }
 
+    // Reject oversized images to prevent excessive API token costs
+    // 5MB base64 ≈ 3.75MB raw image
+    if (imageBase64.length > 5_000_000) {
+      return new Response(JSON.stringify({ error: "Image too large. Please use an image under 4MB." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!anthropicKey) throw new Error("ANTHROPIC_API_KEY is not configured");
 

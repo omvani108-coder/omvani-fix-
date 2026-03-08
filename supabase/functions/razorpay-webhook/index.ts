@@ -56,17 +56,29 @@ serve(async (req) => {
   if (event.event === "subscription.activated") {
     const sub = event.payload.subscription.entity;
     const userId = sub.notes?.supabase_user_id;
-    const planKey = PLAN_MAP[sub.plan_id] ?? "basic";
- 
-    if (userId) {
-      await supabase.from("subscriptions").upsert({
-        user_id: userId,
-        plan: planKey,
-        status: "active",
-        razorpay_subscription_id: sub.id,
-        current_period_end: new Date(sub.current_end * 1000).toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
+    const planKey = PLAN_MAP[sub.plan_id];
+
+    if (!planKey) {
+      console.error(`Unknown Razorpay plan_id: ${sub.plan_id}`);
+      return new Response("Unknown plan_id", { status: 400 });
+    }
+    if (!userId) {
+      console.error("Missing supabase_user_id in subscription notes");
+      return new Response("Missing user_id", { status: 400 });
+    }
+
+    const { error } = await supabase.from("subscriptions").upsert({
+      user_id: userId,
+      plan: planKey,
+      status: "active",
+      razorpay_subscription_id: sub.id,
+      current_period_end: new Date(sub.current_end * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+    if (error) {
+      console.error("Failed to upsert subscription:", error);
+      return new Response("Database error", { status: 500 });
     }
   }
  
@@ -80,7 +92,7 @@ serve(async (req) => {
       const periodEnd = new Date();
       periodEnd.setFullYear(periodEnd.getFullYear() + 1);
  
-      await supabase.from("subscriptions").upsert({
+      const { error } = await supabase.from("subscriptions").upsert({
         user_id: userId,
         plan: planKey,
         status: "active",
@@ -88,19 +100,29 @@ serve(async (req) => {
         current_period_end: periodEnd.toISOString(),
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
+
+      if (error) {
+        console.error("Failed to upsert payment subscription:", error);
+        return new Response("Database error", { status: 500 });
+      }
     }
   }
- 
+
   // 5. Handle subscription.halted / cancelled
   if (["subscription.halted", "subscription.cancelled"].includes(event.event)) {
     const sub = event.payload.subscription.entity;
     const userId = sub.notes?.supabase_user_id;
- 
+
     if (userId) {
-      await supabase.from("subscriptions").update({
+      const { error } = await supabase.from("subscriptions").update({
         status: "cancelled",
         updated_at: new Date().toISOString(),
       }).eq("user_id", userId);
+
+      if (error) {
+        console.error("Failed to update cancelled subscription:", error);
+        return new Response("Database error", { status: 500 });
+      }
     }
   }
  

@@ -75,6 +75,16 @@ serve(async (req) => {
       );
     }
 
+    // Reject oversized messages to prevent excessive token usage
+    const totalLength = messages.reduce((sum: number, m: { content?: string }) => sum + (m.content?.length ?? 0), 0);
+    if (totalLength > 50000) {
+      return new Response(
+        JSON.stringify({ error: "Message content too large" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+
     const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!anthropicKey) {
       return new Response(

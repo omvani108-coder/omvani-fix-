@@ -117,7 +117,7 @@ export function useSubscription() {
         // Check if subscription has actually expired
         const now = new Date();
         const periodEnd = sub.current_period_end ? new Date(sub.current_period_end) : null;
-        const isExpired = periodEnd && periodEnd < now && (sub.status === "active" || sub.status === "cancelled");
+        const isExpired = periodEnd && periodEnd < now;
 
         if (isExpired) {
           setPlan("free");
