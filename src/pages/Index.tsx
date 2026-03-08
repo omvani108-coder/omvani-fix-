@@ -15,7 +15,9 @@ import {
   Share2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { streamAI } from "@/lib/streamAI";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -200,42 +202,9 @@ function ShlokaCarousel() {
 
 // ─── Home Voice Button ────────────────────────────────────────────────────────
 
-function streamAI(
-  prompt: string,
-  onChunk: (text: string) => void,
-  signal: AbortSignal
-): Promise<void> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-  return fetch(`${supabaseUrl}/functions/v1/chat`, {
-    method: "POST", signal,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${supabaseKey}`,
-      apikey: supabaseKey,
-    },
-    body: JSON.stringify({
-      messages: [{ role: "user", content: prompt }],
-      system:
-        "You are OmVani, a compassionate AI spiritual guide rooted in Hindu scripture and yoga philosophy. Answer spiritual questions with wisdom, warmth, and precision. Keep answers to 2-3 paragraphs — clear and spoken-friendly.",
-    }),
-  }).then(async (res) => {
-    if (!res.ok) throw new Error("Failed");
-    const reader = res.body?.getReader();
-    const decoder = new TextDecoder();
-    let accumulated = "";
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
-        onChunk(accumulated);
-      }
-    }
-  });
-}
-
 function HomeVoiceButton() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { t } = useTranslations();
   const [open, setOpen] = useState(false);
   const [listening, setListening] = useState(false);
@@ -341,7 +310,7 @@ function HomeVoiceButton() {
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
         <button
-          onClick={() => { setOpen(true); setPhase("idle"); }}
+          onClick={() => { if (!user) { navigate("/signup"); return; } setOpen(true); setPhase("idle"); }}
           aria-label="Open voice spiritual guide"
           className="relative w-16 h-16 rounded-full bg-sacred-gradient shadow-[0_4px_24px_rgba(234,120,30,0.45)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
         >

@@ -28,7 +28,7 @@ const Signup = () => {
       toast({ title: t.auth.ageConfirm, variant: "destructive" });
       return;
     }
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast({ title: t.auth.passwordPlaceholder, variant: "destructive" });
       return;
     }

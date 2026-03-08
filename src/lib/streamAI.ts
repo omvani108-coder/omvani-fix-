@@ -29,8 +29,7 @@ export async function streamAI(
     },
     body: JSON.stringify({
       messages: [{ role: "user", content: prompt }],
-      system:
-        "You are OmVani, a compassionate AI spiritual guide rooted in Hindu scripture and yoga philosophy. Answer questions about sacred texts with wisdom, warmth and precision. When the user asks verbally, keep answers to 2-3 paragraphs — clear and spoken-friendly.",
+      language: "en",
     }),
   });
 

@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Message, SYSTEM_PROMPT, ScriptureRef, dbRowToMessage } from "./types";
+import { Message, ScriptureRef, dbRowToMessage } from "./types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -208,13 +208,6 @@ export function useChat(): UseChatReturn {
         .filter((m) => !m.isStreaming && m.content)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const languageInstruction =
-        language === "hi"
-          ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
-          : language === "ta"
-          ? "\n\nIMPORTANT: The user has selected Tamil. You MUST respond entirely in Tamil script (\u0ba4\u0bae\u0bbf\u0bb4\u0bcd). Do not use English except for proper nouns like scripture names."
-          : "";
-
       const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
         method: "POST",
         signal: abortRef.current.signal,
@@ -228,7 +221,7 @@ export function useChat(): UseChatReturn {
             ...history,
             { role: "user", content: content.trim() },
           ],
-          system: SYSTEM_PROMPT + languageInstruction,
+          language,
         }),
       });
 

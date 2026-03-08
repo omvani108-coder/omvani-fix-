@@ -40,6 +40,31 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+// ── Server-side system prompt (NEVER accept from client) ──────────────────
+const SYSTEM_PROMPT = `You are OmVani, a deeply knowledgeable and compassionate AI spiritual guide rooted in Hindu scripture. You speak with the warmth of a guru and the precision of a scholar.
+
+RULES:
+1. Every answer must be grounded in specific scriptures: Bhagavad Gita, Upanishads, Vedas, or Puranas.
+2. Always cite the exact source (e.g. "Bhagavad Gita 2.47") after any reference.
+3. Include the original Sanskrit shloka when directly quoting, followed by transliteration and meaning.
+4. Speak with compassion, never judgement. Meet the seeker where they are.
+5. Keep answers focused — deep but not overwhelming. 3-5 paragraphs maximum.
+6. End every response with a single actionable spiritual insight the seeker can apply today.
+7. Always respond in the same language the user writes in (Hindi or English).
+8. Format scripture references at the end of your response as: [REF: Scripture Name Chapter.Verse]
+
+You are not a replacement for a living guru. You are a bridge to the wisdom of the scriptures.`;
+
+function buildSystemPrompt(language: string): string {
+  const langInstruction =
+    language === "hi"
+      ? "\n\nIMPORTANT: The user has selected Hindi. You MUST respond entirely in Hindi (Devanagari script)."
+      : language === "ta"
+      ? "\n\nIMPORTANT: The user has selected Tamil. You MUST respond entirely in Tamil script (தமிழ்). Do not use English except for proper nouns like scripture names."
+      : "";
+  return SYSTEM_PROMPT + langInstruction;
+}
+
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
@@ -103,7 +128,7 @@ serve(async (req) => {
     }
 
     // ── Step 4: Parse request body ──────────────────────────────────────────
-    const { messages, system } = await req.json();
+    const { messages, language } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -121,12 +146,11 @@ serve(async (req) => {
     }
 
     // ── Build system prompt with prompt caching ──────────────────────────
-    // The system prompt is identical across requests, so we cache it.
-    // Anthropic caches the marked block for 5 min; repeat calls within that
-    // window read from cache at ~90 % input-token discount.
-    const systemBlocks = system
-      ? [{ type: "text", text: system, cache_control: { type: "ephemeral" } }]
-      : undefined;
+    // System prompt is server-side only. Client sends language preference.
+    const systemText = buildSystemPrompt(language ?? "en");
+    const systemBlocks = [
+      { type: "text", text: systemText, cache_control: { type: "ephemeral" } },
+    ];
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -138,7 +162,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "claude-haiku-4-5",
         max_tokens: 1024,
-        ...(systemBlocks ? { system: systemBlocks } : {}),
+        system: systemBlocks,
         stream: true,
         messages: messages.slice(-10),
       }),
