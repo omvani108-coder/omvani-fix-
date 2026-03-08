@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
   "https://www.omvani.in",
-  "https://omvani.app",
+  "https://omvani.in",
   "https://omvani.vercel.app",
   "https://dharma-companion.vercel.app",
   "http://localhost:8080",
@@ -85,7 +85,7 @@ function buildEmailHtml(shloka: typeof DAILY_SHLOKAS[0], festival: typeof FESTIV
       ${festivalBlock}
       <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;" />
       <p style="text-align:center;font-size:12px;color:#9ca3af;">
-        Sent with 🙏 by OmVani · <a href="https://omvani.app/profile" style="color:#d97706;">Manage preferences</a>
+        Sent with 🙏 by OmVani · <a href="https://omvani.in/profile" style="color:#d97706;">Manage preferences</a>
       </p>
     </div>
   `;
