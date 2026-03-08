@@ -17,7 +17,6 @@ const IDENTIFY_LIMITS: Record<string, number> = {
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
   "https://www.omvani.in",
-  "https://omvani.in",
   "https://omvani.vercel.app",
   "https://dharma-companion.vercel.app",
   "http://localhost:8080",
