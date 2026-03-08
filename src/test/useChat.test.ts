@@ -2,7 +2,7 @@
  * Tests for the useChat hook (src/pages/chat/useChat.ts)
  *
  * We mock:
- *   - supabase (conversations + chat_messages tables)
+ *   - supabase (conversations + chat_messages tables + auth)
  *   - The /functions/v1/chat fetch (streaming response)
  *   - AuthContext and LanguageContext
  *
@@ -12,61 +12,78 @@
  *   3. Streaming fills the AI message content
  *   4. Loading guard — double-send while loading is ignored
  *   5. Empty / whitespace-only messages are ignored
- *   6. clearChat wipes messages and deletes the DB conversation
+ *   6. clearChat wipes messages
  *   7. Network error shows a toast and removes the AI placeholder
+ *   8. [REF:...] tags are parsed out of displayed content
  */
 
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Env stubs — must be set before hook import ──────────────────────────────
+vi.stubEnv("VITE_SUPABASE_URL", "http://localhost:54321");
+vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "test-anon-key");
+
+// ── Mock data ────────────────────────────────────────────────────────────────
 
 const mockUser = { id: "test-user-1" };
-
-// Supabase mock — track which tables were touched
 const mockConvInsertId = "conv-abc";
-const mockSignalledAbort = { aborted: false };
 
-const mockSupabaseFrom = vi.fn((table: string) => {
-  if (table === "conversations") {
-    return {
-      select: () => ({
-        eq:          () => ({
-          order: () => ({
-            limit: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }), // no existing conv
-            }),
-          }),
-        }),
-      }),
-      insert: () => ({
-        select: () => ({
-          single: () =>
-            Promise.resolve({ data: { id: mockConvInsertId }, error: null }),
-        }),
-      }),
-      update: () => ({ eq: () => Promise.resolve({ error: null }) }),
-      delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
+// ── Supabase mock ────────────────────────────────────────────────────────────
+
+function createChain(finalResolver: () => Promise<unknown>) {
+  const chain: Record<string, unknown> = {};
+  const methods = [
+    "select", "eq", "order", "limit", "maybeSingle", "single",
+    "insert", "update", "delete",
+  ];
+  methods.forEach((m) => {
+    chain[m] = (..._args: unknown[]) => {
+      if (m === "maybeSingle" || m === "single") return finalResolver();
+      return chain;
     };
-  }
-  if (table === "chat_messages") {
-    return {
-      insert: () => Promise.resolve({ error: null }),
-      select: () => ({
-        eq: () => ({
-          order: () =>
-            Promise.resolve({ data: [], error: null }),
-        }),
-      }),
-    };
-  }
-  return {
-    select: () => ({ eq: () => ({ order: () => ({ limit: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }) }) }),
-  };
-});
+  });
+  return chain;
+}
 
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: (table: string) => mockSupabaseFrom(table) },
+  supabase: {
+    from: (table: string) => {
+      if (table === "conversations") {
+        return {
+          select: () => createChain(() =>
+            Promise.resolve({ data: null, error: null })
+          ),
+          insert: () => createChain(() =>
+            Promise.resolve({ data: { id: mockConvInsertId }, error: null })
+          ),
+          update: () => ({
+            eq: () => Promise.resolve({ error: null }),
+          }),
+          delete: () => ({
+            eq: () => Promise.resolve({ error: null }),
+          }),
+        };
+      }
+      if (table === "chat_messages") {
+        return {
+          insert: () => Promise.resolve({ error: null }),
+          select: () => ({
+            eq: () => ({
+              order: () => Promise.resolve({ data: [], error: null }),
+            }),
+          }),
+        };
+      }
+      return createChain(() => Promise.resolve({ data: null, error: null }));
+    },
+    auth: {
+      getSession: () =>
+        Promise.resolve({
+          data: { session: { access_token: "test-access-token" } },
+        }),
+    },
+  },
 }));
 
 vi.mock("@/contexts/AuthContext", () => ({
@@ -83,7 +100,7 @@ vi.mock("sonner", () => ({
   toast: { error: (msg: string) => mockToastError(msg) },
 }));
 
-// ── Streaming fetch mock helpers ───────────────────────────────────────────────
+// ── Streaming fetch mock helpers ─────────────────────────────────────────────
 
 function makeStreamResponse(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -104,11 +121,11 @@ function makeErrorResponse(status = 500) {
   return new Response("Internal Server Error", { status });
 }
 
-// ── Import hook AFTER mocks ───────────────────────────────────────────────────
+// ── Import hook AFTER mocks ──────────────────────────────────────────────────
 
 import { useChat } from "@/pages/chat/useChat";
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("useChat — initial state", () => {
   it("starts with empty messages and isLoading=false", () => {
@@ -120,12 +137,9 @@ describe("useChat — initial state", () => {
 
 describe("useChat — sendMessage", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    // clearAllMocks keeps mock implementations intact (unlike resetAllMocks)
+    vi.clearAllMocks();
     mockToastError.mockClear();
-    // Restore the supabase mock after vi.resetAllMocks
-    vi.mock("@/integrations/supabase/client", () => ({
-      supabase: { from: (table: string) => mockSupabaseFrom(table) },
-    }));
   });
 
   it("ignores empty and whitespace-only messages", async () => {
@@ -139,7 +153,7 @@ describe("useChat — sendMessage", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("adds user message and streaming AI placeholder immediately", async () => {
+  it("adds user message and streaming AI response", async () => {
     global.fetch = vi.fn().mockResolvedValue(
       makeStreamResponse(["Hello", " from", " Guru"])
     );
@@ -193,8 +207,8 @@ describe("useChat — sendMessage", () => {
       await result.current.sendMessage("Tell me about karma");
     });
 
-    // User message should be removed along with the AI placeholder
-    expect(result.current.messages).toHaveLength(1); // only user message remains
+    // User message remains, AI placeholder is removed
+    expect(result.current.messages).toHaveLength(1);
     expect(result.current.messages[0].role).toBe("user");
     expect(mockToastError).toHaveBeenCalledWith(
       expect.stringContaining("guru")
@@ -218,7 +232,7 @@ describe("useChat — clearChat", () => {
     expect(result.current.messages.length).toBeGreaterThan(0);
 
     // Clear
-    await act(async () => { await result.current.clearChat(); });
+    await act(async () => { result.current.clearChat(); });
 
     expect(result.current.messages).toHaveLength(0);
     expect(result.current.isLoading).toBe(false);

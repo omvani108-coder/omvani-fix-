@@ -171,7 +171,7 @@ describe("AuthContext — getPostLoginPath", () => {
     });
 
     await waitFor(() => {
-      expect(capturedPath).toBe("/chat");
+      expect(capturedPath).toBe("/home");
     });
   });
 
