@@ -14,19 +14,17 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import { streamAI } from "@/lib/streamAI";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useScriptureBookmarks } from "@/hooks/useScriptureBookmarks";
 import {
-  chapters, searchShlokas, getBookmarks,
-  toggleBookmark, isBookmarked,
+  chapters, searchShlokas,
   type Shloka,
 } from "./gitaData";
 import {
   upanishads, searchUpanishadVerses,
-  toggleUpanishadBookmark, isUpanishadBookmarked,
   type Verse,
 } from "./upanishadData";
 import {
   padas, searchSutras,
-  toggleSutraBookmark, isSutraBookmarked,
   type Sutra,
 } from "./yogaSutrasData";
 
@@ -417,12 +415,9 @@ function PageCard({ accentClass, ornament, footerText, children }: {
 }
 
 // ─── Gita Verse Card ──────────────────────────────────────────────────────────
-function GitaPage({ shloka, onAsk, onShare }: { shloka: Shloka; onAsk: (s: Shloka) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
+function GitaPage({ shloka, onAsk, onShare, isBookmarked, onBookmark }: { shloka: Shloka; onAsk: (s: Shloka) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void; isBookmarked: boolean; onBookmark: () => void }) {
   const { t } = useTranslations();
-  const [bookmarked, setBookmarked] = useState(() => isBookmarked(shloka.id));
-  const [showWords, setShowWords]   = useState(false);
-
-  const handleBookmark = () => { const a = toggleBookmark(shloka.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
+  const [showWords, setShowWords] = useState(false);
   const handleShare = () => onShare({ title: `Bhagavad Gita ${shloka.id}`, sanskrit: shloka.sanskrit, meaning: shloka.meaning, deity: "Krishna" });
 
   return (
@@ -434,8 +429,8 @@ function GitaPage({ shloka, onAsk, onShare }: { shloka: Shloka; onAsk: (s: Shlok
           <div className="w-px h-3 bg-saffron/40 ml-2" />
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={handleBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg hover:bg-saffron/10 flex items-center justify-center text-muted-foreground hover:text-saffron transition-colors">
-            {bookmarked ? <BookmarkCheck className="w-4 h-4 text-saffron" /> : <Bookmark className="w-4 h-4" />}
+          <button onClick={onBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg hover:bg-saffron/10 flex items-center justify-center text-muted-foreground hover:text-saffron transition-colors">
+            {isBookmarked ? <BookmarkCheck className="w-4 h-4 text-saffron" /> : <Bookmark className="w-4 h-4" />}
           </button>
           <button onClick={handleShare} aria-label="Share" className="w-8 h-8 rounded-lg hover:bg-saffron/10 flex items-center justify-center text-muted-foreground hover:text-saffron transition-colors">
             <Share2 className="w-4 h-4" />
@@ -475,12 +470,9 @@ function GitaPage({ shloka, onAsk, onShare }: { shloka: Shloka; onAsk: (s: Shlok
 }
 
 // ─── Upanishad Verse Card ─────────────────────────────────────────────────────
-function UpanishadPage({ verse, onAsk, onShare }: { verse: Verse; onAsk: (v: Verse) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
+function UpanishadPage({ verse, onAsk, onShare, isBookmarked, onBookmark }: { verse: Verse; onAsk: (v: Verse) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void; isBookmarked: boolean; onBookmark: () => void }) {
   const { t } = useTranslations();
-  const [bookmarked, setBookmarked] = useState(() => isUpanishadBookmarked(verse.id));
-  const [showWords, setShowWords]   = useState(false);
-
-  const handleBookmark = () => { const a = toggleUpanishadBookmark(verse.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
+  const [showWords, setShowWords] = useState(false);
   const handleShare = () => onShare({ title: `${verse.upanishad} Upanishad · ${verse.section}`, sanskrit: verse.sanskrit, meaning: verse.meaning, deity: "Krishna" });
 
   return (
@@ -491,8 +483,8 @@ function UpanishadPage({ verse, onAsk, onShare }: { verse: Verse; onAsk: (v: Ver
           <span className="text-[9px] font-sans text-muted-foreground/60">{verse.section}</span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={handleBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg hover:bg-gold/10 flex items-center justify-center text-muted-foreground hover:text-gold transition-colors">
-            {bookmarked ? <BookmarkCheck className="w-4 h-4 text-gold" /> : <Bookmark className="w-4 h-4" />}
+          <button onClick={onBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg hover:bg-gold/10 flex items-center justify-center text-muted-foreground hover:text-gold transition-colors">
+            {isBookmarked ? <BookmarkCheck className="w-4 h-4 text-gold" /> : <Bookmark className="w-4 h-4" />}
           </button>
           <button onClick={handleShare} aria-label="Share" className="w-8 h-8 rounded-lg hover:bg-gold/10 flex items-center justify-center text-muted-foreground hover:text-gold transition-colors">
             <Share2 className="w-4 h-4" />
@@ -532,12 +524,9 @@ function UpanishadPage({ verse, onAsk, onShare }: { verse: Verse; onAsk: (v: Ver
 }
 
 // ─── Yoga Sutra Card ──────────────────────────────────────────────────────────
-function SutraPage({ sutra, onAsk, onShare }: { sutra: Sutra; onAsk: (s: Sutra) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void }) {
+function SutraPage({ sutra, onAsk, onShare, isBookmarked, onBookmark }: { sutra: Sutra; onAsk: (s: Sutra) => void; onShare: (data: { title: string; sanskrit: string; meaning: string; deity: string }) => void; isBookmarked: boolean; onBookmark: () => void }) {
   const { t } = useTranslations();
-  const [bookmarked, setBookmarked] = useState(() => isSutraBookmarked(sutra.id));
-  const [showWords, setShowWords]   = useState(false);
-
-  const handleBookmark = () => { const a = toggleSutraBookmark(sutra.id); setBookmarked(a); toast.success(a ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); };
+  const [showWords, setShowWords] = useState(false);
   const handleShare = () => onShare({ title: `Yoga Sutras · ${sutra.section}`, sanskrit: sutra.sanskrit, meaning: sutra.meaning, deity: "Krishna" });
 
   // Lotus-pink / maroon accent for Sutras
@@ -555,8 +544,8 @@ function SutraPage({ sutra, onAsk, onShare }: { sutra: Sutra; onAsk: (s: Sutra) 
             <span className="text-[10px] font-sans font-bold tracking-[0.2em] uppercase block" style={{ color: "hsl(340,60%,55%)" }}>Yoga Sutras · {sutra.section}</span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={handleBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground transition-colors hover:opacity-80" style={{ background: "hsl(340,60%,65%,0.1)" }}>
-              {bookmarked ? <BookmarkCheck className="w-4 h-4" style={{ color: "hsl(340,60%,55%)" }} /> : <Bookmark className="w-4 h-4" />}
+            <button onClick={onBookmark} aria-label="Bookmark" className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground transition-colors hover:opacity-80" style={{ background: "hsl(340,60%,65%,0.1)" }}>
+              {isBookmarked ? <BookmarkCheck className="w-4 h-4" style={{ color: "hsl(340,60%,55%)" }} /> : <Bookmark className="w-4 h-4" />}
             </button>
             <button onClick={handleShare} aria-label="Share" className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:opacity-80 transition-colors">
               <Share2 className="w-4 h-4" />
@@ -690,11 +679,14 @@ export default function Scriptures() {
     setDivyaData(data);
     setDivyaOpen(true);
   };
+  const gitaBookmarks      = useScriptureBookmarks("gita");
+  const upanishadBookmarks = useScriptureBookmarks("upanishad");
+  const sutraBookmarks     = useScriptureBookmarks("yoga_sutras");
+
   const [scripture, setScripture]           = useState<Scripture>("gita");
   const [currentChapter, setCurrentChapter] = useState(1);
   const [currentUpanishad, setCurrentUpanishad] = useState("isha");
   const [currentPada, setCurrentPada]       = useState(1);
-  const [bookmarkIds, setBookmarkIds]       = useState<string[]>([]);
   const [showBookmarks, setShowBookmarks]   = useState(false);
   const [searchQuery, setSearchQuery]       = useState("");
   const [searchResults, setSearchResults]   = useState<(Shloka | Verse | Sutra)[]>([]);
@@ -705,8 +697,6 @@ export default function Scriptures() {
   const chapter    = chapters.find(c => c.number === currentChapter)!;
   const upanishad  = upanishads.find(u => u.id === currentUpanishad)!;
   const pada       = padas.find(p => p.number === currentPada)!;
-
-  useEffect(() => { setBookmarkIds(getBookmarks()); }, [askData]);
 
   useEffect(() => {
     if (!searchQuery.trim()) { setSearchResults([]); setIsSearching(false); return; }
@@ -748,7 +738,7 @@ export default function Scriptures() {
     : `${pada.name} (Pada ${currentPada}) of Yoga Sutras`;
 
   const gitaShlokas: Shloka[] = searchQuery ? (searchResults as Shloka[])
-    : showBookmarks ? chapter.shlokas.filter(s => bookmarkIds.includes(s.id))
+    : showBookmarks ? chapter.shlokas.filter(s => gitaBookmarks.isBookmarked(s.id))
     : chapter.shlokas;
 
   const upanishadVerses: Verse[] = searchQuery ? (searchResults as Verse[]) : upanishad.chapters.flatMap(c => c.verses);
@@ -881,7 +871,7 @@ export default function Scriptures() {
                 )}
                 <div className="space-y-6">
                   {gitaShlokas.length > 0 ? gitaShlokas.map(s => (
-                    <GitaPage key={s.id} shloka={s} onAsk={x => setAskData({ title: `Gita ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />
+                    <GitaPage key={s.id} shloka={s} onAsk={x => setAskData({ title: `Gita ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} isBookmarked={gitaBookmarks.isBookmarked(s.id)} onBookmark={() => { const added = gitaBookmarks.toggleBookmark(s.id); toast.success(added ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); }} />
                   )) : (
                     <div className="text-center py-16"><div className="text-4xl mb-3">{showBookmarks ? "🔖" : "📖"}</div>
                       <p className="text-muted-foreground text-sm">{showBookmarks ? t.scriptures.noBookmarks : t.scriptures.noResults}</p>
@@ -938,13 +928,13 @@ export default function Scriptures() {
                       <p className="text-xs font-sans text-muted-foreground/60 mt-3 max-w-lg mx-auto leading-relaxed">{ch.summary}</p>
                     </div>
                     <div className="space-y-6">
-                      {ch.verses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)}
+                      {ch.verses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} isBookmarked={upanishadBookmarks.isBookmarked(v.id)} onBookmark={() => { const added = upanishadBookmarks.toggleBookmark(v.id); toast.success(added ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); }} />)}
                     </div>
                   </div>
                 ))}
                 {searchQuery && (
                   <div className="space-y-6">
-                    {upanishadVerses.length > 0 ? upanishadVerses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)
+                    {upanishadVerses.length > 0 ? upanishadVerses.map(v => <UpanishadPage key={v.id} verse={v} onAsk={x => setAskData({ title: `${x.upanishad} · ${x.section}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} isBookmarked={upanishadBookmarks.isBookmarked(v.id)} onBookmark={() => { const added = upanishadBookmarks.toggleBookmark(v.id); toast.success(added ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); }} />)
                       : <div className="text-center py-16"><div className="text-4xl mb-3">📖</div><p className="text-muted-foreground text-sm">{t.scriptures.noResults}</p></div>}
                   </div>
                 )}
@@ -976,7 +966,7 @@ export default function Scriptures() {
                 )}
                 {searchQuery && <p className="text-sm text-muted-foreground mb-6">{isSearching ? t.scriptures.searching : `${sutras.length} results for "${searchQuery}"`}</p>}
                 <div className="space-y-6">
-                  {sutras.length > 0 ? sutras.map(s => <SutraPage key={s.id} sutra={s} onAsk={x => setAskData({ title: `Yoga Sutras ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} />)
+                  {sutras.length > 0 ? sutras.map(s => <SutraPage key={s.id} sutra={s} onAsk={x => setAskData({ title: `Yoga Sutras ${x.id}`, sanskrit: x.sanskrit, meaning: x.meaning })} onShare={handleShare} isBookmarked={sutraBookmarks.isBookmarked(s.id)} onBookmark={() => { const added = sutraBookmarks.toggleBookmark(s.id); toast.success(added ? t.scriptures.bookmarked : t.scriptures.bookmarkRemoved); }} />)
                     : <div className="text-center py-16"><div className="text-4xl mb-3">📖</div><p className="text-muted-foreground text-sm">{t.scriptures.noResults}</p></div>}
                 </div>
                 {!searchQuery && sutras.length > 0 && (
