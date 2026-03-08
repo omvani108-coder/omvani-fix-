@@ -97,7 +97,9 @@ const Kundli = () => {
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [timeOfBirth, setTimeOfBirth] = useState("");
-  const [placeOfBirth, setPlaceOfBirth] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
   const [selectedLens, setSelectedLens] = useState<KundliLens | null>(null);
   const [phase, setPhase] = useState<Phase>("form");
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -111,11 +113,12 @@ const Kundli = () => {
   }, [checkEligibility, fetchPastReadings]);
 
   // ── Derived values ────────────────────────────────────────────────────
-  const isFormValid = fullName.trim() && dateOfBirth && placeOfBirth.trim() && selectedLens;
-  const isFreeAnalysis = eligibility ? !eligibility.hasUsedFree : false;
-  const priceDisplay = eligibility
-    ? `₹${eligibility.pricePerAnalysis / 100}`
-    : "₹60";
+  const placeOfBirth = [city.trim(), state.trim(), country.trim()].filter(Boolean).join(", ");
+  const isFormValid = fullName.trim() && dateOfBirth && city.trim() && state.trim() && country.trim() && selectedLens;
+  const isFreeAnalysis = eligibility
+    ? (!eligibility.hasUsedFree || (eligibility.monthlyFreeRemaining ?? 0) > 0)
+    : false;
+  const priceDisplay = "₹79";
 
   // ── Convert image to base64 ──────────────────────────────────────────
   const getImageBase64 = useCallback(async (): Promise<string | undefined> => {
@@ -152,14 +155,14 @@ const Kundli = () => {
       // Paid — show payment modal
       setPaymentModalOpen(true);
     }
-  }, [isFormValid, isFreeAnalysis, selectedLens, fullName, dateOfBirth, timeOfBirth, placeOfBirth, runAnalysis, checkEligibility, fetchPastReadings, getImageBase64]);
+  }, [isFormValid, isFreeAnalysis, selectedLens, fullName, dateOfBirth, timeOfBirth, placeOfBirth, runAnalysis, checkEligibility, fetchPastReadings, getImageBase64]); // placeOfBirth is now derived from city+state+country
 
   // ── Handle payment ────────────────────────────────────────────────────
   const handlePayment = useCallback(async () => {
     if (!eligibility || !selectedLens) return;
 
     setPaymentModalOpen(false);
-    const paymentId = await initiatePayment(eligibility.pricePerAnalysis);
+    const paymentId = await initiatePayment(7900);
 
     if (!paymentId) {
       toast.error("Payment was cancelled or failed.");
@@ -180,7 +183,7 @@ const Kundli = () => {
       kundli_image_base64: imageBase64,
     });
     fetchPastReadings();
-  }, [eligibility, selectedLens, fullName, dateOfBirth, timeOfBirth, placeOfBirth, initiatePayment, runAnalysis, fetchPastReadings, getImageBase64]);
+  }, [eligibility, selectedLens, fullName, dateOfBirth, timeOfBirth, placeOfBirth, initiatePayment, runAnalysis, fetchPastReadings, getImageBase64]); // placeOfBirth is now derived from city+state+country
 
   // ── Handle new analysis ───────────────────────────────────────────────
   const handleNewAnalysis = useCallback(() => {
@@ -305,14 +308,28 @@ const Kundli = () => {
 
                 <div>
                   <Label className="font-sans text-sm">{t.kundli.placeOfBirth}</Label>
-                  <Input
-                    value={placeOfBirth}
-                    onChange={(e) => setPlaceOfBirth(e.target.value)}
-                    placeholder="e.g. Mumbai, Maharashtra, India"
-                    className="mt-1.5"
-                  />
+                  <div className="grid grid-cols-3 gap-2 mt-1.5">
+                    <Input
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Mumbai"
+                      required
+                    />
+                    <Input
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Maharashtra"
+                      required
+                    />
+                    <Input
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="e.g. India"
+                      required
+                    />
+                  </div>
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    {t.kundli.placeOfBirthHelper}
+                    City, State & Country
                   </p>
                 </div>
               </div>
@@ -417,19 +434,17 @@ const Kundli = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className={`
                     rounded-xl px-4 py-3 mb-5 text-center font-sans text-sm font-medium
-                    ${!eligibility.hasUsedFree
+                    ${isFreeAnalysis
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : eligibility.isPaidPlan
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
                     }
                   `}
                 >
                   {!eligibility.hasUsedFree
                     ? `✨ ${t.kundli.freeNotice}`
-                    : eligibility.isPaidPlan
-                      ? t.kundli.paidNoticePaid
-                      : t.kundli.paidNoticeFree
+                    : (eligibility.monthlyFreeRemaining ?? 0) > 0
+                      ? `✨ ${eligibility.monthlyFreeRemaining} free reading${(eligibility.monthlyFreeRemaining ?? 0) > 1 ? "s" : ""} left this month`
+                      : `₹79 per analysis`
                   }
                 </motion.div>
               )}

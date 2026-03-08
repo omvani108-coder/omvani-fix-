@@ -43,11 +43,11 @@ interface UsageToday {
 // Infinity means truly unlimited — no counter needed.
 const DAILY_LIMITS: Record<Plan, { chat: number; identify: number; bhajans: number }> = {
   free:         { chat: 3,        identify: 1,        bhajans: 5         },
-  basic:        { chat: 30,       identify: 3,        bhajans: 10        },
-  basic_annual: { chat: 30,       identify: 3,        bhajans: 10        },
-  pro:          { chat: Infinity, identify: Infinity, bhajans: Infinity  },
-  pro_annual:   { chat: Infinity, identify: Infinity, bhajans: Infinity  },
-  family:       { chat: Infinity, identify: Infinity, bhajans: Infinity  },
+  basic:        { chat: 10,       identify: 3,        bhajans: 10        },
+  basic_annual: { chat: 10,       identify: 3,        bhajans: 10        },
+  pro:          { chat: 20,       identify: Infinity, bhajans: Infinity  },
+  pro_annual:   { chat: 20,       identify: Infinity, bhajans: Infinity  },
+  family:       { chat: 20,       identify: Infinity, bhajans: Infinity  },
 };
 
 // ── Puja tracker history limit ─────────────────────────────────────────────────
@@ -203,13 +203,13 @@ export function useSubscription() {
     const identifyRemaining = Math.max(0, limits.identify - usage.identify);
     const canChat     = chatRemaining     > 0;
     const canIdentify = identifyRemaining > 0;
-    const chatWarning     = !isPro && chatRemaining     <= (isFree ? 1 : 3);
+    const chatWarning     = chatRemaining     <= (isFree ? 1 : 3);
     const identifyWarning = !isPro && identifyRemaining <= 1;
     const bhajanLimit = limits.bhajans === Infinity ? 999 : limits.bhajans;
     const scripturePageLimit  = SCRIPTURE_PAGES[plan];
     const canAccessAllScriptures = isPaid;
     const pujaHistoryDays = PUJA_HISTORY_DAYS[plan];
-    const kundliPricePerAnalysis = isPaid ? 2000 : 6000;
+    const kundliPricePerAnalysis = 7900; // ₹79 flat for all users
 
     return {
       isPaid, isFree, isPro, isBasic, isAnnual, isFamily, isTrialing,

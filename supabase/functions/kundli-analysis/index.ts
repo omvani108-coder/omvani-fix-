@@ -138,7 +138,7 @@ serve(async (req) => {
     // Mode A: Check eligibility
     // ══════════════════════════════════════════════════════════════════════
     if (action === "check-eligibility") {
-      // Check if user has used their free kundli
+      // Check if user has used their lifetime free kundli
       const { data: hasUsed, error: rpcErr } = await supabase.rpc(
         "has_used_free_kundli",
         { p_user_id: user.id },
@@ -159,10 +159,45 @@ serve(async (req) => {
       const isPaidPlan =
         plan !== "free" &&
         ["basic", "basic_annual", "pro", "pro_annual", "family"].includes(plan);
-      const pricePerAnalysis = isPaidPlan ? 2000 : 6000; // paise
+      const pricePerAnalysis = 7900; // ₹79 flat for all users
+
+      // Monthly free allowances per plan
+      const MONTHLY_FREE: Record<string, number> = {
+        basic: 1,
+        basic_annual: 1,
+        pro: 2,
+        pro_annual: 2,
+        family: 2,
+      };
+      const monthlyAllowance = MONTHLY_FREE[plan] ?? 0;
+
+      // Count this month's readings (IST timezone)
+      let monthlyFreeRemaining = 0;
+      if (monthlyAllowance > 0) {
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istNow = new Date(now.getTime() + istOffset);
+        const monthStart = `${istNow.getFullYear()}-${String(istNow.getMonth() + 1).padStart(2, "0")}-01`;
+        const nextMonth = istNow.getMonth() === 11
+          ? `${istNow.getFullYear() + 1}-01-01`
+          : `${istNow.getFullYear()}-${String(istNow.getMonth() + 2).padStart(2, "0")}-01`;
+
+        const { count, error: countErr } = await supabase
+          .from("kundli_analyses")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", monthStart)
+          .lt("created_at", nextMonth);
+
+        if (countErr) {
+          console.error("Monthly kundli count error:", countErr);
+        }
+        const monthlyReadings = count ?? 0;
+        monthlyFreeRemaining = Math.max(0, monthlyAllowance - monthlyReadings);
+      }
 
       return jsonResponse(
-        { hasUsedFree, isPaidPlan, pricePerAnalysis },
+        { hasUsedFree, isPaidPlan, pricePerAnalysis, monthlyFreeRemaining },
         CORS,
       );
     }
@@ -208,12 +243,47 @@ serve(async (req) => {
         );
       }
 
-      // If claiming free, verify eligibility
+      // If claiming free, verify eligibility (lifetime first-free OR monthly allowance)
       if (is_free) {
         const { data: hasUsed } = await supabase.rpc("has_used_free_kundli", {
           p_user_id: user.id,
         });
-        if (hasUsed === true) {
+
+        // Get subscription plan for monthly free check
+        const { data: subCheck } = await supabase
+          .from("subscriptions")
+          .select("plan")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const checkPlan = (subCheck?.plan as string) ?? "free";
+
+        // Monthly free allowances
+        const MONTHLY_FREE: Record<string, number> = {
+          basic: 1, basic_annual: 1, pro: 2, pro_annual: 2, family: 2,
+        };
+        const monthlyAllowance = MONTHLY_FREE[checkPlan] ?? 0;
+
+        let monthlyFreeEligible = false;
+        if (monthlyAllowance > 0 && hasUsed === true) {
+          const now = new Date();
+          const istOffset = 5.5 * 60 * 60 * 1000;
+          const istNow = new Date(now.getTime() + istOffset);
+          const monthStart = `${istNow.getFullYear()}-${String(istNow.getMonth() + 1).padStart(2, "0")}-01`;
+          const nextMonth = istNow.getMonth() === 11
+            ? `${istNow.getFullYear() + 1}-01-01`
+            : `${istNow.getFullYear()}-${String(istNow.getMonth() + 2).padStart(2, "0")}-01`;
+
+          const { count } = await supabase
+            .from("kundli_analyses")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .gte("created_at", monthStart)
+            .lt("created_at", nextMonth);
+
+          monthlyFreeEligible = (count ?? 0) < monthlyAllowance;
+        }
+
+        if (hasUsed === true && !monthlyFreeEligible) {
           return jsonResponse(
             { error: "Free analysis already used" },
             CORS,
@@ -222,17 +292,8 @@ serve(async (req) => {
         }
       }
 
-      // Determine payment amount
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const plan = (sub?.plan as string) ?? "free";
-      const isPaidPlan =
-        plan !== "free" &&
-        ["basic", "basic_annual", "pro", "pro_annual", "family"].includes(plan);
-      const paymentAmount = is_free ? 0 : isPaidPlan ? 2000 : 6000;
+      // Determine payment amount — ₹79 flat (7900 paise) for paid analyses
+      const paymentAmount = is_free ? 0 : 7900;
 
       // Create the analysis row
       const { data: analysisRow, error: insertErr } = await supabase

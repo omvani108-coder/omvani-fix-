@@ -13,6 +13,7 @@ export interface KundliEligibility {
   hasUsedFree: boolean;
   isPaidPlan: boolean;
   pricePerAnalysis: number; // paise
+  monthlyFreeRemaining?: number; // monthly free readings left (paid plans only)
 }
 
 export interface KundliAnalysis {

@@ -9,9 +9,11 @@ function getTodayIST(): string {
 // ── Daily chat limits per plan ──────────────────────────────────────────────
 const CHAT_LIMITS: Record<string, number> = {
   free:         3,
-  basic:        30,
-  basic_annual: 30,
-  // pro, pro_annual, family → unlimited (not in this map)
+  basic:        10,
+  basic_annual: 10,
+  pro:          20,
+  pro_annual:   20,
+  family:       20,
 };
 
 const ALLOWED_ORIGINS = [

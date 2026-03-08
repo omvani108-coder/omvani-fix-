@@ -71,7 +71,8 @@ const PLANS: PlanDef[] = [
     badge:        null,
     color:        "border-saffron/60 hover:border-saffron",
     features: [
-      "30 AI Guru conversations/day",
+      "10 AI Guru conversations/day",
+      "1 free Kundli reading/month",
       "All 3 scriptures — unlimited",
       "Deity identifier — 3/day",
       "Top 10 Bhajans",
@@ -91,7 +92,8 @@ const PLANS: PlanDef[] = [
     badge:        "Most Popular",
     color:        "border-gold hover:border-gold",
     features: [
-      "Unlimited AI Guru conversations",
+      "20 AI Guru conversations/day",
+      "2 free Kundli readings/month",
       "All 3 scriptures — unlimited",
       "Deity identifier — unlimited",
       "All Bhajans — full library",

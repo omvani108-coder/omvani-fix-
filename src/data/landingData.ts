@@ -189,7 +189,8 @@ export const plans = [
     trialNote: "7 days free · then ₹199/mo",
     annualNote: "or ₹1,499/yr — save ₹889",
     features: [
-      "30 AI Guru chats per day",
+      "10 AI Guru chats per day",
+      "1 free Kundli reading per month",
       "All 3 scriptures — unlimited access",
       "Deity identifier — 3 per day",
       "Top 10 Bhajans",
@@ -213,7 +214,8 @@ export const plans = [
     trialNote: "7 days free · then ₹399/mo",
     annualNote: "or ₹2,999/yr — save ₹1,789",
     features: [
-      "Unlimited AI Guru conversations",
+      "20 AI Guru chats per day",
+      "2 free Kundli readings per month",
       "All 3 scriptures — unlimited access",
       "Deity identifier — unlimited",
       "Full Bhajans library — all songs",
