@@ -74,8 +74,9 @@ Deno.test("getTodayIST returns YYYY-MM-DD format", () => {
 Deno.test("buildSystemPrompt — English (default)", () => {
   const prompt = buildSystemPrompt("en");
   assert(prompt.includes("OmVani"));
-  assertEquals(prompt.includes("Hindi"), false);
-  assertEquals(prompt.includes("Tamil"), false);
+  // English prompt should NOT have the appended Hindi/Tamil language instructions
+  assertEquals(prompt.includes("You MUST respond entirely in Hindi"), false);
+  assertEquals(prompt.includes("You MUST respond entirely in Tamil"), false);
 });
 
 Deno.test("buildSystemPrompt — Hindi adds Hindi instruction", () => {
