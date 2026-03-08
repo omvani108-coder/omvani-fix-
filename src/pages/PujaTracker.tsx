@@ -7,6 +7,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { fadeUp, defaultViewport } from "@/lib/animations";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { usePujaSync } from "@/hooks/usePujaSync";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -18,13 +19,8 @@ interface PujaItem {
   description: string;
 }
 
-interface DayRecord {
-  [itemId: string]: boolean;
-}
-
-interface MonthRecord {
-  [dateKey: string]: DayRecord; // dateKey = "YYYY-MM-DD"
-}
+// DayRecord and MonthRecord are re-exported from usePujaSync
+import type { MonthRecord, DayRecord } from "@/hooks/usePujaSync";
 
 // ── Puja items list ───────────────────────────────────────────────────────────
 
@@ -61,25 +57,6 @@ const streakMessage = (streak: number, t: any) => {
   if (streak < 30) return `${t.puja.streakIncredible} ${streak} ${t.puja.days}`;
   return t.puja.streakMonth;
 };
-
-// ── Storage (localStorage) ────────────────────────────────────────────────────
-
-const STORAGE_KEY = "omvani_puja_tracker";
-
-function loadData(): MonthRecord {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveData(data: MonthRecord) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
-}
 
 // ── Flame / completion indicator ──────────────────────────────────────────────
 
@@ -274,13 +251,13 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
   const { t } = useTranslations();
   const { pujaHistoryDays, refreshSubscription } = useSubscription();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { data, loading, toggleItem: syncToggle, resetDay: syncReset } = usePujaSync();
   // Memoize so `today` stays stable across re-renders within the same session.
   // Note: won't auto-update at midnight — user must refresh the page.
   const today = useMemo(() => new Date(), []);
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState(today.getDate());
-  const [data, setData] = useState<MonthRecord>(loadData);
   const [showInfo, setShowInfo] = useState(false);
 
   // ✅ Bug 3 fix: wrapped in useMemo so it only rebuilds when language changes
@@ -316,15 +293,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
   // Toggle a puja item
   const toggleItem = (itemId: string) => {
     if (isSelectedFuture) return;
-    const updated: MonthRecord = {
-      ...data,
-      [selectedKey]: {
-        ...(data[selectedKey] ?? {}),
-        [itemId]: !selectedRecord[itemId],
-      },
-    };
-    setData(updated);
-    saveData(updated);
+    syncToggle(selectedKey, itemId);
   };
 
   // Stats for this month
@@ -375,10 +344,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
   // Reset selected day
   const resetDay = () => {
     if (isSelectedFuture) return;
-    const updated = { ...data };
-    delete updated[selectedKey];
-    setData(updated);
-    saveData(updated);
+    syncReset(selectedKey);
   };
 
   const selectedChecked = Object.values(selectedRecord).filter(Boolean).length;
@@ -475,10 +441,16 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
           </div>
         </motion.div>
 
-        {/* ── Local storage notice ─────────────────────────────────────── */}
-        <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg px-3 py-2 text-center font-sans">
-          {t.puja.localStorageNotice}
-        </p>
+        {/* ── Sync status notice ──────────────────────────────────────── */}
+        {loading ? (
+          <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2 text-center font-sans">
+            ☁️ Loading your puja history…
+          </p>
+        ) : (
+          <p className="text-xs text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg px-3 py-2 text-center font-sans">
+            ☁️ Your puja streak is saved to the cloud and syncs across all your devices.
+          </p>
+        )}
 
         {/* ── Calendar ───────────────────────────────────────────────────── */}
         <motion.div
