@@ -177,7 +177,7 @@ const Mandirs = () => {
             className="mb-6"
           >
             <a
-              href={`https://www.google.com/maps/search/Hindu+Temple/@20.5937,78.9629,5z`}
+              href="https://www.google.com/maps/search/Hindu+Temple/"
               target="_blank"
               rel="noopener noreferrer"
             >

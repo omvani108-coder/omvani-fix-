@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, MessageSquare } from "lucide-react";
+import { Plus, X, MessageSquare, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ interface ConversationSidebarProps {
   onClose: () => void;
   onNewChat: () => void;
   onSelectConversation: (id: string) => void;
+  onDeleteConversation: (id: string) => void;
   activeConversationId: string | null;
 }
 
@@ -49,12 +51,14 @@ export default function ConversationSidebar({
   onClose,
   onNewChat,
   onSelectConversation,
+  onDeleteConversation,
   activeConversationId,
 }: ConversationSidebarProps) {
   const { user } = useAuth();
   const { t } = useTranslations();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -87,6 +91,26 @@ export default function ConversationSidebar({
     onSelectConversation(id);
     // Auto-close on mobile
     if (window.innerWidth < 768) onClose();
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    const { error } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete conversation:", error);
+      toast.error("Could not delete conversation");
+      setDeletingId(null);
+      return;
+    }
+
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    setDeletingId(null);
+    toast.success("Conversation deleted");
+    onDeleteConversation(id);
   };
 
   // ─── Sidebar content ─────────────────────────────────────────────────────
@@ -144,14 +168,17 @@ export default function ConversationSidebar({
             {conversations.map((conv) => {
               const isActive = conv.id === activeConversationId;
               return (
-                <button
+                <div
                   key={conv.id}
-                  onClick={() => handleSelect(conv.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors duration-150 group ${
+                  className={`relative w-full text-left px-3 py-2.5 rounded-lg transition-colors duration-150 group cursor-pointer ${
                     isActive
                       ? "bg-saffron/10 border-l-2 border-saffron"
                       : "hover:bg-muted border-l-2 border-transparent"
                   }`}
+                  onClick={() => handleSelect(conv.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSelect(conv.id); }}
                 >
                   <div className="flex items-start gap-2.5">
                     <MessageSquare
@@ -172,8 +199,20 @@ export default function ConversationSidebar({
                         {relativeTime(conv.updated_at)}
                       </p>
                     </div>
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(conv.id);
+                      }}
+                      disabled={deletingId === conv.id}
+                      className="opacity-0 group-hover:opacity-100 shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all disabled:opacity-50"
+                      aria-label="Delete conversation"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

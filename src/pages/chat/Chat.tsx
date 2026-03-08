@@ -322,6 +322,15 @@ export default function Chat() {
     clearChat();
   };
 
+  const handleDeleteConversation = useCallback((convId: string) => {
+    // If user is viewing the deleted conversation, switch to new chat
+    if (viewingConvId === convId) {
+      setViewingConvId(null);
+      setHistoricalMessages([]);
+      clearChat();
+    }
+  }, [viewingConvId, clearChat]);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
     // Paywall: check if user can still chat
@@ -373,6 +382,7 @@ export default function Chat() {
           onClose={() => setSidebarOpen(false)}
           onNewChat={handleNewChat}
           onSelectConversation={loadConversation}
+          onDeleteConversation={handleDeleteConversation}
           activeConversationId={viewingConvId}
         />
       )}

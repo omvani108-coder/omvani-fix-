@@ -31,7 +31,7 @@ BHAJAN & MANTRA LIBRARY
 Explore a curated collection of devotional bhajans, mantras, and aartis. Search by deity, occasion, or mood. Perfect for daily worship or meditation.
 
 TEMPLE DIRECTORY
-Discover Hindu temples near you and across India. Get directions, history, and visiting information for thousands of mandirs.
+Browse a curated directory of India's most sacred temples. Get directions via Google Maps, history, timings, and visiting information for featured mandirs.
 
 PUJA TRACKER
 Build a daily spiritual practice. Track your prayers, meditation, and rituals. Maintain streaks and watch your sadhana grow over time.
