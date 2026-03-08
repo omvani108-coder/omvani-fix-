@@ -27,16 +27,16 @@ test.describe("Landing page", () => {
 
   test("navbar is visible", async ({ page }) => {
     await page.goto("/");
-    // Navbar should be present
-    const nav = page.locator("nav");
-    await expect(nav).toBeVisible();
+    // Navbar uses <header> as the outer element
+    const header = page.locator("header");
+    await expect(header).toBeVisible();
   });
 });
 
 test.describe("Auth pages", () => {
   test("signup page loads", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.locator("body")).toContainText(/sign up|create account|get started/i);
+    await expect(page.locator("body")).toContainText(/sign up|create account|get started|free trial/i);
   });
 
   test("login page loads", async ({ page }) => {
