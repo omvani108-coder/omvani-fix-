@@ -129,6 +129,7 @@ const App = () => (
                   <Route path="/puja-tracker"    element={<PujaTracker />} />
                   <Route path="/sadhana"         element={<Sadhana />} />
                   <Route path="/kundli"          element={<Kundli />} />
+                  <Route path="/pricing"         element={<Index />} />
                   <Route path="/privacy"         element={<Legal />} />
                   <Route path="/terms"           element={<Legal />} />
                   <Route path="*"                element={<NotFound />} />

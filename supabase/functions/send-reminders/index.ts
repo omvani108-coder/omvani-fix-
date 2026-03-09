@@ -103,14 +103,27 @@ serve(async (req) => {
     const now = new Date();
 
     // Find users whose reminder_time matches the current hour (bucketed by hour)
-    // We query all enabled users and filter by timezone + time match
-    const { data: preferences, error: prefError } = await supabase
-      .from("reminder_preferences")
-      .select("*")
-      .eq("enabled", true);
+    // Paginate to avoid hitting Supabase row limits at scale
+    const PAGE_SIZE = 100;
+    const preferences: Record<string, unknown>[] = [];
+    let from = 0;
 
-    if (prefError) throw new Error(`Failed to fetch preferences: ${prefError.message}`);
-    if (!preferences || preferences.length === 0) {
+    while (true) {
+      const { data, error } = await supabase
+        .from("reminder_preferences")
+        .select("*")
+        .eq("enabled", true)
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) throw new Error(`Failed to fetch preferences: ${error.message}`);
+      if (!data || data.length === 0) break;
+
+      preferences.push(...data);
+      if (data.length < PAGE_SIZE) break; // last page
+      from += PAGE_SIZE;
+    }
+
+    if (preferences.length === 0) {
       return new Response(JSON.stringify({ message: "No active reminders" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
