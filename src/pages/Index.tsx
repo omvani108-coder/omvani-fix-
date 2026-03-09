@@ -214,13 +214,12 @@ function HomeVoiceButton() {
   const [phase, setPhase] = useState<"idle" | "listening" | "thinking" | "answer">("idle");
   const [typeInput, setTypeInput] = useState("");
   const abortRef = useRef<AbortController | null>(null);
-  const recogRef = useRef<any>(null);
+  const recogRef = useRef<SpeechRecognition | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const SpeechRecog: any =
+  const SpeechRecog: SpeechRecognitionConstructor | undefined =
     typeof window !== "undefined"
-      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-      : null;
+      ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+      : undefined;
 
   const reset = () => {
     abortRef.current?.abort();
@@ -277,7 +276,7 @@ function HomeVoiceButton() {
       setTranscript("");
       setAnswer("");
     };
-    rec.onresult = (e: any) => {
+    rec.onresult = (e: SpeechRecognitionEvent) => {
       const text = e.results[0][0].transcript;
       setTranscript(text);
       setListening(false);
@@ -772,7 +771,7 @@ const Index = () => {
                 )}
 
                 <div className="flex items-center gap-2 mb-2">
-                  {"emoji" in plan && <span className="text-2xl">{(plan as any).emoji}</span>}
+                  {plan.emoji && <span className="text-2xl">{plan.emoji}</span>}
                   <h3 className="text-2xl font-serif font-bold text-foreground">{plan.name}</h3>
                 </div>
 
@@ -790,7 +789,7 @@ const Index = () => {
                   ))}
                 </ul>
 
-                {"id" in plan && (plan as any).id === "free" ? (
+                {plan.id === "free" ? (
                   <Link to="/signup">
                     <Button variant="outline" size="lg" className="w-full">
                       {plan.cta ?? "Get Started"}
@@ -807,9 +806,9 @@ const Index = () => {
                   </Button>
                 )}
 
-                {"trialNote" in plan && (plan as any).trialNote && (
+                {plan.trialNote && (
                   <p className="text-center text-xs text-muted-foreground font-sans mt-2">
-                    {(plan as any).trialNote}
+                    {plan.trialNote}
                   </p>
                 )}
               </motion.div>

@@ -14,23 +14,18 @@ interface UseVoiceInputReturn {
   toggle: () => void;
 }
 
-// Use any to avoid lib DOM type conflicts across TS configs
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SpeechRecognitionAny = any;
-
 export function useVoiceInput({
   language,
   onTranscript,
   onError,
 }: UseVoiceInputOptions): UseVoiceInputReturn {
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognitionAny>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const SpeechRecognitionClass: SpeechRecognitionAny =
+  const SpeechRecognitionClass: SpeechRecognitionConstructor | undefined =
     typeof window !== "undefined"
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-      : null;
+      ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+      : undefined;
 
   const isSupported = Boolean(SpeechRecognitionClass);
 
@@ -55,8 +50,7 @@ export function useVoiceInput({
 
     recognition.onstart = () => setIsListening(true);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       if (!event.results?.length || !event.results[0]?.length) return;
       const transcript = event.results[0][0].transcript;
       if (transcript) {

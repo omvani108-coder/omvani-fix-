@@ -1,4 +1,5 @@
 import { Component, ReactNode, ErrorInfo } from "react";
+import * as Sentry from "@sentry/react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
@@ -42,9 +43,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Log to console in development; swap for a real error service in production
     console.error("[ErrorBoundary] Caught error:", error);
     console.error("[ErrorBoundary] Component stack:", info.componentStack);
+
+    // Report to Sentry in production
+    Sentry.captureException(error, {
+      contexts: {
+        react: { componentStack: info.componentStack ?? undefined },
+      },
+    });
   }
 
   reset = () => {

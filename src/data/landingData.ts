@@ -154,7 +154,22 @@ export const stats = [
 // ── Pricing plans ─────────────────────────────────────────────────────────────
 // THIS IS THE UPDATED SECTION — now 3 plans with accurate feature limits
 // The landing page pricing section reads from this array.
-export const plans = [
+export interface LandingPlan {
+  id: string;
+  name: string;
+  emoji: string;
+  price: string;
+  annualPrice?: string;
+  period: string;
+  popular: boolean;
+  cta: string;
+  trialNote?: string;
+  annualNote?: string;
+  features: string[];
+  notIncluded: string[];
+}
+
+export const plans: LandingPlan[] = [
   {
     id:      "free",
     name:    "Seeker",

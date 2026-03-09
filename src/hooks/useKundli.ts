@@ -123,24 +123,22 @@ export function useKundli() {
 
       // Open Razorpay checkout
       return new Promise<string | null>((resolve) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const Razorpay = (window as any).Razorpay;
-        if (!Razorpay) {
+        const RazorpayCtor = window.Razorpay;
+        if (!RazorpayCtor) {
           toast.error("Payment gateway not loaded. Please refresh the page.");
           resolve(null);
           return;
         }
 
-        const options = {
+        const options: RazorpayOptions = {
           key: orderData.key_id,
           amount: orderData.amount,
           currency: orderData.currency,
           name: "OmVani",
           description: "Kundli Analysis",
           order_id: orderData.order_id,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          handler: (response: any) => {
-            resolve(response.razorpay_payment_id as string);
+          handler: (response: RazorpayPaymentResponse) => {
+            resolve(response.razorpay_payment_id);
           },
           modal: {
             ondismiss: () => resolve(null),
@@ -153,7 +151,7 @@ export function useKundli() {
           },
         };
 
-        const rzp = new Razorpay(options);
+        const rzp = new RazorpayCtor(options);
         rzp.open();
       });
     } catch (err) {

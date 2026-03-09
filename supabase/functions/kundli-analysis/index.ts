@@ -22,6 +22,48 @@ function jsonResponse(
   });
 }
 
+// ── Razorpay payment verification ────────────────────────────────────────────
+
+async function verifyRazorpayPayment(paymentId: string): Promise<{
+  valid: boolean;
+  error?: string;
+}> {
+  const keyId = Deno.env.get("RAZORPAY_KEY_ID");
+  const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+  if (!keyId || !keySecret) {
+    return { valid: false, error: "Razorpay credentials not configured" };
+  }
+
+  const credentials = btoa(`${keyId}:${keySecret}`);
+  const res = await fetch(
+    `https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Basic ${credentials}` },
+    },
+  );
+
+  if (!res.ok) {
+    return { valid: false, error: `Razorpay API returned ${res.status}` };
+  }
+
+  const payment = await res.json();
+
+  if (payment.status !== "captured") {
+    return { valid: false, error: `Payment status is "${payment.status}", expected "captured"` };
+  }
+
+  if (payment.amount !== KUNDLI_PRICE_PER_ANALYSIS) {
+    return { valid: false, error: `Payment amount ${payment.amount} does not match expected ${KUNDLI_PRICE_PER_ANALYSIS}` };
+  }
+
+  if (payment.currency !== "INR") {
+    return { valid: false, error: `Payment currency "${payment.currency}" is not INR` };
+  }
+
+  return { valid: true };
+}
+
 // ── Main handler ────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -153,6 +195,38 @@ serve(async (req) => {
           CORS,
           400,
         );
+      }
+
+      // ── Server-side payment verification for paid analyses ──────────────
+      if (!is_free && razorpay_payment_id) {
+        // Check for duplicate payment ID usage
+        const { count: existingCount, error: dupErr } = await supabase
+          .from("kundli_analyses")
+          .select("id", { count: "exact", head: true })
+          .eq("razorpay_payment_id", razorpay_payment_id);
+
+        if (dupErr) {
+          console.error("Duplicate payment check error:", dupErr);
+        }
+
+        if (existingCount && existingCount > 0) {
+          return jsonResponse(
+            { error: "This payment has already been used for an analysis" },
+            CORS,
+            400,
+          );
+        }
+
+        // Verify payment with Razorpay API
+        const verification = await verifyRazorpayPayment(razorpay_payment_id);
+        if (!verification.valid) {
+          console.error("Payment verification failed:", verification.error);
+          return jsonResponse(
+            { error: "Payment verification failed" },
+            CORS,
+            400,
+          );
+        }
       }
 
       // If claiming free, verify eligibility (lifetime first-free OR monthly allowance)

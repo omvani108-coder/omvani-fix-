@@ -107,8 +107,8 @@ export default function Profile() {
       await supabase.auth.signOut();
       navigate("/");
       toast.success(tx("Account deleted. We're sorry to see you go.", "खाता हटा दिया गया।", "கணக்கு நீக்கப்பட்டது."));
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete account. Please try again.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete account. Please try again.");
     } finally {
       setDeleteLoading(false);
       setDeleteConfirmOpen(false);

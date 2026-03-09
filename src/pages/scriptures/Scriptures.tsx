@@ -42,12 +42,11 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
   const [loading, setLoading]     = useState(false);
   const [phase, setPhase]         = useState<"idle"|"listening"|"thinking"|"answer">("idle");
   const abortRef  = useRef<AbortController | null>(null);
-  const recogRef  = useRef<any>(null);
+  const recogRef  = useRef<SpeechRecognition | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const SpeechRecog: any = typeof window !== "undefined"
-    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    : null;
+  const SpeechRecog: SpeechRecognitionConstructor | undefined = typeof window !== "undefined"
+    ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+    : undefined;
 
   const reset = () => {
     abortRef.current?.abort();
@@ -64,7 +63,7 @@ function OmVoiceButton({ scripture, currentContext }: { scripture: Scripture; cu
     rec.continuous = false; rec.interimResults = false;
     rec.lang = language === "hi" ? "hi-IN" : language === "ta" ? "ta-IN" : "en-US";
     rec.onstart = () => { setListening(true); setPhase("listening"); setTranscript(""); setAnswer(""); };
-    rec.onresult = (e: any) => {
+    rec.onresult = (e: SpeechRecognitionEvent) => {
       const text = e.results[0][0].transcript;
       setTranscript(text);
       setListening(false);

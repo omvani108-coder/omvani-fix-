@@ -91,3 +91,33 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # ── Deploy edge functions to Supabase ──────────────────────────────────
+  deploy-edge-functions:
+    name: Deploy Edge Functions
+    runs-on: ubuntu-latest
+    needs: [check, edge-functions]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy all edge functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy chat --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy elevenlabs-tts --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy elevenlabs-stt --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy send-reminders --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy identify-deity --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy razorpay-webhook --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy kundli-analysis --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy razorpay-checkout --project-ref tdinnhkdrebwmihazaqf
+          supabase functions deploy delete-account --project-ref tdinnhkdrebwmihazaqf

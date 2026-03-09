@@ -48,7 +48,7 @@ const MONTH_NAMES = [
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Motivational messages based on streak — uses translation keys
-const streakMessage = (streak: number, t: any) => {
+const streakMessage = (streak: number, t: Record<string, Record<string, string>>) => {
   if (streak === 0) return t.puja.streakStart;
   if (streak === 1) return t.puja.streakFirst;
   if (streak < 7)  return `${streak} ${t.puja.days} 🪔`;

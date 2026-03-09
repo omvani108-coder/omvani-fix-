@@ -126,7 +126,7 @@ const PLANS: PlanDef[] = [
 // ── Trigger messages ──────────────────────────────────────────────────────────
 // These show at the top of the modal explaining WHY it appeared.
 
-function getTriggerMessage(trigger: UpgradeTrigger, remaining: number, t: any): {
+function getTriggerMessage(trigger: UpgradeTrigger, remaining: number, t: Record<string, Record<string, string>>): {
   title: string;
   subtitle: string;
 } {
@@ -171,10 +171,6 @@ function getTriggerMessage(trigger: UpgradeTrigger, remaining: number, t: any): 
 }
 
 // ── Razorpay checkout opener ──────────────────────────────────────────────────
-
-declare global {
-  interface Window { Razorpay: any; }
-}
 
 async function loadRazorpaySDK(): Promise<void> {
   if (window.Razorpay) return; // Already loaded
