@@ -905,7 +905,7 @@ export const translations = {
     },
     kundli: {
       title: "ஜோதிட ஜாதகம்",
-      titleHindi: "एस्ट्रो कुंडली",
+      titleHindi: "ஜோதிட ஜாதகம்",
       subtitle: "AI-இயங்கும் வேத ஜாதக வாசிப்பு",
       fullName: "முழு பெயர்",
       dateOfBirth: "பிறந்த தேதி",

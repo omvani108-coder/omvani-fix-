@@ -34,6 +34,15 @@ RULES:
 
 You are not a replacement for a living guru. You are a bridge to the wisdom of the scriptures.`;
 
+// ── Supported languages ─────────────────────────────────────────────────────
+export const VALID_LANGUAGES = ["en", "hi", "ta"] as const;
+export type SupportedLanguage = typeof VALID_LANGUAGES[number];
+
+export function sanitizeLanguage(lang: string | undefined): SupportedLanguage {
+  if (lang && VALID_LANGUAGES.includes(lang as SupportedLanguage)) return lang as SupportedLanguage;
+  return "en";
+}
+
 export function buildSystemPrompt(language: string): string {
   const langInstruction =
     language === "hi"

@@ -19,19 +19,34 @@ export async function streamAI(
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token ?? supabaseKey;
 
-  const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
-    method: "POST",
-    signal,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      apikey: supabaseKey,
-    },
-    body: JSON.stringify({
-      messages: [{ role: "user", content: prompt }],
-      language: "en",
-    }),
-  });
+  // 60-second timeout to prevent indefinite hangs
+  const timeoutId = setTimeout(() => {
+    if (!signal.aborted) {
+      controller.abort();
+    }
+  }, 60_000);
+  const controller = new AbortController();
+  // If the external signal aborts, forward it
+  signal.addEventListener("abort", () => controller.abort());
+
+  let res: Response;
+  try {
+    res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        apikey: supabaseKey,
+      },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        language: "en",
+      }),
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");

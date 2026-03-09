@@ -86,7 +86,8 @@ serve(async (req) => {
 
     const formData = await req.formData();
     const audioFile = formData.get("audio");
-    const language = formData.get("language") as string || "en";
+    const rawLang = formData.get("language") as string || "en";
+    const language = ["en", "hi", "ta"].includes(rawLang) ? rawLang : "en";
 
     if (!audioFile || !(audioFile instanceof File)) {
       return new Response(JSON.stringify({ error: "No audio file provided" }), {

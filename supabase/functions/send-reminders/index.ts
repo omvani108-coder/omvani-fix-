@@ -132,7 +132,7 @@ serve(async (req) => {
         const [prefHour, prefMinute] = (pref.reminder_time || "06:00:00").split(":").map(Number);
 
         // Only send if within the current hour window (cron runs every 30 min)
-        if (userHour !== prefHour || Math.abs(userMinute - prefMinute) > 30) {
+        if (userHour !== prefHour || Math.abs((userMinute - prefMinute + 60) % 60) > 30) {
           skipped++;
           continue;
         }
@@ -181,7 +181,7 @@ serve(async (req) => {
                 body: JSON.stringify({
                   from: "OmVani <noreply@omvani.app>",
                   to: userData.user.email,
-                  subject: "ॐ OmVani — Your Daily Shloka",
+                  subject: pref.language === "hi" ? "ॐ ओमवाणी — आपका दैनिक श्लोक" : pref.language === "ta" ? "ॐ ஓம்வாணி — உங்கள் தினசரி ஶ்லோகம்" : "ॐ OmVani — Your Daily Shloka",
                   html: emailHtml,
                 }),
               });

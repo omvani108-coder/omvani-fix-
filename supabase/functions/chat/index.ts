@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { CHAT_LIMITS, getTodayIST, buildSystemPrompt } from "./logic.ts";
+import { CHAT_LIMITS, getTodayIST, buildSystemPrompt, sanitizeLanguage } from "./logic.ts";
 
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
@@ -66,7 +66,8 @@ serve(async (req) => {
     }
 
     // ── Step 4: Parse request body ──────────────────────────────────────────
-    const { messages, language } = await req.json();
+    const { messages, language: rawLang } = await req.json();
+    const language = sanitizeLanguage(rawLang);
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(

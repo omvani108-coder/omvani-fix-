@@ -133,6 +133,162 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          user_id: string
+          plan: string
+          status: string
+          trial_ends_at: string | null
+          current_period_end: string | null
+          razorpay_subscription_id: string | null
+          razorpay_payment_id: string | null
+          family_owner_id: string | null
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          plan?: string
+          status?: string
+          trial_ends_at?: string | null
+          current_period_end?: string | null
+          razorpay_subscription_id?: string | null
+          razorpay_payment_id?: string | null
+          family_owner_id?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          plan?: string
+          status?: string
+          trial_ends_at?: string | null
+          current_period_end?: string | null
+          razorpay_subscription_id?: string | null
+          razorpay_payment_id?: string | null
+          family_owner_id?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      usage_logs: {
+        Row: {
+          user_id: string
+          feature: string
+          date_ist: string
+          count: number
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          feature: string
+          date_ist: string
+          count?: number
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          feature?: string
+          date_ist?: string
+          count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kundli_analyses: {
+        Row: {
+          id: string
+          user_id: string
+          full_name: string
+          date_of_birth: string
+          time_of_birth: string | null
+          city: string | null
+          state: string | null
+          country: string | null
+          lens: string
+          result: string | null
+          is_free: boolean
+          razorpay_payment_id: string | null
+          payment_status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          full_name: string
+          date_of_birth: string
+          time_of_birth?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          lens: string
+          result?: string | null
+          is_free?: boolean
+          razorpay_payment_id?: string | null
+          payment_status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          full_name?: string
+          date_of_birth?: string
+          time_of_birth?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          lens?: string
+          result?: string | null
+          is_free?: boolean
+          razorpay_payment_id?: string | null
+          payment_status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      puja_records: {
+        Row: {
+          user_id: string
+          date_key: string
+          item_states: Json
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          date_key: string
+          item_states: Json
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          date_key?: string
+          item_states?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scripture_bookmarks: {
+        Row: {
+          user_id: string
+          scripture_type: string
+          bookmark_ids: Json
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          scripture_type: string
+          bookmark_ids: Json
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          scripture_type?: string
+          bookmark_ids?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reminder_preferences: {
         Row: {
           channel: string
@@ -183,7 +339,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_usage: {
+        Args: {
+          p_user_id: string
+          p_feature: string
+          p_date_ist: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
