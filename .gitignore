@@ -14,9 +14,17 @@ dist
 dist-ssr
 *.local
 
-# Capacitor native projects (generated — open in Xcode / Android Studio)
+# Capacitor native projects
 ios/
-android/
+
+# Android — track config, ignore build artifacts
+android/build/
+android/.gradle/
+android/app/build/
+android/app/release/
+android/local.properties
+*.keystore
+*.jks
 
 # Editor directories and files
 .vscode/*

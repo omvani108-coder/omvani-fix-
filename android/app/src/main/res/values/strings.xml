@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OmVani</string>
+    <string name="title_activity_main">OmVani</string>
+    <string name="package_name">com.omvani.app</string>
+    <string name="custom_url_scheme">com.omvani.app</string>
+</resources>
