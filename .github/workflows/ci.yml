@@ -48,11 +48,8 @@ jobs:
         with:
           deno-version: v1.x
 
-      - name: Run chat function tests
-        run: deno test supabase/functions/chat/index.test.ts --allow-env --allow-net
-
-      - name: Run kundli function tests
-        run: deno test supabase/functions/kundli-analysis/index.test.ts --allow-env --allow-net
+      - name: Run all edge function tests
+        run: deno test supabase/functions/ --allow-env --allow-net
 
   # ── E2E tests (Playwright) ─────────────────────────────────────────────
   e2e:

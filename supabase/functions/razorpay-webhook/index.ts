@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
- 
+import { captureException } from "../_shared/sentry.ts";
+
 // Webhook is called by Razorpay servers (not browsers), but we restrict CORS anyway
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
@@ -25,7 +26,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
- 
+
+  try {
   const webhookSecret = Deno.env.get("RAZORPAY_WEBHOOK_SECRET")!;
   const supabaseUrl   = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -127,4 +129,9 @@ serve(async (req) => {
   }
  
   return new Response("ok", { status: 200 });
+  } catch (err) {
+    console.error("razorpay-webhook error:", err);
+    captureException(err, { function: "razorpay-webhook" });
+    return new Response("Internal server error", { status: 500 });
+  }
 });

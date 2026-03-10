@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureException } from "../_shared/sentry.ts";
 
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
@@ -261,6 +262,7 @@ serve(async (req) => {
     );
   } catch (err) {
     console.error("send-reminders error:", err);
+    captureException(err, { function: "send-reminders" });
     return new Response(
       JSON.stringify({ error: String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

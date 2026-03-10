@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureException } from "../_shared/sentry.ts";
 
 // ── IST date helper (same logic as useSubscription.ts) ──────────────────────
 function getTodayIST(): string {
@@ -237,6 +238,7 @@ If you cannot identify the image as anything Hindu/spiritual, set type to "Unkno
     });
   } catch (err) {
     console.error("identify-deity error:", err);
+    captureException(err, { function: "identify-deity" });
     return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

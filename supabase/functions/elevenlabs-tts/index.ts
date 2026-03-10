@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureException } from "../_shared/sentry.ts";
 
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
@@ -146,6 +147,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("TTS error:", e);
+    captureException(e, { function: "elevenlabs-tts" });
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

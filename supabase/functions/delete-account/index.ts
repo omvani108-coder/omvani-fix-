@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureException } from "../_shared/sentry.ts";
 
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
@@ -97,6 +98,7 @@ serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("delete-account error:", err);
+    captureException(err, { function: "delete-account" });
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

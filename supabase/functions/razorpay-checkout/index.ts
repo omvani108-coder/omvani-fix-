@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureException } from "../_shared/sentry.ts";
 
 const ALLOWED_ORIGINS = [
   "https://omvani.in",
@@ -232,6 +233,7 @@ serve(async (req) => {
     }, corsHeaders);
   } catch (err) {
     console.error("razorpay-checkout error:", err);
+    captureException(err, { function: "razorpay-checkout" });
     return jsonResponse(
       { error: err instanceof Error ? err.message : "Unknown error" },
       corsHeaders,
