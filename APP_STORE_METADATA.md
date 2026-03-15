@@ -48,8 +48,8 @@ Available in English, Hindi, and Tamil. Switch languages anytime from the app.
 SUBSCRIPTION PLANS
 - Free: 3 AI chats/day, basic features
 - Sadhak (Basic): 10 chats/day, expanded features
-- Guru (Pro): Unlimited everything
-- Family: Share with up to 5 members
+- Guru (Pro): 20 chats/day, all premium features
+- Family: 20 chats/day per member, share with up to 5 members
 
 Start with a 7-day free trial on any paid plan. Cancel anytime.
 

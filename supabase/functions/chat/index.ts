@@ -7,6 +7,11 @@ import { CHAT_LIMITS, getTodayIST, buildSystemPrompt, sanitizeLanguage } from ".
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     // ── Step 1: Verify JWT ──────────────────────────────────────────────────
@@ -120,9 +125,10 @@ serve(async (req) => {
 
     if (!response.ok) {
       const err = await response.text();
+      console.error("Anthropic API error:", response.status, err);
       return new Response(
-        JSON.stringify({ error: `Anthropic error: ${err}` }),
-        { status: response.status, headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "AI service error" }),
+        { status: 502, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
@@ -216,9 +222,10 @@ serve(async (req) => {
       },
     });
   } catch (err) {
+    console.error("chat error:", err);
     captureException(err, { function: "chat" });
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   }

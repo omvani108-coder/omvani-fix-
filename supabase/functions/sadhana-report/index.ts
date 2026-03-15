@@ -11,6 +11,49 @@ const REPORT_LIMITS: Record<string, { type: "lifetime" | "monthly"; limit: numbe
   // Pro and Family: unlimited (not in this map)
 };
 
+const SADHANA_REPORT_PRICE = 3000; // ₹30 in paise
+
+// ── Razorpay payment verification (mirrors kundli-analysis) ─────────────────
+async function verifyRazorpayPayment(paymentId: string): Promise<{
+  valid: boolean;
+  error?: string;
+}> {
+  const keyId = Deno.env.get("RAZORPAY_KEY_ID");
+  const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+  if (!keyId || !keySecret) {
+    return { valid: false, error: "Razorpay credentials not configured" };
+  }
+
+  const credentials = btoa(`${keyId}:${keySecret}`);
+  const res = await fetch(
+    `https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Basic ${credentials}` },
+    },
+  );
+
+  if (!res.ok) {
+    return { valid: false, error: `Razorpay API returned ${res.status}` };
+  }
+
+  const payment = await res.json();
+
+  if (payment.status !== "captured") {
+    return { valid: false, error: `Payment status is "${payment.status}", expected "captured"` };
+  }
+
+  if (payment.amount !== SADHANA_REPORT_PRICE) {
+    return { valid: false, error: `Payment amount ${payment.amount} does not match expected ${SADHANA_REPORT_PRICE}` };
+  }
+
+  if (payment.currency !== "INR") {
+    return { valid: false, error: `Payment currency "${payment.currency}" is not INR` };
+  }
+
+  return { valid: true };
+}
+
 function getTodayIST(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 }
@@ -44,6 +87,11 @@ Return JSON in this exact format:
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     // ── Verify JWT ────────────────────────────────────────────────────────
@@ -70,7 +118,9 @@ serve(async (req) => {
     }
 
     // ── Parse request ─────────────────────────────────────────────────────
-    const { answers, language = "en", is_free = false, razorpay_payment_id } = await req.json();
+    const { answers, language = "en", razorpay_payment_id } = await req.json();
+    // is_free is determined server-side only — never trust the client
+    const is_free = !razorpay_payment_id;
 
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
       return new Response(
@@ -183,8 +233,34 @@ serve(async (req) => {
       report = match ? JSON.parse(match[0]) : {};
     }
 
+    // ── Server-side payment verification for paid reports ────────────────
+    if (razorpay_payment_id) {
+      // Check for duplicate payment ID usage
+      const { count: existingCount } = await supabase
+        .from("sadhana_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("razorpay_payment_id", razorpay_payment_id);
+
+      if (existingCount && existingCount > 0) {
+        return new Response(
+          JSON.stringify({ error: "This payment has already been used for a report" }),
+          { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify payment with Razorpay API
+      const verification = await verifyRazorpayPayment(razorpay_payment_id);
+      if (!verification.valid) {
+        console.error("Payment verification failed:", verification.error);
+        return new Response(
+          JSON.stringify({ error: "Payment verification failed" }),
+          { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // ── Store report in database ──────────────────────────────────────────
-    const paymentAmount = razorpay_payment_id ? 3000 : 0; // ₹30 in paise
+    const paymentAmount = razorpay_payment_id ? SADHANA_REPORT_PRICE : 0;
     const paymentStatus = razorpay_payment_id ? "paid" : "free";
 
     const { data: savedReport, error: insertErr } = await supabase
@@ -194,7 +270,7 @@ serve(async (req) => {
         questions: answers,
         report,
         consistency_score: report.consistency_score ?? null,
-        is_free: is_free || !razorpay_payment_id,
+        is_free,
         razorpay_payment_id: razorpay_payment_id ?? null,
         payment_amount: paymentAmount,
         payment_status: paymentStatus,
@@ -217,7 +293,7 @@ serve(async (req) => {
   } catch (err) {
     captureException(err, { function: "sadhana-report" });
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   }

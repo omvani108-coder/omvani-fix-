@@ -27,6 +27,11 @@ Return a JSON array in this exact format:
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     // ── Verify JWT ────────────────────────────────────────────────────────

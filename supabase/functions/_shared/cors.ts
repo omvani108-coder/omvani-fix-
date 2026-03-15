@@ -10,7 +10,7 @@ export const ALLOWED_ORIGINS = [
   "https://www.omvani.in",
   "https://omvani.vercel.app",
   "https://dharma-companion.vercel.app",
-  "http://localhost:8080",
+  ...(Deno.env.get("ENVIRONMENT") === "development" ? ["http://localhost:8080"] : []),
 ];
 
 export function isAllowedOrigin(origin: string): boolean {

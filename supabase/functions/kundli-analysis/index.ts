@@ -70,6 +70,9 @@ async function verifyRazorpayPayment(paymentId: string): Promise<{
 serve(async (req) => {
   const CORS = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, CORS, 405);
+  }
 
   try {
     // ── Step 1: Verify JWT ────────────────────────────────────────────────
@@ -329,10 +332,11 @@ serve(async (req) => {
 
       if (!response.ok) {
         const err = await response.text();
+        console.error("Anthropic API error:", response.status, err);
         return jsonResponse(
-          { error: `Anthropic error: ${err}` },
+          { error: "AI service error" },
           CORS,
-          response.status,
+          502,
         );
       }
 
@@ -453,9 +457,10 @@ serve(async (req) => {
     // Unknown action
     return jsonResponse({ error: "Invalid action" }, CORS, 400);
   } catch (err) {
+    console.error("kundli-analysis error:", err);
     captureException(err, { function: "kundli-analysis" });
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
     );
   }
