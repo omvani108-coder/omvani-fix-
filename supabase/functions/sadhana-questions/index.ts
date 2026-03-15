@@ -62,36 +62,41 @@ serve(async (req) => {
           ? "\n\nGenerate questions and options in Tamil. Keep spiritual terms in Sanskrit with Tamil explanation."
           : "";
 
-    // ── Call Claude to generate questions ──────────────────────────────────
-    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicKey) {
+    // ── Call Gemini Flash to generate questions ─────────────────────────
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiKey) {
       return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
     const dayOfWeek = new Date().toLocaleDateString("en-US", { weekday: "long", timeZone: "Asia/Kolkata" });
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT + langInstruction,
-        messages: [
-          {
-            role: "user",
-            content: `Generate today's sadhana questionnaire. Today is ${dayOfWeek}. Return only the JSON array.`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `${SYSTEM_PROMPT}${langInstruction}\n\nGenerate today's sadhana questionnaire. Today is ${dayOfWeek}. Return only the JSON array.`,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 1024,
+            responseMimeType: "application/json",
           },
-        ],
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const err = await response.text();
@@ -102,7 +107,7 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    const text = result.content?.[0]?.text ?? "[]";
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]";
 
     // Parse the JSON from the AI response
     let questions;

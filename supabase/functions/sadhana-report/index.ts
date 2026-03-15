@@ -116,11 +116,11 @@ serve(async (req) => {
       }
     }
 
-    // ── Call Claude to generate report ─────────────────────────────────────
-    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicKey) {
+    // ── Call Gemini Flash to generate report ─────────────────────────────
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiKey) {
       return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
@@ -139,25 +139,30 @@ serve(async (req) => {
       )
       .join("\n\n");
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 1500,
-        system: SYSTEM_PROMPT + langInstruction,
-        messages: [
-          {
-            role: "user",
-            content: `Here are my sadhana answers for today:\n\n${qaText}\n\nGenerate my daily sadhana report. Return only JSON.`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `${SYSTEM_PROMPT}${langInstruction}\n\nHere are my sadhana answers for today:\n\n${qaText}\n\nGenerate my daily sadhana report. Return only JSON.`,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1500,
+            responseMimeType: "application/json",
           },
-        ],
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const err = await response.text();
@@ -168,7 +173,7 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    const text = result.content?.[0]?.text ?? "{}";
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
 
     let report;
     try {
@@ -180,7 +185,7 @@ serve(async (req) => {
 
     // ── Store report in database ──────────────────────────────────────────
     const paymentAmount = razorpay_payment_id ? 3000 : 0; // ₹30 in paise
-    const paymentStatus = razorpay_payment_id ? "paid" : is_free ? "free" : "free";
+    const paymentStatus = razorpay_payment_id ? "paid" : "free";
 
     const { data: savedReport, error: insertErr } = await supabase
       .from("sadhana_reports")
