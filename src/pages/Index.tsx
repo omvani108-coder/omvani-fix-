@@ -569,7 +569,16 @@ const Index = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.55 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="text-sm text-gold-light/70 font-sans tracking-wide mb-2"
+          >
+            {t.home.tagline}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             className="text-sm text-gold-light/60 mb-10 font-sans"
           >
             {t.home.scriptureNote}
@@ -847,7 +856,8 @@ const Index = () => {
       {/* ── Footer ────────────────────────────────────────────────────────────── */}
       <footer className="py-12 px-4 border-t border-border" role="contentinfo">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="font-serif text-2xl font-bold text-gradient-sacred mb-2">ॐVani</p>
+          <p className="font-serif text-2xl font-bold text-gradient-sacred mb-1">ॐVani</p>
+          <p className="text-xs text-muted-foreground/60 font-sans mb-2">{t.home.tagline}</p>
           <p className="text-saffron font-sans text-xs mb-4" aria-label="Om Tat Sat">ॐ तत् सत्</p>
           <p className="text-xs text-muted-foreground font-sans max-w-lg mx-auto mb-6 leading-relaxed">
             {t.home.footerDisclaimer}

@@ -131,6 +131,7 @@ export default function Legal() {
         <Link to="/" className="inline-flex items-center gap-1 font-serif text-lg font-bold text-gradient-sacred">
           <span>ॐ</span><span>Vani</span>
         </Link>
+        <p className="text-[10px] text-muted-foreground/50 font-sans mt-1">Deeper Understanding of Sanatan Dharam</p>
         <p className="text-xs text-muted-foreground/60 font-sans mt-1">© 2026 ॐVani</p>
       </footer>
     </div>

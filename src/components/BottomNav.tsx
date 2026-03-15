@@ -16,6 +16,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Music, Orbit } from "lucide-react";
 import { PadmasanaIcon } from "@/components/icons/PadmasanaIcon";
+import { useCyclingLabel } from "@/hooks/useCyclingLabel";
 
 // ─── Pages where the bottom nav is hidden ─────────────────────────────────────
 
@@ -34,9 +35,10 @@ interface NavButtonProps {
   label:   string;
   active:  boolean;
   onClick: () => void;
+  cycling?: boolean;
 }
 
-function NavButton({ icon: Icon, label, active, onClick }: NavButtonProps) {
+function NavButton({ icon: Icon, label, active, onClick, cycling }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -74,13 +76,28 @@ function NavButton({ icon: Icon, label, active, onClick }: NavButtonProps) {
         />
       </motion.div>
 
-      {/* Label */}
+      {/* Label — with optional cycling animation */}
       <span
         className={`relative z-10 text-[10px] font-sans font-medium transition-colors leading-none ${
           active ? "text-saffron" : "text-muted-foreground"
-        }`}
+        } ${cycling ? "min-w-[2.8rem] text-center" : ""}`}
       >
-        {label}
+        {cycling ? (
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={label}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              className="inline-block"
+            >
+              {label}
+            </motion.span>
+          </AnimatePresence>
+        ) : (
+          label
+        )}
       </span>
     </button>
   );
@@ -92,15 +109,17 @@ export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t }    = useTranslations();
+  const scriptureCycleLabels = t.nav.scriptureCycleLabels ?? ["Scripture", "Shlok", "Vedas", "Gita"];
+  const { label: scriptureLabel } = useCyclingLabel(scriptureCycleLabels, 2000);
 
   if (HIDDEN_ON.includes(location.pathname)) return null;
 
   const path = location.pathname;
 
   const leftItems = [
-    { label: t.bottomNav.gita,    icon: BookOpen,       href: "/scriptures" },
-    { label: t.bottomNav.sadhana, icon: PadmasanaIcon,  href: "/sadhana"    },
-  ] as const;
+    { label: scriptureLabel,      icon: BookOpen,       href: "/scriptures", cycling: true },
+    { label: t.bottomNav.sadhana, icon: PadmasanaIcon,  href: "/sadhana",    cycling: false },
+  ];
 
   const rightItems = [
     { label: t.bottomNav.bhajans, icon: Music, href: "/bhajans" },
@@ -147,6 +166,7 @@ export function BottomNav() {
                 label={item.label}
                 active={isActive}
                 onClick={() => navigate(item.href)}
+                cycling={item.cycling}
               />
             );
           })}

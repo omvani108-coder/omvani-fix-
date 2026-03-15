@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, ChevronLeft, ChevronRight, RotateCcw, Info, Lock } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, RotateCcw, Info, Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { SeoHead } from "@/components/SeoHead";
 import { useTranslations } from "@/hooks/useTranslations";
-import { fadeUp, defaultViewport } from "@/lib/animations";
+import { fadeUp } from "@/lib/animations";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { usePujaSync } from "@/hooks/usePujaSync";
@@ -57,25 +57,6 @@ const streakMessage = (streak: number, t: Record<string, Record<string, string>>
   if (streak < 30) return `${t.puja.streakIncredible} ${streak} ${t.puja.days}`;
   return t.puja.streakMonth;
 };
-
-// ── Flame / completion indicator ──────────────────────────────────────────────
-
-function CompletionFlame({ pct }: { pct: number }) {
-  const color =
-    pct === 0   ? "text-muted-foreground/30" :
-    pct < 0.5   ? "text-saffron/50" :
-    pct < 1     ? "text-saffron" :
-                  "text-gold";
-
-  return (
-    <motion.div
-      animate={{ scale: pct === 1 ? [1, 1.2, 1] : 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      <Flame className={`w-4 h-4 ${color} transition-colors duration-500`} />
-    </motion.div>
-  );
-}
 
 // ── Day cell in the calendar grid ─────────────────────────────────────────────
 
@@ -245,6 +226,84 @@ function TaskRow({ item, checked, disabled, onToggle }: TaskRowProps) {
   );
 }
 
+// ── Compact horizontal ritual slider (used in embedded/Sadhana mode) ──────────
+
+function CompactRitualSlider({
+  items,
+  record,
+  onToggle,
+}: {
+  items: PujaItem[];
+  record: DayRecord;
+  onToggle: (itemId: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: number) => {
+    scrollRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => scroll(-1)}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 z-10 w-7 h-7 rounded-full bg-background/90 border border-border shadow flex items-center justify-center"
+        aria-label="Scroll left"
+      >
+        <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+      </button>
+
+      <div
+        ref={scrollRef}
+        className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-1 snap-x snap-mandatory"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {items.map((item) => {
+          const done = !!record[item.id];
+          return (
+            <button
+              key={item.id}
+              onClick={() => onToggle(item.id)}
+              className={`
+                relative flex-shrink-0 w-20 flex flex-col items-center gap-1.5 py-3 px-2
+                rounded-2xl border transition-all duration-200
+                ${done
+                  ? "bg-saffron/10 border-saffron/30 shadow-sm"
+                  : "bg-card border-border hover:border-saffron/20"
+                }
+              `}
+            >
+              <span className="text-2xl select-none">{item.emoji}</span>
+              <span className={`text-[10px] font-sans font-medium leading-tight text-center line-clamp-2 ${
+                done ? "text-saffron" : "text-muted-foreground"
+              }`}>
+                {item.name}
+              </span>
+              <div className={`
+                absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center
+                transition-all duration-200
+                ${done
+                  ? "bg-saffron text-white scale-100"
+                  : "bg-muted text-muted-foreground/40 scale-90"
+                }
+              `}>
+                <Check className="w-3 h-3" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={() => scroll(1)}
+        className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 z-10 w-7 h-7 rounded-full bg-background/90 border border-border shadow flex items-center justify-center"
+        aria-label="Scroll right"
+      >
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </button>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PujaTracker({ embedded = false }: { embedded?: boolean }) {
@@ -351,7 +410,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
   const selectedPct = selectedChecked / PUJA_ITEMS.length;
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className={`${embedded ? "" : "min-h-screen"} bg-background overflow-x-hidden`}>
       {!embedded && (
         <>
           <SeoHead
@@ -364,7 +423,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
       )}
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
-      <section className={`${embedded ? "pt-4" : "pt-24"} pb-8 px-4 bg-gradient-to-b from-secondary/50 to-background`}>
+      <section className={`${embedded ? "pt-20" : "pt-24"} pb-8 px-4 bg-gradient-to-b from-secondary/50 to-background`}>
         <div className="max-w-2xl mx-auto text-center">
           <motion.p
             initial={{ opacity: 0, y: -10 }}
@@ -392,7 +451,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
         </div>
       </section>
 
-      <div className="max-w-2xl mx-auto px-4 pb-[calc(8rem+env(safe-area-inset-bottom))] space-y-6">
+      <div className={`max-w-2xl mx-auto px-4 ${embedded ? "pb-6" : "pb-[calc(8rem+env(safe-area-inset-bottom))]"} space-y-6`}>
 
         {/* ── Streak banner ──────────────────────────────────────────────── */}
         <motion.div
@@ -613,8 +672,15 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
             </div>
           )}
 
-          {/* Task list */}
-          {!isSelectedFuture && (
+          {/* Task display — compact slider when embedded, full list otherwise */}
+          {!isSelectedFuture && embedded && (
+            <CompactRitualSlider
+              items={PUJA_ITEMS}
+              record={selectedRecord}
+              onToggle={toggleItem}
+            />
+          )}
+          {!isSelectedFuture && !embedded && (
             <div className="flex flex-col gap-2.5">
               <AnimatePresence>
                 {PUJA_ITEMS.map((item, i) => (

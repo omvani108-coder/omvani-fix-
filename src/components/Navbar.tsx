@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useTranslations } from "@/hooks/useTranslations";
+import { useCyclingLabel } from "@/hooks/useCyclingLabel";
 
-type NavLink = { label: string; href: string; isPage?: boolean };
+type NavLink = { label: string; href: string; isPage?: boolean; cycling?: boolean };
 
 // ── Om Circle — mobile profile trigger ───────────────────────────────────────
 
@@ -96,8 +97,11 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const scriptureCycleLabels = t.nav.scriptureCycleLabels ?? ["Scripture", "Shlok", "Vedas", "Gita"];
+  const { label: scriptureLabel, index: scriptureLabelIdx } = useCyclingLabel(scriptureCycleLabels, 2000);
+
   const navLinks: NavLink[] = [
-    { label: t.nav.scriptures,    href: "/scriptures", isPage: true },
+    { label: scriptureLabel,      href: "/scriptures", isPage: true, cycling: true },
     { label: t.nav.bhajans,       href: "/bhajans",    isPage: true },
     { label: t.nav.mandirs,       href: "/mandirs",    isPage: true },
     { label: t.bottomNav.sadhana, href: "/sadhana",    isPage: true },
@@ -252,13 +256,28 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
           {navLinks.map((link) => (
             <button
-              key={link.label}
+              key={link.href}
               onClick={() => handleAnchor(link)}
               className={`text-sm font-sans font-medium transition-colors hover:text-saffron ${
                 scrolled ? "text-foreground" : "text-gold-light"
-              }`}
+              } ${link.cycling ? "min-w-[5.5rem] text-center" : ""}`}
             >
-              {link.label}
+              {link.cycling ? (
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={link.label}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.25 }}
+                    className="inline-block"
+                  >
+                    {link.label}
+                  </motion.span>
+                </AnimatePresence>
+              ) : (
+                link.label
+              )}
             </button>
           ))}
         </nav>

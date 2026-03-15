@@ -30,3 +30,6 @@ export const VALID_PLAN_IDS = Object.keys(PLAN_STRUCTURE);
 
 /** Kundli one-time analysis price in paise */
 export const KUNDLI_AMOUNT = 7900; // ₹79
+
+/** Sadhana report one-time price in paise */
+export const SADHANA_REPORT_AMOUNT = 3000; // ₹30

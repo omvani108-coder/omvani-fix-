@@ -9,7 +9,7 @@ interface SeoHeadProps {
 const SITE_NAME          = "OmVani";
 const BASE_URL           = "https://omvani.in";
 const DEFAULT_DESCRIPTION =
-  "Talk to a spiritual guru anytime, in your language. 100% scripture-based answers from the Bhagavad Gita, Vedas & Puranas — powered by AI.";
+  "Deeper Understanding of Sanatan Dharam — Talk to a spiritual guru anytime, in your language. 100% scripture-based answers from the Bhagavad Gita, Vedas & Puranas — powered by AI.";
 const OG_IMAGE = `${BASE_URL}/og-cover.jpg`;     // ← add a 1200×630px image to /public
 
 export function SeoHead({

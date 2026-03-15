@@ -30,6 +30,7 @@ export type UpgradeTrigger =
   | "bhajans"
   | "scriptures"
   | "puja"
+  | "sadhana"
   | "general";
 
 interface UpgradeModalProps {

@@ -64,8 +64,9 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/">
-            <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-2">ॐVani</h1>
+            <h1 className="text-4xl font-serif font-bold text-gradient-sacred mb-1">ॐVani</h1>
           </Link>
+          <p className="text-xs text-muted-foreground/60 font-sans mb-2">{t.home.tagline}</p>
           <p className="text-muted-foreground font-sans text-sm">
             {t.auth.welcomeBack}
           </p>
