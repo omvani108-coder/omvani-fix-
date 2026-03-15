@@ -32,7 +32,7 @@ export function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const current = OPTIONS.find((o) => o.lang === language)!;
+  const current = OPTIONS.find((o) => o.lang === language) ?? OPTIONS[0];
 
   return (
     <div ref={ref} className="relative">

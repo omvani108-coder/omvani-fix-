@@ -200,6 +200,8 @@ const Kundli = () => {
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(result).then(() => {
       toast.success("Reading copied to clipboard!");
+    }).catch(() => {
+      toast.error("Could not copy to clipboard");
     });
   }, [result]);
 

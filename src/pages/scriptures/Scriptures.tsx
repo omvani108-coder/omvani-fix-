@@ -693,9 +693,9 @@ export default function Scriptures() {
   const [sidebarOpen, setSidebarOpen]       = useState(false);
   const [askData, setAskData]               = useState<{ title: string; sanskrit: string; meaning: string } | null>(null);
 
-  const chapter    = chapters.find(c => c.number === currentChapter)!;
-  const upanishad  = upanishads.find(u => u.id === currentUpanishad)!;
-  const pada       = padas.find(p => p.number === currentPada)!;
+  const chapter    = chapters.find(c => c.number === currentChapter) ?? chapters[0];
+  const upanishad  = upanishads.find(u => u.id === currentUpanishad) ?? upanishads[0];
+  const pada       = padas.find(p => p.number === currentPada) ?? padas[0];
 
   useEffect(() => {
     if (!searchQuery.trim()) { setSearchResults([]); setIsSearching(false); return; }

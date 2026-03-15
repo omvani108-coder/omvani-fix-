@@ -82,7 +82,6 @@ export function useNotifications() {
       if (token) {
         setPermission("granted");
         // TODO: send token to your backend for server-side push
-        console.log("Native push token:", token);
         return true;
       }
       setPermission("denied");
