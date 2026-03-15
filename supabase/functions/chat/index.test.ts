@@ -26,7 +26,10 @@ Deno.test("CORS — allows exact origins", () => {
   assert(isAllowedOrigin("https://omvani.in"));
   assert(isAllowedOrigin("https://www.omvani.in"));
   assert(isAllowedOrigin("https://omvani.vercel.app"));
-  assert(isAllowedOrigin("http://localhost:8080"));
+});
+
+Deno.test("CORS — localhost rejected in production", () => {
+  assertEquals(isAllowedOrigin("http://localhost:8080"), false);
 });
 
 Deno.test("CORS — allows Vercel preview deployments", () => {
