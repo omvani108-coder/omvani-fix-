@@ -197,6 +197,7 @@ export function useChat(): UseChatReturn {
       await saveMessage(conversationId, "user", content.trim());
     }
 
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -231,7 +232,7 @@ export function useChat(): UseChatReturn {
       }
 
       // Stream the response
-      const reader = res.body?.getReader();
+      reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
 
@@ -272,6 +273,8 @@ export function useChat(): UseChatReturn {
       }
 
     } catch (err) {
+      // Cancel the stream reader to release the connection
+      if (reader) reader.cancel().catch(() => {});
       if (err instanceof Error && err.name === "AbortError") return;
       console.error("Chat error:", err);
       toast.error("Could not reach the guru. Please try again.");

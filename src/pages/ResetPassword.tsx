@@ -52,10 +52,10 @@ const ResetPassword = () => {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast({
         title: t.auth.password || "Password",
-        description: "Password must be at least 6 characters.",
+        description: "Password must be at least 8 characters.",
         variant: "destructive",
       });
       return;
@@ -204,7 +204,7 @@ const ResetPassword = () => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t.auth.passwordPlaceholder || "At least 6 characters"}
+                  placeholder={t.auth.passwordPlaceholder || "At least 8 characters"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -235,9 +235,9 @@ const ResetPassword = () => {
             </div>
 
             {/* Password strength hint */}
-            {password.length > 0 && password.length < 6 && (
+            {password.length > 0 && password.length < 8 && (
               <p className="text-xs text-amber-600 dark:text-amber-400 font-sans">
-                Password needs at least 6 characters ({6 - password.length} more)
+                Password needs at least 8 characters ({8 - password.length} more)
               </p>
             )}
 

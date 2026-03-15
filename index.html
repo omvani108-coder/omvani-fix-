@@ -31,13 +31,8 @@
     <meta name="twitter:image" content="https://omvani.in/og-cover.jpg" />
   
 
-    <!-- Preload hero background so it starts downloading before JS executes -->
-    <link
-      rel="preload"
-      as="image"
-      href="/src/assets/hero-bg.jpg"
-      fetchpriority="high"
-    />
+    <!-- Hero background is loaded via CSS/React — no preload needed in production
+         (Vite does not transform preload href for images, causing 404 in builds) -->
   </head>
 
   <body>

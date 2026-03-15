@@ -20,12 +20,12 @@ export async function streamAI(
   const token = session?.access_token ?? supabaseKey;
 
   // 60-second timeout to prevent indefinite hangs
+  const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     if (!signal.aborted) {
       controller.abort();
     }
   }, 60_000);
-  const controller = new AbortController();
   // If the external signal aborts, forward it
   signal.addEventListener("abort", () => controller.abort());
 
