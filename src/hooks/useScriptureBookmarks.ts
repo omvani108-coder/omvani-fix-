@@ -15,14 +15,31 @@ import { useAuth } from "@/contexts/AuthContext";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ScriptureType = "gita" | "upanishad" | "yoga_sutras";
+export type ScriptureType =
+  | "gita"
+  | "upanishad"
+  | "yoga_sutras"
+  | "hanuman_chalisa"
+  | "sunderkand"
+  | "vishnu_sahasranama"
+  | "lalita_sahasranama"
+  | "shiv_tandav"
+  | "aditya_hridayam"
+  | "guru_granth_sahib";
 
 // ── localStorage keys (legacy — used for migration only) ─────────────────────
 
 const LS_KEYS: Record<ScriptureType, string> = {
-  gita:        "omvani_bookmarks",
-  upanishad:   "omvani_upanishad_bookmarks",
-  yoga_sutras: "omvani_sutra_bookmarks",
+  gita:                "omvani_bookmarks",
+  upanishad:           "omvani_upanishad_bookmarks",
+  yoga_sutras:         "omvani_sutra_bookmarks",
+  hanuman_chalisa:     "omvani_hanuman_chalisa_bookmarks",
+  sunderkand:          "omvani_sunderkand_bookmarks",
+  vishnu_sahasranama:  "omvani_vishnu_sahasranama_bookmarks",
+  lalita_sahasranama:  "omvani_lalita_sahasranama_bookmarks",
+  shiv_tandav:         "omvani_shiv_tandav_bookmarks",
+  aditya_hridayam:     "omvani_aditya_hridayam_bookmarks",
+  guru_granth_sahib:   "omvani_guru_granth_sahib_bookmarks",
 };
 
 function lsLoad(type: ScriptureType): string[] {

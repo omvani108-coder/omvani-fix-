@@ -289,6 +289,152 @@ export type Database = {
         }
         Relationships: []
       }
+      scriptures: {
+        Row: {
+          id: string
+          name: string
+          name_sanskrit: string | null
+          tradition: string | null
+          category: string
+          total_verses: number
+          total_chapters: number
+          summary: string | null
+          cover_gradient: string | null
+          accent_color: string | null
+          is_free: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          name_sanskrit?: string | null
+          tradition?: string | null
+          category?: string
+          total_verses?: number
+          total_chapters?: number
+          summary?: string | null
+          cover_gradient?: string | null
+          accent_color?: string | null
+          is_free?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          name_sanskrit?: string | null
+          tradition?: string | null
+          category?: string
+          total_verses?: number
+          total_chapters?: number
+          summary?: string | null
+          cover_gradient?: string | null
+          accent_color?: string | null
+          is_free?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      scripture_chapters: {
+        Row: {
+          id: string
+          scripture_id: string
+          number: number
+          title: string
+          subtitle: string | null
+          summary: string | null
+          total_verses: number
+          is_free: boolean
+          sort_order: number
+        }
+        Insert: {
+          id: string
+          scripture_id: string
+          number: number
+          title: string
+          subtitle?: string | null
+          summary?: string | null
+          total_verses?: number
+          is_free?: boolean
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          scripture_id?: string
+          number?: number
+          title?: string
+          subtitle?: string | null
+          summary?: string | null
+          total_verses?: number
+          is_free?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripture_chapters_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scripture_verses: {
+        Row: {
+          id: string
+          scripture_id: string
+          chapter_id: string
+          verse_number: number
+          sanskrit: string
+          transliteration: string | null
+          meaning: string
+          word_meanings: string | null
+          is_key_verse: boolean
+          sort_order: number
+        }
+        Insert: {
+          id: string
+          scripture_id: string
+          chapter_id: string
+          verse_number: number
+          sanskrit: string
+          transliteration?: string | null
+          meaning: string
+          word_meanings?: string | null
+          is_key_verse?: boolean
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          scripture_id?: string
+          chapter_id?: string
+          verse_number?: number
+          sanskrit?: string
+          transliteration?: string | null
+          meaning?: string
+          word_meanings?: string | null
+          is_key_verse?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripture_verses_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scripture_verses_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "scripture_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reminder_preferences: {
         Row: {
           channel: string
