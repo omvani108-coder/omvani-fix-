@@ -11,6 +11,7 @@ import { bhajans, type Bhajan } from "@/data/bhajans";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SeoHead } from "@/components/SeoHead";
+import { trackBhajanPlay } from "@/lib/analytics";
 
 const CATEGORIES = ["All", "Bhajan", "Mantra", "Aarti", "Chalisa", "Stotra"] as const;
 const LANGUAGES = ["All", "Hindi", "Sanskrit", "Both"] as const;
@@ -287,7 +288,7 @@ const Bhajans = () => {
                 <div className="px-5 pb-5 flex gap-2">
                   {/* Play button */}
                   <button
-                    onClick={() => setSelectedBhajan(b)}
+                    onClick={() => { trackBhajanPlay(b.id); setSelectedBhajan(b); }}
                     className="flex-1 flex items-center justify-center gap-2 bg-sacred-gradient text-accent-foreground rounded-lg py-2.5 text-sm font-sans font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                   >
                     <Play className="w-4 h-4" />

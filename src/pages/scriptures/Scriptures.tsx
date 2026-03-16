@@ -13,6 +13,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { DivyaSandeshModal } from "@/components/DivyaSandeshModal";
 import { streamAI } from "@/lib/streamAI";
+import { trackScriptureRead } from "@/lib/analytics";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useScriptureBookmarks, type ScriptureType } from "@/hooks/useScriptureBookmarks";
 import { useScripture, type Scripture, type ScriptureChapter, type ScriptureVerse } from "@/hooks/useScripture";
@@ -536,6 +537,7 @@ export default function Scriptures() {
   const openScripture = (id: string) => {
     const s = scriptures.find(sc => sc.id === id);
     if (s && !s.is_free && !canAccessAllScriptures) { setUpgradeOpen(true); return; }
+    trackScriptureRead(id);
     selectScripture(id);
     setSearchQuery(""); setShowBookmarks(false); setView("reader"); scrollTop();
   };

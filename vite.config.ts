@@ -42,6 +42,7 @@ export default defineConfig({
             "date-fns",
           ],
           sentry: ["@sentry/react"],
+          posthog: ["posthog-js"],
         },
       },
     },

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConversationSidebar from "@/components/ConversationSidebar";
 import { useSubscription } from "@/hooks/useSubscription";
+import { trackChatMessage } from "@/lib/analytics";
 import UpgradeModal from "@/components/UpgradeModal";
 
 // ─── Scripture Reference Badge ────────────────────────────────────────────────
@@ -346,6 +347,7 @@ export default function Chat() {
     }
     const text = input;
     setInput("");
+    trackChatMessage();
     await sendMessage(text);
     // Usage is incremented by the edge function - no client call needed
   };

@@ -8,6 +8,7 @@ import { fadeUp } from "@/lib/animations";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { usePujaSync } from "@/hooks/usePujaSync";
+import { trackPujaComplete } from "@/lib/analytics";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -352,6 +353,7 @@ export default function PujaTracker({ embedded = false }: { embedded?: boolean }
   // Toggle a puja item
   const toggleItem = (itemId: string) => {
     if (isSelectedFuture) return;
+    trackPujaComplete(itemId);
     syncToggle(selectedKey, itemId);
   };
 

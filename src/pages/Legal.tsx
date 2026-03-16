@@ -26,6 +26,7 @@ function PrivacyContent() {
         <li><strong>Resend</strong> — Transactional email delivery</li>
         <li><strong>Twilio</strong> — WhatsApp reminder delivery</li>
         <li><strong>Sentry</strong> — Error monitoring and crash reporting (production only)</li>
+        <li><strong>PostHog</strong> — Privacy-friendly product analytics (page views and feature usage, no advertising)</li>
         <li><strong>Firebase Cloud Messaging</strong> — Push notification delivery on Android</li>
       </ul>
       <p>Each service processes only the minimum data needed to provide its function.</p>
@@ -37,7 +38,7 @@ function PrivacyContent() {
       <p>OmVani uses artificial intelligence to generate spiritual guidance responses. These responses are based on Hindu scriptures (Bhagavad Gita, Upanishads, Vedas, Puranas) but are AI-generated interpretations and should not be considered authoritative religious rulings. Always consult qualified spiritual teachers for important matters.</p>
 
       <h2 className="font-serif">6. Cookies & Local Storage</h2>
-      <p>We use browser localStorage to save your preferences (language, theme, notification settings). We use Sentry for error monitoring in production — it collects anonymous error data and device context to help us fix crashes. We do not use third-party tracking cookies or advertising analytics services.</p>
+      <p>We use browser localStorage to save your preferences (language, theme, notification settings). We use Sentry for error monitoring in production — it collects anonymous error data and device context to help us fix crashes. We use PostHog for product analytics to understand how features are used — it tracks page views and key actions but does not use advertising cookies or share data with ad networks.</p>
 
       <h2 className="font-serif">7. Data Retention</h2>
       <p>We retain your data for as long as your account is active. Chat conversations, puja records, and kundli analyses are kept to provide a continuous experience. When you delete your account, all associated data is permanently removed within 30 days.</p>

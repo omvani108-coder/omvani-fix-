@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { PostHogProvider } from "@/components/PostHogProvider";
 import { Suspense, lazy, ComponentType } from "react";
 
 // ── Retry wrapper for lazy imports ─────────────────────────────────────────────
@@ -110,6 +111,7 @@ const App = () => (
         <BrowserRouter>
           <LanguageProvider>
             <AuthProvider>
+              <PostHogProvider>
               {/* Wrap all lazy routes in a single Suspense */}
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -137,6 +139,7 @@ const App = () => (
               </Suspense>
               {/* BottomNav inside AuthProvider so it can access auth state */}
               <BottomNav />
+              </PostHogProvider>
             </AuthProvider>
           </LanguageProvider>
         </BrowserRouter>

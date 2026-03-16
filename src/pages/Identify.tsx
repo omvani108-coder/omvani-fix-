@@ -11,6 +11,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { SeoHead } from "@/components/SeoHead";
 import { isNative, nativeCamera } from "@/lib/native";
+import { trackDeityIdentify } from "@/lib/analytics";
 
 type DeityResult = {
   name: string;
@@ -116,6 +117,7 @@ const Identify = ({ embedded = false }: { embedded?: boolean }) => {
     }
     setLoading(true);
     setResult(null);
+    trackDeityIdentify();
 
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
