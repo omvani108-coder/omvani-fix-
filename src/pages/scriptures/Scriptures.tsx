@@ -268,9 +268,9 @@ function AskPanel({ title, sanskrit, meaning, onClose }: { title: string; sanskr
 }
 
 // ─── Scripture Book Card (library view) ───────────────────────────────────────
-function ScriptureCard({ scripture, isActive, isLocked, onSelect }: {
+function ScriptureCard({ scripture, isActive, isLocked, onSelect, eager }: {
   scripture: Scripture; isActive: boolean; isLocked: boolean;
-  onSelect: () => void;
+  onSelect: () => void; eager?: boolean;
 }) {
   return (
     <motion.button
@@ -292,7 +292,7 @@ function ScriptureCard({ scripture, isActive, isLocked, onSelect }: {
               src={scripture.cover_image}
               alt={scripture.name}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
+              loading={eager ? "eager" : "lazy"}
             />
             {/* Gradient overlay for text readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -590,13 +590,14 @@ export default function Scriptures() {
 
           {/* Scripture Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
-            {scriptures.map(s => (
+            {scriptures.map((s, i) => (
               <ScriptureCard
                 key={s.id}
                 scripture={s}
                 isActive={false}
                 isLocked={!s.is_free && !canAccessAllScriptures}
                 onSelect={() => openScripture(s.id)}
+                eager={i < 4}
               />
             ))}
           </div>

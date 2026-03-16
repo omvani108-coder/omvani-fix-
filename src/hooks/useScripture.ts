@@ -150,6 +150,111 @@ function buildStaticScriptures(): Scripture[] {
       emoji: "🧘",
       cover_image: SCRIPTURE_COVERS["yoga-sutras"] ?? null,
     },
+    {
+      id: "hanuman-chalisa",
+      name: "Hanuman Chalisa",
+      name_sanskrit: "हनुमान चालीसा",
+      tradition: "Ramcharitmanas",
+      category: "Chalisa",
+      total_verses: 43,
+      total_chapters: 1,
+      summary: "Tulsidas's beloved 40-verse hymn to Lord Hanuman — recited daily by millions for strength and devotion.",
+      accent_color: "hsl(15,85%,55%)",
+      is_free: true,
+      sort_order: 3,
+      emoji: "🐒",
+      cover_image: SCRIPTURE_COVERS["hanuman-chalisa"] ?? null,
+    },
+    {
+      id: "sunderkand",
+      name: "Sunderkand",
+      name_sanskrit: "सुन्दरकाण्ड",
+      tradition: "Ramcharitmanas",
+      category: "Epic",
+      total_verses: 60,
+      total_chapters: 1,
+      summary: "The beautiful chapter from Ramcharitmanas — Hanuman's heroic journey to Lanka and discovery of Sita.",
+      accent_color: "hsl(35,80%,50%)",
+      is_free: false,
+      sort_order: 4,
+      emoji: "🏹",
+      cover_image: SCRIPTURE_COVERS["sunderkand"] ?? null,
+    },
+    {
+      id: "vishnu-sahasranama",
+      name: "Vishnu Sahasranama",
+      name_sanskrit: "विष्णुसहस्रनाम",
+      tradition: "Mahabharata",
+      category: "Stotra",
+      total_verses: 107,
+      total_chapters: 1,
+      summary: "The thousand names of Lord Vishnu — a powerful hymn from the Mahabharata for divine protection.",
+      accent_color: "hsl(220,70%,55%)",
+      is_free: false,
+      sort_order: 5,
+      emoji: "🔱",
+      cover_image: SCRIPTURE_COVERS["vishnu-sahasranama"] ?? null,
+    },
+    {
+      id: "lalita-sahasranama",
+      name: "Lalita Sahasranama",
+      name_sanskrit: "ललितासहस्रनाम",
+      tradition: "Brahmanda Purana",
+      category: "Stotra",
+      total_verses: 182,
+      total_chapters: 1,
+      summary: "The thousand names of the Divine Mother — from the Brahmanda Purana, celebrating Shakti in all forms.",
+      accent_color: "hsl(320,65%,55%)",
+      is_free: false,
+      sort_order: 6,
+      emoji: "🌸",
+      cover_image: SCRIPTURE_COVERS["lalita-sahasranama"] ?? null,
+    },
+    {
+      id: "shiv-tandav",
+      name: "Shiv Tandav Stotram",
+      name_sanskrit: "शिवताण्डवस्तोत्रम्",
+      tradition: "Ravana Krit",
+      category: "Stotra",
+      total_verses: 17,
+      total_chapters: 1,
+      summary: "Ravana's powerful hymn to Lord Shiva's cosmic dance — a masterpiece of Sanskrit devotional poetry.",
+      accent_color: "hsl(260,50%,55%)",
+      is_free: false,
+      sort_order: 7,
+      emoji: "🔥",
+      cover_image: SCRIPTURE_COVERS["shiv-tandav"] ?? null,
+    },
+    {
+      id: "aditya-hridayam",
+      name: "Aditya Hridayam",
+      name_sanskrit: "आदित्यहृदयम्",
+      tradition: "Ramayana",
+      category: "Stotra",
+      total_verses: 31,
+      total_chapters: 1,
+      summary: "The heart of the Sun God — Sage Agastya's hymn to Lord Rama before the battle with Ravana.",
+      accent_color: "hsl(45,90%,50%)",
+      is_free: false,
+      sort_order: 8,
+      emoji: "☀️",
+      cover_image: SCRIPTURE_COVERS["aditya-hridayam"] ?? null,
+    },
+    {
+      id: "guru-granth-sahib",
+      name: "Guru Granth Sahib",
+      name_sanskrit: "ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ",
+      tradition: "Sikh",
+      category: "Granth",
+      total_verses: 50,
+      total_chapters: 1,
+      summary: "Selected shabads from the eternal Guru of the Sikhs — hymns of divine love, equality, and devotion.",
+      accent_color: "hsl(28,75%,50%)",
+      is_free: false,
+      sort_order: 9,
+      emoji: "📖",
+      cover_image: SCRIPTURE_COVERS["guru-granth-sahib"] ?? null,
+    },
   ];
 }
 
@@ -323,36 +428,27 @@ export function useScripture() {
   const dbChecked = useRef(false);
   const useDb = useRef(false);
 
-  // ── Check if DB tables have data ──────────────────────────────────────────
+  // ── Check if DB tables have data (single query, no count pre-check) ───────
   useEffect(() => {
     if (dbChecked.current) return;
     dbChecked.current = true;
 
     (async () => {
       try {
-        const { count, error } = await supabase
+        const { data, error } = await supabase
           .from("scriptures")
-          .select("id", { count: "exact", head: true });
+          .select("*")
+          .order("sort_order");
 
-        if (!error && count && count > 0) {
+        if (!error && data && data.length > 0) {
           useDb.current = true;
-          // Load scripture list from DB
-          setLoadingScriptures(true);
-          const { data } = await supabase
-            .from("scriptures")
-            .select("*")
-            .order("sort_order");
-
-          if (data && data.length > 0) {
-            setScriptures(
-              (data as any[]).map((s) => ({
-                ...s,
-                emoji: SCRIPTURE_EMOJIS[s.id] ?? "📜",
-                cover_image: SCRIPTURE_COVERS[s.id] ?? null,
-              }))
-            );
-          }
-          setLoadingScriptures(false);
+          setScriptures(
+            (data as any[]).map((s) => ({
+              ...s,
+              emoji: SCRIPTURE_EMOJIS[s.id] ?? "📜",
+              cover_image: SCRIPTURE_COVERS[s.id] ?? null,
+            }))
+          );
         }
       } catch {
         // DB tables don't exist yet — use static data
@@ -388,12 +484,17 @@ export function useScripture() {
       setCurrentChapterId("");
       setVerses([]);
       setSearchResults([]);
+      setLoadingVerses(true);   // Show spinner immediately (prevents "No verses" flash)
+      setLoadingChapters(true);
 
       const finalize = (chs: ScriptureChapter[]) => {
         setChapters(chs);
+        setLoadingChapters(false);
         if (chs.length > 0) {
           setCurrentChapterId(chs[0].id);
           loadVerses(id, chs[0].id);
+        } else {
+          setLoadingVerses(false); // No chapters → nothing to load
         }
       };
 
@@ -405,7 +506,6 @@ export function useScripture() {
       }
 
       if (useDb.current) {
-        setLoadingChapters(true);
         supabase
           .from("scripture_chapters")
           .select("*")
@@ -415,7 +515,6 @@ export function useScripture() {
             const chs = (data ?? []) as ScriptureChapter[];
             chaptersCache.current.set(id, chs);
             finalize(chs);
-            setLoadingChapters(false);
           });
       } else {
         const chs = buildStaticChapters(id);
@@ -431,6 +530,7 @@ export function useScripture() {
     (chapterId: string) => {
       setCurrentChapterId(chapterId);
       setSearchResults([]);
+      setLoadingVerses(true);
       loadVerses(currentScriptureId, chapterId);
     },
     [currentScriptureId, loadVerses]
